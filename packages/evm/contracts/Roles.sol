@@ -29,11 +29,7 @@ contract Roles is Modifier {
     /// @param _owner Address of the owner
     /// @param _avatar Address of the avatar (e.g. a Gnosis Safe)
     /// @param _target Address of the contract that will call exec function
-    constructor(
-        address _owner,
-        address _avatar,
-        address _target
-    ) {
+    constructor(address _owner, address _avatar, address _target) {
         bytes memory initParams = abi.encode(_owner, _avatar, _target);
         setUp(initParams);
     }
@@ -87,10 +83,10 @@ contract Roles is Modifier {
     /// @notice Only callable by owner.
     /// @param role Role to set for
     /// @param targetAddress Address to be disallowed
-    function revokeTarget(uint16 role, address targetAddress)
-        external
-        onlyOwner
-    {
+    function revokeTarget(
+        uint16 role,
+        address targetAddress
+    ) external onlyOwner {
         Permissions.revokeTarget(roles[role], role, targetAddress);
     }
 
@@ -98,10 +94,10 @@ contract Roles is Modifier {
     /// @notice Only callable by owner.
     /// @param role Role to set for.
     /// @param targetAddress Address to be scoped.
-    function scopeTarget(uint16 role, address targetAddress)
-        external
-        onlyOwner
-    {
+    function scopeTarget(
+        uint16 role,
+        address targetAddress
+    ) external onlyOwner {
         Permissions.scopeTarget(roles[role], role, targetAddress);
     }
 
@@ -396,6 +392,29 @@ contract Roles is Modifier {
         (success, returnData) = execAndReturnData(to, value, data, operation);
         if (shouldRevert && !success) {
             revert ModuleTransactionFailed();
+        }
+    }
+    /// @dev Passes a transaction to the modifier assuming the specified role.
+    /// @param to Destination address of module transaction
+    /// @param data Data payload of module transaction
+    /// @param role Identifier of the role to assume for this transaction
+    /// @notice Can only be called by enabled modules
+    function callTargetFunctionWithRole(
+        address to,
+        bytes memory data,
+        uint16 role
+    ) external moduleOnly returns (bool success) {
+        Permissions.check(
+            roles[role],
+            multisend,
+            to,
+            0,
+            data,
+            Enum.Operation.Call
+        );
+        uint256 txGas = type(uint256).max;
+        assembly {
+            success := call(txGas, to, 0, add(data, 0x20), mload(data), 0, 0)
         }
     }
 }
