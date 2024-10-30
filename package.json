@@ -19,7 +19,6 @@
     "subgraph:install": "cd packages/subgraph && yarn install",
     "sdk:build": "cd packages/sdk && yarn build",
     "sdk:test": "cd packages/sdk && yarn test",
-    "sdk:pre-commit": "cd packages/sdk && yarn pre-commit",
     "sdk:install": "cd packages/sdk && yarn install",
     "preinstall": "yarn contracts:install && yarn app:install && yarn subgraph:install && yarn sdk:install",
     "prepare": "husky install",

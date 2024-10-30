@@ -37,7 +37,7 @@ if (PK) {
 }
 
 if (
-  ["goerli", "sepolia", "mainnet"].includes(argv.network) &&
+  ["sepolia", "mainnet"].includes(argv.network) &&
   INFURA_KEY === undefined
 ) {
   throw new Error(
@@ -67,23 +67,11 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       ...sharedNetworkConfig,
-      url: `https://mainnet.infura.io/v3/${INFURA_KEY}`,
-    },
-    goerli: {
-      ...sharedNetworkConfig,
-      url: `https://goerli.infura.io/v3/${INFURA_KEY}`,
+      url: `https://eth-mainnet.g.alchemy.com/v2/${INFURA_KEY}`,
     },
     sepolia: {
       ...sharedNetworkConfig,
-      url: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
-    },
-    xdai: {
-      ...sharedNetworkConfig,
-      url: "https://rpc.gnosischain.com/",
-    },
-    matic: {
-      ...sharedNetworkConfig,
-      url: "https://rpc-mainnet.maticvigil.com",
+      url: `https://eth-sepolia.g.alchemy.com/v2/${INFURA_KEY}`,
     },
   },
   namedAccounts: {
