@@ -1,7 +1,7 @@
 import { DeployFunction } from "hardhat-deploy/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-const DAO_SAFE = "0x6Dc1d9c5E9150246A682F5D9C4cB816B3121803F";
+const DAO_SAFE = "0x8aDBEea1eDD1C10c7c75169772e9007d45d4477A";
 
 const deploy: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
