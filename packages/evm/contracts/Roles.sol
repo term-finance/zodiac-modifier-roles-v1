@@ -303,52 +303,6 @@ contract Roles is Modifier {
         emit SetDefaultRole(module, role);
     }
 
-    /// @dev Passes a transaction to the modifier.
-    /// @param to Destination address of module transaction
-    /// @param value Ether value of module transaction
-    /// @param data Data payload of module transaction
-    /// @param operation Operation type of module transaction
-    /// @notice Can only be called by enabled modules
-    function execTransactionFromModule(
-        address to,
-        uint256 value,
-        bytes calldata data,
-        Enum.Operation operation
-    ) public override moduleOnly returns (bool success) {
-        Permissions.check(
-            roles[defaultRoles[msg.sender]],
-            multisend,
-            to,
-            value,
-            data,
-            operation
-        );
-        return exec(to, value, data, operation);
-    }
-
-    /// @dev Passes a transaction to the modifier, expects return data.
-    /// @param to Destination address of module transaction
-    /// @param value Ether value of module transaction
-    /// @param data Data payload of module transaction
-    /// @param operation Operation type of module transaction
-    /// @notice Can only be called by enabled modules
-    function execTransactionFromModuleReturnData(
-        address to,
-        uint256 value,
-        bytes calldata data,
-        Enum.Operation operation
-    ) public override moduleOnly returns (bool, bytes memory) {
-        Permissions.check(
-            roles[defaultRoles[msg.sender]],
-            multisend,
-            to,
-            value,
-            data,
-            operation
-        );
-        return execAndReturnData(to, value, data, operation);
-    }
-
     /// @dev Passes a transaction to the modifier assuming the specified role.
     /// @param to Destination address of module transaction
     /// @param value Ether value of module transaction
