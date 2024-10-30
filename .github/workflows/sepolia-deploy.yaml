@@ -1,0 +1,23 @@
+name: Sepolia Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: sepolia
+      url: https://term-finance.github.io/zodiac-modifier-roles-v1/
+    name: Deploy to Sepolia
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm install -g yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn contracts:install
+      - run: yarn deploy sepolia
+      
