@@ -20,4 +20,11 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: yarn contracts:install
       - run: yarn contracts:deploy sepolia
+        env:
+            INFURA_KEY: ${{ secrets.INFURA_KEY }}
+            PK: ${{ secrets.PK }}
       - run: yarn contracts:verify sepolia
+        env:
+            INFURA_KEY: ${{ secrets.INFURA_KEY }}
+            PK: ${{ secrets.PK }}
+            ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
