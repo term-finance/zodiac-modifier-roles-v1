@@ -11,6 +11,8 @@
     "contracts:install": "cd packages/evm && yarn install",
     "contracts:coverage": "cd packages/evm && yarn coverage",
     "contracts:pre-commit": "cd packages/evm && yarn pre-commit",
+    "contracts:deploy": "cd packages/evm && yarn deploy",
+    "contracts:verify": "cd packages/evm && yarn verify",
     "app:build": "cd packages/app && yarn build",
     "app:pre-commit": "cd packages/app && yarn pre-commit",
     "app:install": "cd packages/app && yarn install",
