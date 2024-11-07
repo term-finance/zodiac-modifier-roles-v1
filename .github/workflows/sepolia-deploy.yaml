@@ -6,7 +6,7 @@ on:
       daoSafe:
         description: 'DAO Safe Address'
         required: true
-        default: '0x
+        default: '0x'
 
 jobs:
   deploy:
