@@ -45,6 +45,8 @@ if (
   );
 }
 
+
+
 const config: HardhatUserConfig = {
   paths: {
     artifacts: "build/artifacts",
@@ -72,6 +74,9 @@ const config: HardhatUserConfig = {
     sepolia: {
       ...sharedNetworkConfig,
       url: `https://eth-sepolia.g.alchemy.com/v2/${INFURA_KEY}`,
+      chainId: 11155111,
+
+
     },
   },
   namedAccounts: {
@@ -81,7 +86,7 @@ const config: HardhatUserConfig = {
     timeout: 2000000,
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: "68YU3C27DCWKJRPXFB8FWPJ16G3RJRP6PR",
   },
 };
 
