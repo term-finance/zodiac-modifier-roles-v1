@@ -1,0 +1,36 @@
+name: Mainnet Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      daoSafe:
+        description: 'DAO Safe Address'
+        required: true
+        default: '0x'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: 
+      name: mainnet
+      url: https://term-finance.github.io/zodiac-modifier-roles-v1/
+    name: Deploy to mainnet
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm install -g yarn
+      - run: yarn install --frozen-lockfile
+      - run: yarn contracts:install
+      - run: yarn contracts:deploy mainnet
+        env:
+            INFURA_KEY: ${{ secrets.INFURA_KEY }}
+            PK: ${{ secrets.PK }}
+            ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+            DAO_SAFE: ${{ github.event.inputs.daoSafe }}
+      - run: yarn contracts:verify mainnet
+        env:
+            INFURA_KEY: ${{ secrets.INFURA_KEY }}
+            PK: ${{ secrets.PK }}
+            ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
