@@ -70,7 +70,9 @@ const config: HardhatUserConfig = {
     mainnet: {
       ...sharedNetworkConfig,
       url: `https://eth-mainnet.g.alchemy.com/v2/${INFURA_KEY}`,
-      gasPrice: "auto", // Add this
+      gas: "auto",
+      gasMultiplier: 1.5, // Increased multiplier for mainnet
+      gasPrice: 35000000000, // 35 gwei - adjust based on current gas prices
     },
     sepolia: {
       ...sharedNetworkConfig,
