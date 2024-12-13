@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { run } = hre;
-  if (!["goerli", "sepolia", "mainnet"].includes(hre.network.name)) {
+  if (!["goerli", "sepolia", "mainnet", "avalanche"].includes(hre.network.name)) {
     return;
   }
 
@@ -12,6 +12,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     console.log(
       `Could not find Infura key in env, unable to connect to network ${hre.network.name}`
     );
+    return;
   }
 
   console.log("Verification of Roles Modifier in etherscan...");
