@@ -37,7 +37,7 @@ if (PK) {
 }
 
 if (
-  ["sepolia", "mainnet"].includes(argv.network) &&
+  ["sepolia", "mainnet", "avalanche"].includes(argv.network) &&
   INFURA_KEY === undefined
 ) {
   throw new Error(
@@ -78,8 +78,11 @@ const config: HardhatUserConfig = {
       ...sharedNetworkConfig,
       url: `https://eth-sepolia.g.alchemy.com/v2/${INFURA_KEY}`,
       chainId: 11155111,
-
-
+    },
+    avalanche: {
+      ...sharedNetworkConfig,
+      url: `https://avax-mainnet.g.alchemy.com/v2/${INFURA_KEY}`,
+      chainId: 43114,
     },
   },
   namedAccounts: {
