@@ -22,3 +22,6 @@ packages/subgraph/abis/*.json
 packages/subgraph/subgraph.yaml
 
 .vscode
+
+/packages/evm/flattened/
+/packages/evm/package/
