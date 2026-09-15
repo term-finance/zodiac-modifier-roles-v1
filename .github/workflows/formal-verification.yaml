@@ -1,0 +1,56 @@
+name: Formal Verification
+on: [push]
+permissions:
+  contents: read
+concurrency:
+  # Per-commit group on main so no main commit's verification is superseded by
+  # a later push — every commit that lands gets its own prover run. Elsewhere,
+  # a new push cancels the previous run for that branch.
+  group: fv-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  formal-verification:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruleset:
+          - "Roles-callTargetAccess.conf"
+          - "Roles-callTargetExecution.conf"
+          - "Roles-callTargetMultisend.conf"
+          - "Roles-callTargetParams.conf"
+          - "Roles-callTargetPermissions.conf"
+          - "Roles-remediation.conf"
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - id: nodeversion
+        run: echo "version=$(grep nodejs .tool-versions | sed -e 's/[^[:space:]]*[[:space:]]*//')" >> $GITHUB_OUTPUT
+      - id: pythonversion
+        run: echo "version=$(grep python .tool-versions | sed -e 's/[^[:space:]]*[[:space:]]*//')" >> $GITHUB_OUTPUT
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.nodeversion.outputs.version }}
+          cache: yarn
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.pythonversion.outputs.version }}
+      # The confs resolve their `packages` remappings against
+      # packages/evm/node_modules, so the install has to land there.
+      - run: yarn install --immutable
+        working-directory: ./packages/evm
+      - run: pip3 install -r requirements.txt
+        working-directory: ./packages/evm
+      - run: solc-select install ${SOLC_VERSION}
+        working-directory: ./packages/evm
+        env:
+          SOLC_VERSION: "0.8.6"
+      - run: |
+          certoraRun "./certora/confs/${{ matrix.ruleset }}" \
+            --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \
+            --wait_for_results all \
+            --rule_sanity basic
+        working-directory: ./packages/evm
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          SOLC_VERSION: "0.8.6"
