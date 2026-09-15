@@ -25,3 +25,7 @@ packages/subgraph/subgraph.yaml
 
 /packages/evm/flattened/
 /packages/evm/package/
+
+# Certora
+**/.venv
+**/.certora*
