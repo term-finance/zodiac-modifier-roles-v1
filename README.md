@@ -4,6 +4,7 @@ ___
 # Zodiac Roles Modifier V1
 
 [![Build Status](https://github.com/gnosis/zodiac-modifier-roles-v1/actions/workflows/ci.yml/badge.svg)](https://github.com/gnosis/zodiac-modifier-roles/actions/workflows/ci.yml)
+[![Formal Verification](https://github.com/term-finance/zodiac-modifier-roles-v1/actions/workflows/formal-verification.yaml/badge.svg?branch=main)](https://github.com/term-finance/zodiac-modifier-roles-v1/actions/workflows/formal-verification.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/zodiac-modifier-roles-v1/badge.svg?branch=main&cache_bust=1)](https://coveralls.io/github/gnosis/zodiac-modifier-roles-v1?branch=main)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](https://github.com/gnosis/CODE_OF_CONDUCT)
 
