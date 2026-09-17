@@ -39,6 +39,14 @@
  *     A future scopeFunctionExecutionOptions raising it to Send or Both would
  *     break the value == 0 and Operation.Call halves of the conclusion, and
  *     the rules would fail — correctly.
+ *   - Multisend batches of two or more entries. roleConfigLimitsSingleEntry-
+ *     MultisendToDelaySetTxNonce covers one entry and says so; the conf's
+ *     loop_iter 1 with optimistic_loop is what bounds it.
+ *   - Multisend blobs of at most 100 bytes. checkMultisendTransaction's loop
+ *     starts at i = 100, so such a blob never enters it and check() returns
+ *     having verified role membership only — no target, function or parameter
+ *     scoping — while the outer transaction still fires at multisend(). Open
+ *     in this scene; SetTxNonceGuard closes it.
  */
 
 using DelayTarget as delayMod;
@@ -55,6 +63,11 @@ methods {
     function target() external returns (address) envfree;
     function owner() external returns (address) envfree;
     function defaultRoles(address) external returns (uint16) envfree;
+
+    // Mirrors checkMultisendTransaction's own per-entry parsing
+    // (Permissions.sol:220-235) byte for byte; see the harness.
+    function multisendEntryAt(bytes, uint256) external
+        returns (Enum.Operation, address, uint256, uint256, bytes) envfree;
 }
 
 definition ROLE() returns uint16 = 1;
@@ -199,6 +212,71 @@ rule nonMemberExecTransactionWithRoleAlwaysReverts(
 
     assert lastReverted,
         "a non-member executed through a role it does not belong to";
+}
+
+/*
+ * The multisend branch, bounded — for a SINGLE-ENTRY batch.
+ *
+ * The four rules above exclude `to == multisend()` outright. This one goes
+ * into that branch and shows the role layer still bounds what is in it: if a
+ * one-entry batch completes, that entry is setTxNonce on the Delay, value 0,
+ * Operation.Call. checkMultisendTransaction forwards every entry to the same
+ * checkTransaction the non-multisend path uses (Permissions.sol:236), so the
+ * scoping that pins the direct call pins the entry too.
+ *
+ * SCOPE, STATED RATHER THAN ASSUMED. The conf runs `loop_iter: 1` with
+ * `optimistic_loop: true`: the entry loop is unrolled once and executions
+ * needing more iterations are ASSUMED away rather than checked. Requiring the
+ * batch to hold exactly one entry makes that scope explicit instead of hiding
+ * behind the optimistic assumption — this rule says nothing whatsoever about
+ * two-or-more-entry batches, and raising loop_iter is what would extend it.
+ *
+ *     data.length > 100         the loop is entered at all (i starts at 100)
+ *     data.length <= 185 + len  it exits after one entry (i += 85 + dataLength)
+ *
+ * The first of those is not a formality. A blob of at most 100 bytes never
+ * enters the loop body, so check() returns having verified role MEMBERSHIP
+ * ONLY — no target, function or parameter scoping at all — and the outer
+ * transaction still fires at multisend(). That is a real hole in this
+ * guard-less scene, it is not closed by this rule, and it is listed with the
+ * other non-claims in the file header. SetTxNonceGuard closes it, along with
+ * the whole branch: see setTxNonceGuardRejectsMultisendTarget.
+ */
+rule roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce(
+    uint256 value, bytes data, Enum.Operation operation, uint16 role, bool shouldRevert
+) {
+    env e;
+    address governor;
+
+    Enum.Operation innerOp;
+    address innerTo;
+    uint256 innerValue;
+    uint256 innerDataLength;
+    bytes innerData;
+    innerOp, innerTo, innerValue, innerDataLength, innerData =
+        multisendEntryAt(data, 100);
+
+    // Exactly one entry.
+    require to_mathint(data.length) > 100;
+    require to_mathint(data.length) <= 185 + to_mathint(innerDataLength);
+    require innerData.length >= 4;
+
+    // The configuration is pinned pointwise on the INNER entry, because that
+    // is what checkTransaction is handed in this branch — not on the outer
+    // `to`, which is multisend() and which this branch never consults.
+    setTxNonceRoleConfigWithoutGuard(e, governor, innerTo, role, innerData);
+    require multisend() != delayMod;
+
+    execTransactionWithRole@withrevert(
+        e, multisend(), value, data, operation, role, shouldRevert
+    );
+
+    assert !lastReverted => (
+        innerTo == delayMod &&
+        innerValue == 0 &&
+        innerOp == Enum.Operation.Call &&
+        selectorOf(innerData) == sig:DelayTarget.setTxNonce(uint256).selector
+    ), "a single-entry multisend batch carried something other than setTxNonce on the Delay";
 }
 
 /*

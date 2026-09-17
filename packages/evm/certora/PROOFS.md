@@ -5,7 +5,7 @@ that establish it. Where several rules share a lemma they are alternative routes
 the same claim — a different entry point, a worse-case configuration, or the guard
 half of an end-to-end statement — and the lemma is proved only if all of them verify.
 
-**Status: all 45 rules across the four confs verify.** Rules marked *(witness)* are
+**Status: 45 of 46 rules verify; `roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce` (3.2a) is newly added and not yet run.** Rules marked *(witness)* are
 `satisfy` rules discharging non-vacuity, not bounds. See [Reproducing](#reproducing) for
 the commands, and [Explicitly not proved](#explicitly-not-proved) for what these results
 do and do not cover.
@@ -24,9 +24,9 @@ Sources:
 | --- | --- | --- | --- | --- |
 | [`confs/Roles-setTxNonceGuardAndRoleConfig.conf`](confs/Roles-setTxNonceGuardAndRoleConfig.conf) | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) | Roles + SetTxNonceGuard + setTxNonce role config (both gates) | 6 | 1.1–1.3 |
 | [`confs/Roles-setTxNonceGuardSufficient.conf`](confs/Roles-setTxNonceGuardSufficient.conf) | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) | Roles + SetTxNonceGuard, role configuration unconstrained | 7 | 2.1–2.4 |
-| [`confs/Roles-setTxNonceRoleConfigSufficient.conf`](confs/Roles-setTxNonceRoleConfigSufficient.conf) | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) | Roles + setTxNonce role config, `guard() == 0` | 6 | 3.1–3.3 |
+| [`confs/Roles-setTxNonceRoleConfigSufficient.conf`](confs/Roles-setTxNonceRoleConfigSufficient.conf) | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) | Roles + setTxNonce role config, `guard() == 0` | 7 | 3.1–3.3 |
 | [`confs/Delay-pauseGuardSufficient.conf`](confs/Delay-pauseGuardSufficient.conf) | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) | Delay + PauseGuard installed via `Guardable.setGuard` | 26 | 4.1–4.21 |
-| | | **total** | **45** | **31** |
+| | | **total** | **46** | **32** |
 
 ---
 
@@ -65,6 +65,7 @@ Spec: `specs/Roles/setTxNonceRoleConfigSufficient.spec`. `guard() == 0` througho
 | --- | --- | --- |
 | 3.1 | With no guard installed, the runbook role configuration (`scopeTarget` → `Clearance.Function` on the Delay, `scopeAllowFunction(setTxNonce, Options.None)`, `assignRoles(governor, [1])`) admits only `setTxNonce(uint256)` on the Delay with `value == 0` and `Operation.Call`, **provided `to != multisend()`** — on **all four** execution entry points. | `roleConfigLimitsExecTransactionWithRoleToDelaySetTxNonce`, `roleConfigLimitsExecTransactionFromModuleToDelaySetTxNonce`, `roleConfigLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce`, `roleConfigLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce` |
 | 3.2 | A caller that is not a member of the named role can execute nothing at all, whatever it sends — the `assignRoles` half of the configuration, isolated from the scoping half. | `nonMemberExecTransactionWithRoleAlwaysReverts` |
+| 3.2a | Inside the multisend branch, a **single-entry** batch is still bounded: if it completes, that entry is `setTxNonce` on the Delay with `value == 0` and `Operation.Call`. `checkMultisendTransaction` forwards each entry to the same `checkTransaction` the direct path uses ([`Permissions.sol:236`](../contracts/Permissions.sol#L236)). **Scope: one entry only** — the conf's `loop_iter: 1` with `optimistic_loop` means longer batches are assumed away, not checked; the rule requires the single-entry shape explicitly rather than relying on that assumption. | `roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce` |
 | 3.3 | The `to != multisend()` caveat in 3.1 is real and not merely conservative: without the guard, a transaction addressed to the configured multisend completes even though `to` is not the Delay, because `Permissions.check` takes the batch branch before consulting clearance for `to`. | `withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig` (witness) |
 
 > 3.3 read together with 2.3 is the argument for keeping SetTxNonceGuard even though the
@@ -158,6 +159,8 @@ is not read as broader than it is.
 | Anything about the 9/9 Safe's own signed transactions. Both guards sit on module paths; Safe owners retain every power they had. | Properties 1, 2, 4 |
 | That the Roles configuration stays as configured. Every `require` in Property 3 describes mutable storage the Roles owner can change in one call — that asymmetry with the immutable guard is the point, not an oversight. | Property 3 |
 | Any `ExecutionOptions` other than `None` on the scoped function. Raising it to `Send` or `Both` would break the `value == 0` / `Operation.Call` halves, and the rules would fail — correctly. | Property 3 |
+| Multisend batches of **two or more entries**. 3.2a covers one entry and says so; `loop_iter: 1` with `optimistic_loop` is what bounds it. Raising `loop_iter` extends it to bounded batch lengths, never to arbitrary ones. | Property 3 |
+| Multisend blobs of **at most 100 bytes**. `checkMultisendTransaction`'s loop starts at `i = 100`, so such a blob never enters it: `check()` returns having verified role **membership only** — no target, function or parameter scoping — while the outer transaction still fires at `multisend()`. Open in the guard-less scene; the guard closes it (2.3). | Property 3 |
 | Who holds PauseGuard's roles. Membership is unconstrained apart from the holder under test, so the rules hold for any admin and pauser, including Safes. | Property 4 |
 | Anything about queueing on the Delay. `execTransactionFromModule` / `…ReturnData` never reach `Module.exec`. | Property 4 |
 | That the DelayOwnerSafe's signed transactions are unguarded in general. Lemmas 4.18/4.19 hold because PauseGuard is installed on the **Delay**, via the Zodiac Modifier's `Guardable.setGuard`. If the same PauseGuard were *also* installed as the Safe's own transaction guard, a pause would block that route too — a deployment constraint the rules depend on, not one they prove. | Property 4 |
