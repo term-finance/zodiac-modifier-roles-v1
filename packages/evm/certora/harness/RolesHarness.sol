@@ -93,6 +93,26 @@ contract RolesHarness is Roles {
         return Permissions.pluckStaticValue(data, index);
     }
 
+    /// @dev Mirrors checkTransaction's own `bytes4(data)` truncation
+    /// (Permissions.sol:270), so a spec can pin `data` to a particular
+    /// selector without slicing bytes in CVL.
+    /// Returned as uint32 rather than bytes4 so a spec can compare it
+    /// directly against CVL's `sig:C.f(...).selector`, which is uint32.
+    function selectorOf(bytes memory data) external pure returns (uint32) {
+        return uint32(bytes4(data));
+    }
+
+    /// @dev pluckStaticValueAt, already widened to uint256. CVL has no cast
+    /// from bytes32 to uint256, and every rule that compares a plucked
+    /// argument against numeric contract state (a nonce, a balance) needs
+    /// one; doing the widening in Solidity keeps that out of the spec.
+    function pluckStaticUintAt(
+        bytes memory data,
+        uint256 index
+    ) external pure returns (uint256) {
+        return uint256(Permissions.pluckStaticValue(data, index));
+    }
+
     function compValueOfForData(
         uint16 roleId,
         address targetAddress,

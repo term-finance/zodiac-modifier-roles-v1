@@ -15,12 +15,10 @@ jobs:
     strategy:
       matrix:
         ruleset:
-          - "Roles-callTargetAccess.conf"
-          - "Roles-callTargetExecution.conf"
-          - "Roles-callTargetMultisend.conf"
-          - "Roles-callTargetParams.conf"
-          - "Roles-callTargetPermissions.conf"
-          - "Roles-remediation.conf"
+          - "Roles-setTxNonceGuardAndRoleConfig.conf"
+          - "Roles-setTxNonceGuardSufficient.conf"
+          - "Roles-setTxNonceRoleConfigSufficient.conf"
+          - "Delay-pauseGuardSufficient.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
