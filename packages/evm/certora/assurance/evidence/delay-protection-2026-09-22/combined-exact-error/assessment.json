@@ -1,0 +1,11 @@
+{
+  "reportUrl": "https://prover.certora.com/output/99679/8d19f20304b444f0a95981f660c8e0b7?anonymousKey=a29234527b3877cd8daa599bd05b6427bbcb549e",
+  "terminal": true,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeForwarded": "ERROR"
+  },
+  "functionalPolicyTheoremAccepted": false,
+  "semanticClosureCertified": false,
+  "reason": "Internal prover error; no proof accepted."
+}

@@ -97,3 +97,10 @@ A separate bytecode-level Halmos lemma proves packed-key injectivity for arbitra
 address/selector pairs using the actual `Permissions.keyForFunctions` body. See
 `symbolic-packed-key` for its compiler inputs and six explored paths. This is a
 supporting lemma, not acceptance of the still-failing CVL permission theorem.
+
+Combining both exact overlapping-write inlining and exact SMT byte maps in the
+original unsplit rule also produced error 27672571 in its main assertion
+(job `8d19f20304b444f0a95981f660c8e0b7`, `combined-exact-error`). Its assessment
+records whether the service had finished at collection time; running sanity
+children are never accepted as verified. No configuration or assumption was
+weakened, and the canonical strict proof remains unchanged.

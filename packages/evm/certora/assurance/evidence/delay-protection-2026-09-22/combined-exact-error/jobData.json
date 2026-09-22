@@ -1,0 +1,30 @@
+{
+  "outputUrl": "https://prover.certora.com/output/99679/8d19f20304b444f0a95981f660c8e0b7/",
+  "postTime": "2026-09-22T22:43:17.639623Z",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-smt_preciseBytemaps",
+    "true",
+    "-exactByteMaps",
+    "true"
+  ],
+  "jobStatus": "SUCCEEDED",
+  "notifyMsg": "20260922 strict policy with both exact overlapping-write inlining and SMT byte-memory semantics",
+  "jobId": "8d19f20304b444f0a95981f660c8e0b7",
+  "anonymousKey": "a29234527b3877cd8daa599bd05b6427bbcb549e",
+  "contract": "RolesHarness",
+  "finishTime": "2026-09-22T22:51:10.868000Z",
+  "jobSource": "COMMAND",
+  "buildArgs": "/private/tmp/term-roles-combined-exact.conf --wait_for_results all --msg '20260922 strict policy with both exact overlapping-write inlining and SMT byte-memory semantics'",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/8d19f20304b444f0a95981f660c8e0b7/f/outputs",
+  "startTime": "2026-09-22T22:44:12.835000Z"
+}
