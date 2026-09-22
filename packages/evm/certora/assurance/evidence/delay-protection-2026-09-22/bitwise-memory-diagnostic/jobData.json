@@ -1,0 +1,26 @@
+{
+  "anonymousKey": "2779c5f7e58d977a6866ce546c70a7f6b1201cba",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results none",
+  "contract": "RolesHarness",
+  "finishTime": "2026-09-22T12:14:15.144000Z",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600"
+  ],
+  "javaArgs": [],
+  "jobId": "e31c3df11ff04e0295c79df7e26a63d0",
+  "jobSource": "COMMAND",
+  "jobStatus": "SUCCEEDED",
+  "notifyMsg": "Veto-only Delay policy: explicitly cleared selector cannot use any implemented forwarding entrypoint",
+  "outputUrl": "https://prover.certora.com/output/99679/e31c3df11ff04e0295c79df7e26a63d0/",
+  "postTime": "2026-09-22T11:58:02.373444Z",
+  "startTime": "2026-09-22T11:58:49.702000Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/e31c3df11ff04e0295c79df7e26a63d0/f/outputs"
+}

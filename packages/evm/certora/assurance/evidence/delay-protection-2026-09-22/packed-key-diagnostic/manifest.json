@@ -1,9 +1,11 @@
 {
   "filesSha256": {
-    "assessment.json": "5a94aa30be3e6466f36955bd305491c5ba37b4c6fc57a9289d920afeca4c856f",
-    "jobData.json": "68bb7364279a3f8aaf1bd6eec655cf91c50d3192371caf97ca42151bf9acfd46",
-    "progress.json": "c3db527ebd9da4df875454e56a3ddf26725447ba8de215738646e89191448fcd",
+    "assessment.json": "7e55110c66d023b1bef1c54fbbba499b602560c5949c41651ae4a9102d2e2b78",
+    "jobData.json": "6da82dd13b0d0f92c378ae2406a343ad68af693c3ff434337dcc5d3b4e84cf8b",
+    "jsonOutput.json": "6068375ec4d057ba1c24efa4e572374ff7a496d51ef892d0b679c66ad2affbb1",
+    "progress.json": "e07ddb95d1c3ad77fc9e197034adc2c665b1c134016ed96d3d3238085db50595",
     "rule_output_1.json.gz": "f6f7214cbfbbd381a7f808841ac6a2f76228fe500affa3558d2c51d1557c6cbf",
+    "rule_output_10.json.gz": "e93f5b1063ce056dc4a24a93b8e2bd261d00400302092706f9a4a6690b6393eb",
     "rule_output_11.json.gz": "52e4805ba3292ca0c40f4f3d4b5c9f3eecadc9bceb06e4c54468a3b2b3c42734",
     "rule_output_2.json.gz": "aee29253036e2f9c124c4883f113f5d59ade0c6800566a67cbdf7ea0cd615c9d",
     "rule_output_3.json.gz": "07ac38418b6bb598dc5c9602b151389ab0cbbfb37e8bf9f0b3a6f633adab5298",
@@ -11,6 +13,8 @@
     "rule_output_5.json.gz": "175f6fa2b761033a3a9b2ccc1e1b45621f3f9282a0cdfdd2300ec13077dc028e",
     "rule_output_6.json.gz": "18a6e967fb72ae4b5a1a989a20b8d89bb705604240f52d586c23ee078415e226",
     "rule_output_7.json.gz": "cf08a5a66834933f4cd6b484c0d2586ac526a0a8973e1dbe3905719aa4b5d7fc",
+    "rule_output_8.json.gz": "2a9b34f0b334151bddf26fe261d312e3529e8c26c158d0b1c373189805353c73",
+    "rule_output_9.json.gz": "cf96d9072d69c9d955502aabec9d6fe5b1c48846b65d3c75c0c44ecec1d6d489",
     "submission.log": "f4cb656f51a3ca3dd31196cdeafdc11473523c5f24fc65826f1a80cb004568b1",
     "submitted-inputs.zip": "7e37244a6393bd6cd68e238b20ae9888af2a26f00ff6f10c87ea3135c3b467ca"
   },

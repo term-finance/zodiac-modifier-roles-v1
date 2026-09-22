@@ -36,16 +36,20 @@ operation and revert option, with these explicit limits:
 - The property covers the resulting configuration. It does not establish
   arbitrary-history preservation across subsequent owner or governance changes,
   Safe signature security, Delay correctness, or a full deployment theorem.
-- `precise_bitwise_ops` avoids the default approximation allowing different
-  packed selector keys to alias. There are no unbounded `mathint` calculations
-  in this rule. See the [Certora option documentation](https://docs.certora.com/en/latest/docs/prover/cli/options.html#precise-bitwise-ops).
+- Exact bitwise and byte-memory options are enabled; packed-key aliasing
+  counterexamples remained with bitwise precision alone and did not replay in
+  the retained native EVM test. They remain unaccepted diagnostics. There are no
+  unbounded `mathint` calculations in this rule. See the [Certora option
+  documentation](https://docs.certora.com/en/latest/docs/prover/cli/options.html#precise-bitwise-ops).
 - Loop optimism is disabled and unresolved external calls fail an assertion.
   Advanced sanity, exact instances and terminal prover results must pass before
   the theorem is accepted. Compilation or job completion alone is insufficient.
 
 The first submitted draft failed advanced sanity because explicit owner/value
 preconditions duplicated conditions already imposed by successful setup. Later
-unaccepted drafts exposed packed-key aliasing under the default bitwise model.
+unaccepted drafts exposed packed-key aliasing under the memory model, including
+a draft with exact bitwise operations. The native replay distinguishes the
+observed alias from the compiled EVM behavior; it does not itself prove the rule.
 These outcomes are retained; the current proof result is recorded under
 `packages/evm/certora/assurance/evidence/delay-protection-2026-09-22/`.
 
@@ -61,3 +65,17 @@ cross-repository census, partial controller proofs, refuted unrestricted closure
 candidates and the formal-verification skill. Dependency closure does not prove
 that every intended requirement was specified; adequacy, non-vacuity, frame
 conditions, mutation controls and temporal properties remain separate obligations.
+
+The exact byte-memory attempts under both CLI 7.31.0 and CLI 8.19.2 report prover
+error **27672571** for the main rule. They are retained under
+`byte-memory-731-error` and `precise-policy`, respectively. **The new policy
+theorem is unproved**, and its CI job must remain blocking until all main and
+advanced-sanity instances pass. The six legacy jobs keep CLI 7.31.0. Job-level
+`SUCCEEDED` means the service completed, not that a theorem passed; read the
+exact rule statuses and `functionalPolicyTheoremAccepted` in each assessment.
+
+The [native replay](../../packages/evm/certora/assurance/evidence/delay-protection-2026-09-22/native-packed-key/README.md)
+extracts the original contracts and dependencies from the retained submitted
+archive and reproduces the empty/two-byte payload cases under solc 0.8.30. It
+checks only the reported packed-key alias. It is neither a universal permission
+proof nor a replacement for the failing solver job.

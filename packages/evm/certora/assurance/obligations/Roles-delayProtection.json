@@ -1,12 +1,23 @@
 {
   "context": "packages/evm/certora/confs/Roles-delayProtection.conf",
+  "context_revisions": [
+    {
+      "fingerprint": "c239ee33b8a2451827d0abf261a86fa7ac7ce3e252e907b4e6d110a7022fd415",
+      "note": "Before exact byte-memory option for the new functional permission rule; all closure obligations remain unproved."
+    },
+    {
+      "fingerprint": "0c45bdae4d75a2f13f15d4221b924abbe3bade82f2836e3108aa46285517fe9e",
+      "note": "Before pinning CLI 8.19.2 for the new policy rule after CLI 7.31.0 prover error; historical results are not reapproved."
+    }
+  ],
   "diagnostic": {
+    "companion_inputs_match_submission": true,
     "evidence": "../evidence/delay-protection-2026-09-22/independent-boundary/assessment.json",
-    "functional_context_fingerprint_matches_submission": true,
-    "note": "Current unfiltered diagnostic exposes boundary/reachability violations; incomplete jobs and missing instances do not discharge any semantic obligation.",
+    "functional_context_fingerprint_matches_submission": false,
+    "note": "Terminal current-harness unfiltered diagnostic is violated. The independent companion is unchanged; functional flags changed afterward, so functional-context inclusion is not established.",
     "passed": false
   },
-  "fingerprint": "c239ee33b8a2451827d0abf261a86fa7ac7ce3e252e907b4e6d110a7022fd415",
+  "fingerprint": "5835a1f99015f63b640bae19d8d665a7dbf9331a2a5edcf660ce9b57f0e07f18",
   "obligations": {
     "adequacy": {
       "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",

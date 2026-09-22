@@ -1,7 +1,7 @@
 {
   "current_context_fingerprints": {
-    "packages/evm/certora/confs/Roles-callTargetMultisend.conf": "64b9240c21629abac4a6f32d3970767bd09372f677f01ca60fd5563e395cf7d8",
-    "packages/evm/certora/confs/Roles-callTargetParams.conf": "7a88432310f3d188ab0f10d737bdb9e4db4f8e9edb0fa70bdd0c92534e84c7b7"
+    "packages/evm/certora/confs/Roles-callTargetMultisend.conf": "b7190abdb536018a7eeba42816da7473fd655226fee070f2a4346ad8582555c4",
+    "packages/evm/certora/confs/Roles-callTargetParams.conf": "e183956d9a87ddbff754416f795e9ace162dce45bcf14ee5a5ba38a93ec35193"
   },
   "diagnostic_inputs_match_current_companions": false,
   "full_artifact_location": "planning/cvl-assurance-2026-09-17/validation/prover/zodiac-modifier-roles-v1-1059860466f2",

@@ -42,6 +42,9 @@ jobs:
         working-directory: ./packages/evm
       - run: pip3 install -r requirements.txt
         working-directory: ./packages/evm
+      - name: Current prover for exact byte-memory policy checks
+        if: matrix.ruleset == 'Roles-delayProtection.conf'
+        run: pip3 install certora-cli==8.19.2
       - run: solc-select install ${SOLC_VERSION}
         working-directory: ./packages/evm
         env:

@@ -1,0 +1,7 @@
+[profile.default]
+src = "native-test"
+test = "native-test"
+solc = "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30"
+optimizer = true
+optimizer_runs = 1
+remappings = ["@gnosis.pm/=node_modules/@gnosis.pm/", "@openzeppelin/=node_modules/@openzeppelin/"]

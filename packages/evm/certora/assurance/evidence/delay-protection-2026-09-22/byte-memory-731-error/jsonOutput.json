@@ -1,0 +1,15 @@
+{
+  "rules": {
+    "envfreeFuncsStaticCheck": {
+      "SUCCESS": [
+        "clearanceOf(uint16,address)",
+        "delayVetoSelector()",
+        "functionScopeConfigForData(uint16,address,bytes)",
+        "multisend()",
+        "owner()",
+        "selectorForData(bytes)"
+      ]
+    },
+    "revokedSelectorCannotBeForwarded": "UNKNOWN"
+  }
+}

@@ -22,7 +22,7 @@
         "verify": "RolesHarness:certora/specs/Roles/access.spec"
       },
       "errors": [],
-      "fingerprint": "f2ed098338cde69782e998b95a43bd593e5ffcbba0552a9e7e658cebcdfa1ccd",
+      "fingerprint": "43fbbb4fc7e147b64d48400b400f63d23b5af0d6012e190ea7850a3096a83294",
       "import_closure": [
         "packages/evm/certora/specs/Roles/access.spec"
       ],
@@ -88,7 +88,7 @@
         "verify": "RolesHarness:certora/specs/Roles/execution.spec"
       },
       "errors": [],
-      "fingerprint": "b4a20b2504a7e37ae45c8165a3d0e5b3136506fc3797a59d07f8cfd544f1d521",
+      "fingerprint": "8c7db5f57242e03b4ba64781f700aeb42f34eeafd5f7323d528dbf1c56ec1196",
       "import_closure": [
         "packages/evm/certora/specs/Roles/execution.spec"
       ],
@@ -180,7 +180,7 @@
         "verify": "RolesHarness:certora/specs/Roles/multisend.spec"
       },
       "errors": [],
-      "fingerprint": "64b9240c21629abac4a6f32d3970767bd09372f677f01ca60fd5563e395cf7d8",
+      "fingerprint": "b7190abdb536018a7eeba42816da7473fd655226fee070f2a4346ad8582555c4",
       "import_closure": [
         "packages/evm/certora/specs/Roles/multisend.spec"
       ],
@@ -251,7 +251,7 @@
         "verify": "RolesHarness:certora/specs/Roles/params.spec"
       },
       "errors": [],
-      "fingerprint": "7a88432310f3d188ab0f10d737bdb9e4db4f8e9edb0fa70bdd0c92534e84c7b7",
+      "fingerprint": "e183956d9a87ddbff754416f795e9ace162dce45bcf14ee5a5ba38a93ec35193",
       "import_closure": [
         "packages/evm/certora/specs/Roles/params.spec"
       ],
@@ -307,7 +307,7 @@
         "verify": "RolesHarness:certora/specs/Roles/permissions.spec"
       },
       "errors": [],
-      "fingerprint": "aeaffbd1f74915faa13f8bb5d2b19b86dd04788e2d826c38919e8be37d923597",
+      "fingerprint": "0cebfe4e30c12a3a53b2dbcfa785dc9e84f467304ac611305db38b3a594c78c0",
       "import_closure": [
         "packages/evm/certora/specs/Roles/permissions.spec"
       ],
@@ -369,13 +369,16 @@
           "RolesHarness"
         ],
         "precise_bitwise_ops": true,
+        "prover_args": [
+          "-smt_preciseBytemaps true"
+        ],
         "rule_sanity": "advanced",
         "smt_timeout": "600",
         "solc_optimize": "1",
         "verify": "RolesHarness:certora/specs/Roles/delayProtection.spec"
       },
       "errors": [],
-      "fingerprint": "c239ee33b8a2451827d0abf261a86fa7ac7ce3e252e907b4e6d110a7022fd415",
+      "fingerprint": "5835a1f99015f63b640bae19d8d665a7dbf9331a2a5edcf660ce9b57f0e07f18",
       "import_closure": [
         "packages/evm/certora/specs/Roles/delayProtection.spec"
       ],
@@ -424,7 +427,7 @@
         "verify": "RolesHarness:certora/specs/Roles/remediation.spec"
       },
       "errors": [],
-      "fingerprint": "dd3c24842282da162e02f64adb330b4a44721199daaae56eae6817c8870de000",
+      "fingerprint": "da025aad82e85ba6dd3733afba60fa8f63f37f5def9c33a8b010e8261165be7c",
       "import_closure": [
         "packages/evm/certora/specs/Roles/remediation.spec"
       ],
@@ -454,7 +457,7 @@
     ".github/workflows/avalanche-deploy.yaml": "40ab692be402dd068769f07ef2ca4ce20618cb38541b57f032ab6852b2292d00",
     ".github/workflows/cd.yaml": "7dd0a26e6613ec0bb4da5bc339f258a313bbcd80a0d9ab589c2c8bde0b1f7370",
     ".github/workflows/cvl-assurance.yml": "27e260ff1ad5d9b842493269681f1164379be53b30ce8295b174783485f120fa",
-    ".github/workflows/formal-verification.yaml": "f367d983f1e03ee9f980e6ee7979413d337600a20ee5dd6e7897825f79c6d132",
+    ".github/workflows/formal-verification.yaml": "dd7fe65ce9f7949dfb3e292405f190200161e8c215292af91fd7f3dbb0ee5b6a",
     ".github/workflows/mainnet-deploy.yaml": "036124e3f97863013cb8fdc65b4abd5aa896fc761ca036f79be0f7e04b4d10af",
     ".github/workflows/sepolia-deploy.yaml": "f961bbefe9c9f08bee260b259ec99e574153c1eb1a0d01fe4255c7a5af7802c6",
     ".tool-versions": "05c019f92f91af37733ca60ab09da0fe3a352d09e18bed8465abcbd86d4ad390",
@@ -467,7 +470,7 @@
     "packages/evm/certora/confs/Roles-callTargetMultisend.conf": "308d5d3642645b450dfcedad2d6b878b8c81786f11957cd045c3633a0cc72a64",
     "packages/evm/certora/confs/Roles-callTargetParams.conf": "c0898d6ebfdb00be4e8387882a8b7fe03da53d15d5fb5ec1bd68b415cfa065f6",
     "packages/evm/certora/confs/Roles-callTargetPermissions.conf": "cd856443d8ecd8ea1c6761a73124aa870b71b59a8976bc136c48be70364e1b8b",
-    "packages/evm/certora/confs/Roles-delayProtection.conf": "14003d423f023401f72c487223aecc2f17fe4f8bddfe8eb00af16dc642bc0350",
+    "packages/evm/certora/confs/Roles-delayProtection.conf": "49085727fe03d46a479b19e4a6e1f6f2d0d22a20ff5d408a463b6198d936622c",
     "packages/evm/certora/confs/Roles-remediation.conf": "b1c889fe9797c34a3fc1b08d1fff572df0a3d942fda703f2c3babe3f6c5646f6",
     "packages/evm/certora/harness/RolesHarness.sol": "e0b22d28ab997b37a10cda53a1aa92d612ab373be6701d74733c517f68d0f2b7",
     "packages/evm/certora/helpers/DummyAvatar.sol": "79c817bc38019bb7ea0f65959fc2bbfd8338cca0d653418030d1727156f78d43",

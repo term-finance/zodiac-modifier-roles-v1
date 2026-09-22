@@ -1,0 +1,18 @@
+{
+  "filesSha256": {
+    "PackedKey.t.sol": "2680cc2cbe3fd0e2faf5f5d419baba2d67186d260d9f1fd00030ecebbd160306",
+    "README.md": "7eef7fc47d21e813257791345c279087b4bbbbfa62b033f633d47b00086fc8b6",
+    "forge.log": "8fc91353af6730670977afd0516ffd100089584797506aa1ffb00a6524f25028",
+    "foundry.toml": "6cb8866a0e3042f81f94324779fde10df57748824954da0c661575334a722edd",
+    "replay.py": "e92b7600bfcc9372e8bf3bd53497977fae778bcf5fda59bb1709f8787364bf53"
+  },
+  "scope": "Concrete packed-key counterexample replay only; no universal policy or semantic closure proof.",
+  "semanticClosureCertified": false,
+  "sourceArchive": "../bitwise-memory-diagnostic/submitted-inputs.zip",
+  "sourceArchiveSha256": "b77e449c04291943a2d6cd322c10ca917b5bf2f54466b446225ae2b2b6cba4b4",
+  "toolchain": {
+    "forge": "1.7.1",
+    "optimizer_runs": 1,
+    "solc": "0.8.30"
+  }
+}

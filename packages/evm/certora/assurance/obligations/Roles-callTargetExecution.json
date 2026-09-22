@@ -4,6 +4,14 @@
     {
       "fingerprint": "15f7d0dc3d12d13adb1c591bb50d47fca72d31c3c760bc954c8c7078f36ed4bc",
       "note": "Historical diagnostic context, before two read-only selector getters, the veto-only spec and its CI configuration."
+    },
+    {
+      "fingerprint": "b4a20b2504a7e37ae45c8165a3d0e5b3136506fc3797a59d07f8cfd544f1d521",
+      "note": "Before exact byte-memory option for the new functional permission rule; all closure obligations remain unproved."
+    },
+    {
+      "fingerprint": "e9b09781d7e87a7853ba16b9d402bfca3d02c497062388f38b1fbf53b4f06a7d",
+      "note": "Before pinning CLI 8.19.2 for the new policy rule after CLI 7.31.0 prover error; historical results are not reapproved."
     }
   ],
   "diagnostic": {
@@ -14,7 +22,7 @@
     "note": "Historical diagnostic only. Harness selector getters and CI/context changed; evidence is not a proof of this current context. All closure obligations remain open.",
     "passed": false
   },
-  "fingerprint": "b4a20b2504a7e37ae45c8165a3d0e5b3136506fc3797a59d07f8cfd544f1d521",
+  "fingerprint": "8c7db5f57242e03b4ba64781f700aeb42f34eeafd5f7323d528dbf1c56ec1196",
   "obligations": {
     "adequacy": {
       "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",

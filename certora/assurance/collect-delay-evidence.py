@@ -14,7 +14,9 @@ TEMP = Path(sys.argv[1]).resolve()
 REPO = Path(__file__).resolve().parents[2]
 ROOT = REPO / 'packages/evm/certora/assurance/evidence/delay-protection-2026-09-22'
 JOBS = {'cleared-selector-submission': 'initial-sanity-failure', 'intermediate-submission': 'packed-key-diagnostic',
-        'overapproximation-submission': 'all-operations-overapproximation', 'submission': 'precise-policy',
+        'overapproximation-submission': 'all-operations-overapproximation',
+        'bitwise-submission': 'bitwise-memory-diagnostic',
+        'byte-memory-731-submission': 'byte-memory-731-error', 'submission': 'precise-policy',
         'boundary-submission': 'independent-boundary'}
 
 
@@ -26,10 +28,17 @@ def fetch(pair):
     source, label = pair
     log = (TEMP / (source + '.log')).read_text()
     url = re.findall(r'https://prover.certora.com/output/[^\s\x1b]+', log)[-1]
+    job = url.split('/')[5].split('?')[0]
+    if 'anonymousKey=' not in url:
+        recent = json.loads((TEMP / '.certora_internal/.certora_recent_jobs.json').read_text())
+        recorded = [entry['output_url'] for entries in recent.values() for entry in entries
+                    if entry.get('job_id') == job]
+        assert len(set(recorded)) == 1, 'Expected one recorded viewing URL for the submitted job'
+        url = recorded[0]
+        assert url.startswith('https://prover.certora.com/output/') and 'anonymousKey=' in url
     folder = ROOT / label
     folder.mkdir(parents=True, exist_ok=True)
     (folder / 'submission.log').write_text(re.sub(r'\x1b\[[0-9;]*m', '', log))
-    job = url.split('/')[5].split('?')[0]
     archive = TEMP / '.certora_internal' / (job + '.zip')
     if archive.exists():
         shutil.copy2(archive, folder / 'submitted-inputs.zip')
