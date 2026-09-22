@@ -1,0 +1,250 @@
+WARNING: Note: attribute msg value in CLI (20260922 split equivalent veto policy: all three forwarding paths, exact byte memory) overrides value stored in conf file (Veto-only Delay policy: explicitly cleared selector cannot use any implemented forwarding entrypoint)
+Compiling certora/harness/RolesHarness.sol...
+Compiling certora/harness/RolesHarness.sol to expose internal function information and local variables...
+Compiling contracts/Permissions.sol...
+Compiling contracts/Permissions.sol to expose internal function information and local variables...
+
+Connecting to server...
+
+Job submitted to server
+
+Manage your jobs at https://prover.certora.com
+Follow your job and see verification results at https://prover.certora.com/output/99679/67f2a1be659a4f1eacb7b4dfd1507cc1
+Output:
+
+[INFO]: prover-container-version: 1.1.4
+[INFO]: Overcommit memory value: 1
+[INFO]: s5cmd: cp s3://tac-optimizer-artifacts/8.19.2/tac_optimizer-8.19.2 /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd: cp s3://certora-prod/uploadFiles/99679/67f2a1be659a4f1eacb7b4dfd1507cc1.zip /home/appuser/code/job.zip
+[INFO]: s5cmd: cp s3://prover-artifacts/8.19.2/emv-8.19.2.jar /home/appuser/bin/emv.jar
+[INFO]: inputs download time :: 1.0768 seconds
+[INFO]: tac optimizer ready on PATH at /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd transferred 180 file(s)
+[INFO]: cache download time :: 0.4190 seconds
+[INFO]: Command: java -Xmx31999m -XX:+UseParallelGC -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -XX:G1PeriodicGCInterval=15 -XX:NewRatio=5 -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/home/appuser/code/java_error/java_error%p.log -DoutputUrl=s3://certora-prod/outputs/99679/output_67f2a1be659a4f1eacb7b4dfd1507cc1/ -DjobId=67f2a1be659a4f1eacb7b4dfd1507cc1 -DuserId=99679 -jar /home/appuser/bin/emv.jar -cache b17e79ec8809f6d5eafd5011a2f75c8fe407462694f16276b54e33ae526eb488-optimisticFalse-iter2-None--certora-cli-8.19.2 -b 2 -contract RolesHarness -smt_preciseBitwiseOps -ruleSanityChecks advanced -t 600 -smt_preciseBytemaps true -userGlobalTimeout 7200 -globalTimeout 7500
+Start Tue Sep 22 19:56:35 GMT 2026
+Start Tue Sep 22 19:56:35 GMT 2026
+Warning: The type `Role` will not be accessible in CVL code
+Reason(s):
+	struct field `members` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `targets` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `functions` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValues` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValuesOneOf` cannot be expressed in CVL: [mapping types are not supported]
+Warning: Warning: Contract RolesHarness has multiple storage slots with the same name - __gap (multiple inheritance could cause this), they will be ignored
+The scene contains 21 contracts:
+Permissions : 0xce4604a000000000000000000000001d,
+RolesHarness : 0xce4604a000000000000000000000000e,
+ecrecover : 0x1,
+sha256 : 0x2,
+ripemd160 : 0x3,
+identity : 0x4,
+bigmod : 0x5,
+bn256Add : 0x6,
+bn256ScalarMul : 0x7,
+bn256Pairing : 0x8,
+Precompiled244 : 0xf4,
+Precompiled245 : 0xf5,
+Precompiled246 : 0xf6,
+Precompiled247 : 0xf7,
+Precompiled248 : 0xf8,
+Precompiled249 : 0xf9,
+Precompiled250 : 0xfa,
+Precompiled251 : 0xfb,
+Precompiled252 : 0xfc,
+Precompiled253 : 0xfd,
+Precompiled254 : 0xfe
+Running initial transformations
+Has CVL checks.
+Checking CVL certora/specs/Roles/delayProtection.spec for contract RolesHarness
+Unrolling loops 2 times, unwinding condition is asserted
+Checking rule revokedSelectorCannotBeSafeForwarded (2 out of 4)...
+Checking rule revokedSelectorCannotBeReturnDataForwarded (3 out of 4)...
+Checking rule envfreeFuncsStaticCheck (4 out of 4)...
+Checking rule revokedSelectorCannotBeDirectForwarded (1 out of 4)...
+Result for envfreeFuncsStaticCheck: envfreeFuncsStaticCheck: functionScopeConfigForData(uint16,address,bytes): SUCCESS
+delayVetoSelector(): SUCCESS
+selectorForData(bytes): SUCCESS
+multisend(): SUCCESS
+owner(): SUCCESS
+clearanceOf(uint16,address): SUCCESS
+Starting to run on rule revokedSelectorCannotBeSafeForwarded
+Starting to run on rule revokedSelectorCannotBeReturnDataForwarded
+Starting to run on rule revokedSelectorCannotBeDirectForwarded
+[ForkJoinPool-1-worker-1] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeDirectForwarded, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-1] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+Starting to run on rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_26_4
+Starting to run on rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_23_4
+[ForkJoinPool-1-worker-2] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeSafeForwarded, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-2] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-3] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeReturnDataForwarded, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-3] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+Starting to run on rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_46_4
+Starting to run on rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_43_4
+[ForkJoinPool-1-worker-1] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_26_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-1] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+Starting to run on rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_66_4
+[ForkJoinPool-1-worker-29] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_23_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-29] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+received `signalSkip` for rule revokedSelectorCannotBeDirectForwarded-assertion_not_tautological_31_4
+received `signalSkip` for rule revokedSelectorCannotBeDirectForwarded-rule_not_vacuous
+received `signalSkip` for rule revokedSelectorCannotBeDirectForwarded-assertion_not_tautological_36_4
+received `signalSkip` for rule revokedSelectorCannotBeDirectForwarded-assertion_not_tautological_32_4
+Result for revokedSelectorCannotBeDirectForwarded: revokedSelectorCannotBeDirectForwarded: Error: utils.CertoraException: No sanity results for revokedSelectorCannotBeDirectForwarded
+Starting to run on rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_63_4
+Exception in thread "Thread-1" java.io.IOException: Cannot run program "killall": Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at java.base/java.lang.Runtime.exec(Runtime.java:681)
+	at java.base/java.lang.Runtime.exec(Runtime.java:530)
+	at utils.LongProcessKiller.run(LongProcessKiller.kt:44)
+Caused by: java.io.IOException: Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 4 more
+Ping 1m - Processed 4/4 (100%) rules. 12 tasks complete, 4 pending.
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-16] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_46_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+[ForkJoinPool-1-worker-16] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-28] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_43_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-28] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+received `signalSkip` for rule revokedSelectorCannotBeSafeForwarded-assertion_not_tautological_51_4
+received `signalSkip` for rule revokedSelectorCannotBeSafeForwarded-rule_not_vacuous
+received `signalSkip` for rule revokedSelectorCannotBeSafeForwarded-assertion_not_tautological_52_4
+received `signalSkip` for rule revokedSelectorCannotBeSafeForwarded-assertion_not_tautological_56_4
+Result for revokedSelectorCannotBeSafeForwarded: revokedSelectorCannotBeSafeForwarded: Error: utils.CertoraException: No sanity results for revokedSelectorCannotBeSafeForwarded
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-3] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_63_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+[ForkJoinPool-1-worker-3] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-14] ERROR COMMON - Had an exception while getting object to verify for rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_66_4, java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app')
+Error: Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+[ForkJoinPool-1-worker-14] ERROR ALWAYS - Unknown error java.lang.ClassCastException: class tac.Tag$Int cannot be cast to class tac.Tag$Bits (tac.Tag$Int and tac.Tag$Bits are in unnamed module of loader 'app'), code 27672571
+received `signalSkip` for rule revokedSelectorCannotBeReturnDataForwarded-assertion_not_tautological_72_4
+received `signalSkip` for rule revokedSelectorCannotBeReturnDataForwarded-assertion_not_tautological_71_4
+received `signalSkip` for rule revokedSelectorCannotBeReturnDataForwarded-rule_not_vacuous
+received `signalSkip` for rule revokedSelectorCannotBeReturnDataForwarded-assertion_not_tautological_76_4
+Result for revokedSelectorCannotBeReturnDataForwarded: revokedSelectorCannotBeReturnDataForwarded: Error: utils.CertoraException: No sanity results for revokedSelectorCannotBeReturnDataForwarded
+Results for envfreeFuncsStaticCheck:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|functionScopeConfigForData(uint16,addres|Not violated |0         |                                                            |no local variables                                |
+|s,bytes)                                |(unsat)      |          |                                                            |                                                  |
+|delayVetoSelector()                     |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|selectorForData(bytes)                  |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|multisend()                             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|owner()                                 |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|clearanceOf(uint16,address)             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Results for all:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|envfreeFuncsStaticCheck                 |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|revokedSelectorCannotBeDirectForwarded  |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule revokedSelectorCannotBeDirectForwarded  |                                                  |
+|                                        |             |          |had an error]                                               |                                                  |
+|revokedSelectorCannotBeSafeForwarded    |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule revokedSelectorCannotBeSafeForwarded had|                                                  |
+|                                        |             |          |an error]                                                   |                                                  |
+|revokedSelectorCannotBeReturnDataForward|?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|ed                                      |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeReturnDataForwarded had an error]    |                                                  |
+|require_not_redundant_26_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeDirectForwarded-require_not_redundant|                                                  |
+|                                        |             |          |_26_4 had an error]                                         |                                                  |
+|require_not_redundant_23_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeDirectForwarded-require_not_redundant|                                                  |
+|                                        |             |          |_23_4 had an error]                                         |                                                  |
+|revokedSelectorCannotBeDirectForwarded  |?            |?         |[utils.CertoraException: No sanity results for              |                                                  |
+|                                        |             |          |revokedSelectorCannotBeDirectForwarded]                     |                                                  |
+|require_not_redundant_46_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeSafeForwarded-require_not_redundant_4|                                                  |
+|                                        |             |          |6_4 had an error]                                           |                                                  |
+|require_not_redundant_43_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeSafeForwarded-require_not_redundant_4|                                                  |
+|                                        |             |          |3_4 had an error]                                           |                                                  |
+|revokedSelectorCannotBeSafeForwarded    |?            |?         |[utils.CertoraException: No sanity results for              |                                                  |
+|                                        |             |          |revokedSelectorCannotBeSafeForwarded]                       |                                                  |
+|require_not_redundant_63_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeReturnDataForwarded-require_not_redun|                                                  |
+|                                        |             |          |dant_63_4 had an error]                                     |                                                  |
+|require_not_redundant_66_4              |?            |?         |[utils.CertoraException: Encountered an unexpected error in |                                                  |
+|                                        |             |          |Prover, please report in certora.com. Error code 27672571.  |                                                  |
+|                                        |             |          |Error message: Rule                                         |                                                  |
+|                                        |             |          |revokedSelectorCannotBeReturnDataForwarded-require_not_redun|                                                  |
+|                                        |             |          |dant_66_4 had an error]                                     |                                                  |
+|revokedSelectorCannotBeReturnDataForward|?            |?         |[utils.CertoraException: No sanity results for              |                                                  |
+|ed                                      |             |          |revokedSelectorCannotBeReturnDataForwarded]                 |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Failures summary:
+Failed on revokedSelectorCannotBeDirectForwarded:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeDirectForwarded had an error]
+Failed on revokedSelectorCannotBeSafeForwarded:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeSafeForwarded had an error]
+Failed on revokedSelectorCannotBeReturnDataForwarded:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeReturnDataForwarded had an error]
+Failed on require_not_redundant_26_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_26_4 had an error]
+Failed on require_not_redundant_23_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeDirectForwarded-require_not_redundant_23_4 had an error]
+Failed on revokedSelectorCannotBeDirectForwarded:
+[utils.CertoraException: No sanity results for revokedSelectorCannotBeDirectForwarded]
+Failed on require_not_redundant_46_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_46_4 had an error]
+Failed on require_not_redundant_43_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeSafeForwarded-require_not_redundant_43_4 had an error]
+Failed on revokedSelectorCannotBeSafeForwarded:
+[utils.CertoraException: No sanity results for revokedSelectorCannotBeSafeForwarded]
+Failed on require_not_redundant_63_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_63_4 had an error]
+Failed on require_not_redundant_66_4:
+[utils.CertoraException: Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeReturnDataForwarded-require_not_redundant_66_4 had an error]
+Failed on revokedSelectorCannotBeReturnDataForwarded:
+[utils.CertoraException: No sanity results for revokedSelectorCannotBeReturnDataForwarded]
+Done 1m
+Done 1m
+Event reporter: all events were sent without errors
+[INFO]: Live-mirror upload summary: 78 uploads, 35 unique keys, 43 redundant re-uploads, 2.23 uploads/key.
+[INFO]: s5cmd: cp /home/appuser/code/67f2a1be659a4f1eacb7b4dfd1507cc1.tar.gz s3://certora-prod/outputs/99679/output_67f2a1be659a4f1eacb7b4dfd1507cc1/67f2a1be659a4f1eacb7b4dfd1507cc1.tar.gz
+[INFO]: s5cmd transferred 9 file(s)
+[INFO]: Cache upload took 0.2094 seconds
+[INFO]: Timings :: prover=118.1267 seconds, exit_code=100, timed_out=False
+
+Finished verification request
+ERROR: Prover found violations:
+
+[rule] revokedSelectorCannotBeDirectForwarded: UNKNOWN
+[rule] revokedSelectorCannotBeReturnDataForwarded: UNKNOWN
+[rule] revokedSelectorCannotBeSafeForwarded: UNKNOWN
+report url: https://prover.certora.com/output/99679/67f2a1be659a4f1eacb7b4dfd1507cc1?anonymousKey=ea57dd75f6fa35a569d3e0164e51cfccf79e0d4c
+
+Violations were found
+

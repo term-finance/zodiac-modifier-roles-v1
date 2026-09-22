@@ -1,4 +1,21 @@
 {
+  "certificate_lifetime": {
+    "invalidate_on": [
+      "code-or-immutables",
+      "facet-or-proxy-routing",
+      "registry-or-admission",
+      "roles-or-authorities",
+      "initializer-or-unknown-writer",
+      "storage-layout",
+      "external-model",
+      "proof-context-or-toolchain",
+      "incomplete-history-or-reorg"
+    ],
+    "mode": "configuration-bound",
+    "reactivate_on_restored_snapshot": false,
+    "reissue_requires": "independent base, binding and semantic evidence checks",
+    "state": "unissued"
+  },
   "context": "packages/evm/certora/confs/Roles-callTargetMultisend.conf",
   "context_revisions": [
     {
@@ -12,6 +29,11 @@
     {
       "fingerprint": "9da223a146760ff569ffd3703a476bba3499e170bd1bf4e5abee652d2971bd2e",
       "note": "Before pinning CLI 8.19.2 for the new policy rule after CLI 7.31.0 prover error; historical results are not reapproved."
+    },
+    {
+      "fingerprint": "b7190abdb536018a7eeba42816da7473fd655226fee070f2a4346ad8582555c4",
+      "reason": "Accounting checker now requires sticky configuration-certificate invalidation. Functional inputs and prior diagnostic result bindings are unchanged; no proof is promoted.",
+      "status": "unproved"
     }
   ],
   "diagnostic": {
@@ -22,7 +44,7 @@
     "note": "Historical diagnostic only. Harness selector getters and CI/context changed; evidence is not a proof of this current context. All closure obligations remain open.",
     "passed": false
   },
-  "fingerprint": "b7190abdb536018a7eeba42816da7473fd655226fee070f2a4346ad8582555c4",
+  "fingerprint": "aa46bd8b8f3ba4c930c12e7bdf837d3064d1c4f1a7121f49bcdfc51718f444a4",
   "obligations": {
     "adequacy": {
       "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
@@ -81,5 +103,12 @@
     }
   },
   "schema": 1,
+  "scope_approval": {
+    "approved": "2026-09-22",
+    "binding_predicate_status": "not established",
+    "kind": "configuration-bound with explicit invalidation",
+    "note": "Approval permits this scope; it does not approve missing dependencies, summaries or weaker functional properties.",
+    "semantic_evidence_status": "open"
+  },
   "status": "unproved"
 }

@@ -1,0 +1,28 @@
+{
+  "finishTime": "2026-09-22T19:58:33.362000Z",
+  "contract": "RolesHarness",
+  "jobId": "67f2a1be659a4f1eacb7b4dfd1507cc1",
+  "javaArgs": [],
+  "notifyMsg": "20260922 split equivalent veto policy: all three forwarding paths, exact byte memory",
+  "jobSource": "COMMAND",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-smt_preciseBytemaps",
+    "true"
+  ],
+  "outputUrl": "https://prover.certora.com/output/99679/67f2a1be659a4f1eacb7b4dfd1507cc1/",
+  "postTime": "2026-09-22T19:55:17.207853Z",
+  "anonymousKey": "ea57dd75f6fa35a569d3e0164e51cfccf79e0d4c",
+  "jobStatus": "SUCCEEDED",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --wait_for_results all --msg '20260922 split equivalent veto policy: all three forwarding paths,exact byte memory'",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/67f2a1be659a4f1eacb7b4dfd1507cc1/f/outputs",
+  "startTime": "2026-09-22T19:56:32.441000Z"
+}

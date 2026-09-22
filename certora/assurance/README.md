@@ -79,3 +79,21 @@ extracts the original contracts and dependencies from the retained submitted
 archive and reproduces the empty/two-byte payload cases under solc 0.8.30. It
 checks only the reported packed-key alias. It is neither a universal permission
 proof nor a replacement for the failing solver job.
+
+Two further attempts are retained with exact submitted inputs: splitting the same
+theorem into three forwarding rules still produced error 27672571
+(`split-forwarders-error`, job `67f2a1be659a4f1eacb7b4dfd1507cc1`). Exact overlap
+inlining without exact SMT byte maps produced three violated assertions
+(`exact-inlining-diagnostic`, job `8077cd2558594e04b531d9b8489fcfa2`). Those new
+counterexamples require triage; neither attempt is accepted. The canonical spec
+and exact-memory configuration are preserved, with no case removed.
+
+The approved configuration-bound lifetime policy is now recorded for all seven
+contexts: code, role, registry, model, context or incomplete-history changes
+invalidate a certificate permanently; a matching restored snapshot cannot revive
+it. All certificates remain unissued while semantic obligations are open.
+
+A separate bytecode-level Halmos lemma proves packed-key injectivity for arbitrary
+address/selector pairs using the actual `Permissions.keyForFunctions` body. See
+`symbolic-packed-key` for its compiler inputs and six explored paths. This is a
+supporting lemma, not acceptance of the still-failing CVL permission theorem.

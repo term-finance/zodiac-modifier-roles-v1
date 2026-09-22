@@ -1,0 +1,29 @@
+{
+  "scope": "Packed-key injectivity only, not the permission-policy theorem or semantic closure.",
+  "semanticClosureCertified": false,
+  "sourceArchive": "../bitwise-memory-diagnostic/submitted-inputs.zip",
+  "sourceArchiveSha256": "b77e449c04291943a2d6cd322c10ca917b5bf2f54466b446225ae2b2b6cba4b4",
+  "tools": {
+    "halmos": {
+      "version": "halmos 0.3.3",
+      "binarySha256": "cf0555695d494a2299b7046dca853e3cdc74437615c67f3350fa0948c0f1c935"
+    },
+    "solc": {
+      "version": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Darwin.appleclang",
+      "binarySha256": "738dcdc6afddeb505ee4e4ef24f1c1fdba2b8c924e614cbbf5801a5b062dd683"
+    },
+    "forge": {
+      "version": "forge Version: 1.7.1-Homebrew\nCommit SHA: 4072e48705af9d93e3c0f6e29e93b5e9a40caed8\nBuild Timestamp: 2026-05-08T07:44:24.000000000Z (1778226264)\nBuild Profile: release",
+      "binarySha256": "fbedb977e1cbf2fdb9d9d132132cd53164b8d9a39df0b23d974c9e23d4b03cb1"
+    }
+  },
+  "filesSha256": {
+    "foundry.toml": "b6e54a0ca823aa267c79f6f35ea1849df9a68b4f48d6f803f91e23e6045d1b02",
+    "result.json": "1cc798fc0b55f29cdbf9e7d3a97d950ca7056e4bd406d412d1e72b9bf1129e7e",
+    "compiler.json.gz": "f323f57d13c3070d4d513614e00bcb8a7b7a0107f5e59f0d51275f99dcaadb52",
+    "PackedKeyLemma.t.sol": "76a1ec29efcd63dca7b9e32df1bbbd91da0d9ba28a793b42a7d8f0ddd7d7f5af",
+    "README.md": "3599328783fa7f7d363d01e09aa63065e217f89f762e6e407727b11dd1e49695",
+    "halmos.log": "49d6c18965d6139279421ce626f5099de56d2487cae3baba11c069231c66f1ed",
+    "build.log": "b8c9fd5bccfce8d6c7ce89b420c970712b382eaa6578dbe81c20f72ffbd45e78"
+  }
+}

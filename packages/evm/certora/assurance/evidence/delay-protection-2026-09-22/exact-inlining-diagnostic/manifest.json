@@ -1,0 +1,25 @@
+{
+  "filesSha256": {
+    "assessment.json": "742721eb15849f5eb9e5c29ede8aeb792acacb96c65e6494d39950ce14b65418",
+    "jobData.json": "fcd36bde46372c68148e7e7f20e3345f112615f44862cb47ff3d3adc4fdfd675",
+    "jsonOutput.json": "0dfb1f3a992f3b667ff850dfc3110bf2b6eb78b6fec0cbbb3b2104360725c0fd",
+    "progress.json": "d75e7e738537e77c23c094cdec1f3e277472c104158402f3eecf841c21f050d7",
+    "rule_output_1.json.gz": "4cef1456fee8d551dbd7abe4dbcdef8702342f049deecf067423174373c1e6f4",
+    "rule_output_10.json.gz": "3667fd00c752fc330f3d4d441bc7e088cc6b9f32130481ec9e228167d1548044",
+    "rule_output_11.json.gz": "119d031814c4b6b39bceead0fc8fca033dac877be6a52c0d486545ba47295bb7",
+    "rule_output_12.json.gz": "e2d6de07e6b384c456c3657c9079a072072db51fa38a257534df17b4680a2675",
+    "rule_output_13.json.gz": "d88d034b814649c6647e6654bbdd533e6a24e6f9186fb290abff8d015084bceb",
+    "rule_output_14.json.gz": "3936d8803a59b2cdb25d96bf78e7af7dd82ef9abd4334e0b36b300a5539c64d2",
+    "rule_output_15.json.gz": "b7cd178d0635c28693e80ee834462db363c5b247c860e3f6df531a66b3a9c537",
+    "rule_output_2.json.gz": "d368b7c0d33f43b941c369a763d8e4d43c535aa3b559c779d427f2bb1c88913b",
+    "rule_output_3.json.gz": "decade8fb047577ef96aa297690cb3ca3e2c8b1d85dd10e7679100094e09ecdf",
+    "rule_output_4.json.gz": "17c9d729f3c27a892ac6bede3e202ad7d4a1c4c22f3eed4c6dfa482eb591f6fa",
+    "rule_output_5.json.gz": "8b810323a3a62b0b1a80dcdb4d8817724527c970b5a4043cd4ed0ef54dea5dbe",
+    "rule_output_6.json.gz": "30e1f9e5396cbc995ef70d4eb4194a92dd17d00522e8c4dac3575a917570d652",
+    "rule_output_7.json.gz": "bf3e75f9b7421d03f43101245b715cc06c9be003b1b0a5f285b0ea6dda5dccf8",
+    "rule_output_8.json.gz": "d7a46027214018fbbeda6851297de9a99c3c1735ec0eba204c5f574263cfdf65",
+    "rule_output_9.json.gz": "4a95de46fc8704f18dd0f6e244937fd26f93a6afe1e62a2b7fdf7dd54c6a1ce8",
+    "submission.log": "ccc6d8d3ec662108a20501b0e6db1504b7cec8433346325379b5eed5d91cd7d2",
+    "submitted-inputs.zip": "d074164d871a1a17e411734ba91bffe76e81a1e66a4b2c9dfacaa1921a403873"
+  }
+}

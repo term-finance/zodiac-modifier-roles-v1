@@ -15,6 +15,15 @@ import shutil
 import sys
 
 SCHEMA = 1
+CERTIFICATE_LIFETIME = {
+    "mode": "configuration-bound",
+    "state": "unissued",
+    "invalidate_on": ["code-or-immutables", "facet-or-proxy-routing", "registry-or-admission",
+                      "roles-or-authorities", "initializer-or-unknown-writer", "storage-layout",
+                      "external-model", "proof-context-or-toolchain", "incomplete-history-or-reorg"],
+    "reactivate_on_restored_snapshot": False,
+    "reissue_requires": "independent base, binding and semantic evidence checks",
+}
 OBLIGATIONS = {
     "roots": "All selectors, fallback/receive, constructors, initialization and upgrade transitions are accounted for.",
     "calls": "Compiler/bytecode call inventory and per-instance resolution reports cover typed, dynamic, library and delegate calls.",
@@ -239,6 +248,7 @@ def refresh(root, data):
         record = directory / "obligations" / (Path(name).stem + ".json")
         if not record.exists():
             save(record, {"schema": SCHEMA, "context": name, "fingerprint": context["fingerprint"],
+                          "certificate_lifetime": CERTIFICATE_LIFETIME,
                           "status": "unproved", "obligations": {k: {"claim": v, "status": "open", "evidence": []}
                                                                       for k, v in OBLIGATIONS.items()}})
 
@@ -266,6 +276,8 @@ def check(root, data, inventory_only=False):
             errors.append(name + ": stale proof context (refresh does not re-approve evidence)")
         if set(record.get("obligations", {})) != set(OBLIGATIONS):
             errors.append(name + ": missing or unknown proof obligations")
+        if record.get("certificate_lifetime") != CERTIFICATE_LIFETIME:
+            errors.append(name + ": missing or unsupported certificate lifetime policy")
         errors.extend(name + ": " + e for e in context["errors"])
         if not inventory_only:
             # No untrusted status string is accepted as a proof. A verifier
