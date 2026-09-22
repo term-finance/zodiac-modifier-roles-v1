@@ -57,6 +57,29 @@ contract RolesHarness is Roles {
             ];
     }
 
+    /// @dev functionScopeConfigForData, keyed on the selector directly rather
+    /// than on a `bytes` blob.
+    ///
+    /// Semantically identical: functionScopeConfigForData does `bytes4(data)`
+    /// on entry, so passing selectorOf(data) here gives the same slot. The
+    /// difference is the parameter type. Calling the `bytes` form inside a CVL
+    /// `require` makes the surrounding requires stop binding -- see the note in
+    /// specs/Roles/setTxNonceGuardAndRoleConfig.spec -- and this form exists so
+    /// a spec can pin the function scope without tripping that.
+    ///
+    /// uint32 rather than bytes4 so it accepts selectorOf's return type and
+    /// CVL's `sig:C.f(...).selector` without a cast.
+    function functionScopeConfigForSelector(
+        uint16 roleId,
+        address targetAddress,
+        uint32 functionSig
+    ) external view returns (uint256) {
+        return
+            roles[roleId].functions[
+                Permissions.keyForFunctions(targetAddress, bytes4(functionSig))
+            ];
+    }
+
     /// @dev Decodes the packed per-function scope config using the real
     /// unpacking logic, rather than reimplementing the bit math in CVL.
     function unpackFunctionOptions(

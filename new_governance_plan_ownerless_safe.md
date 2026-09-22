@@ -6,24 +6,28 @@ Expected storage state after the migration.
 
 ```
 Branch 1   Proposer Safe 0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28 (5/11)  --module-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf (+ PauseGuard)  --module-->  Ownerless Safe 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
-Branch 2   Governor 0x2B715634134220ffeEE9458b4e34E41A41418607              --module-->  NewRoles (+ SetTxNonceGuard)  --target-->  DelayOwnerSafe (5/11)  --owner-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf
+Branch 2   Governor 0x2B715634134220ffeEE9458b4e34E41A41418607              --module-->  NewRoles (+ SetTxNonceGuard)  --target-->  DelayOwnerSafe 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3 (5/11)  --owner-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf
 
-Pause      PauseSafe (1/10)                              --pause-->                  PauseGuard
-           Admin Safe 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774  --unpause / setPauser-->    PauseGuard
+Pause      PauseSafe 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472 (2/9)  --pause-->                  PauseGuard
+           Admin Safe 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774        --unpause / setPauser-->    PauseGuard
 ```
 
 **Existing contracts**
 
 | Contract | Address | Target state |
 |---|---|---|
-| Ownerless Safe | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` | kept — loses Roles as a module |
+| Ownerless Safe | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` | kept on Safe v1.3.0 — loses Roles as a module |
 | Delay | `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` | kept — new owner, new guard |
 | Proposer Safe | `0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28` | kept — **fallback handler cleared** |
 | Roles | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | **retired** — replaced by `NewRoles` |
 | Governor (22 hr voting period) | `0x2B715634134220ffeEE9458b4e34E41A41418607` | kept as-is — reconnected to `NewRoles` |
 | Admin Safe | `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` | kept — becomes `PauseGuard` admin |
+| PauseSafe | `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` | **deployed 2026-09-21** — becomes `PauseGuard` pauser |
+| DelayOwnerSafe | `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` | **deployed 2026-09-21** — becomes the Delay's owner and NewRoles' target |
 
-**Placeholders** — contracts that do not exist yet: `NewRoles`, `SetTxNonceGuard`, `DelayOwnerSafe`, `PauseGuard`, `PauseSafe`.
+**Placeholders** — contracts that do not exist yet: `NewRoles`, `SetTxNonceGuard`, `PauseGuard`. `DelayOwnerSafe` (section 4) and `PauseSafe` (section 8) are already deployed.
+
+**Safe versions** — the three existing Safes stay on v1.3.0 (`GnosisSafe` `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552`); the two new ones, `DelayOwnerSafe` and `PauseSafe`, both deployed 2026-09-21, are on v1.4.1 (`Safe` `0x41675C099F32341bf84BFc5382aF534df5C7461a`). Nothing in the topology crosses a version boundary in a way that matters: the Delay and NewRoles reach a Safe only through `execTransactionFromModule`, whose interface and behaviour are identical in both, and no Safe here validates EIP-1271 signatures, which is where v1.4.1 tightened the rules (`GS027`).
 
 `SetTxNonceGuard` cannot be shared with the Term DAO plan: it holds its Delay as an immutable. `PauseGuard` has no per-Delay state, so one instance installed on two Delays would pause both together.
 
@@ -83,7 +87,7 @@ Full deployment replacing `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Term for
 | 52–100 | `__gap` | uint256[49] | OwnableUpgradeable | zero |
 | 101 | `guard` | address | Guardable | `SetTxNonceGuard` |
 | 102 | `avatar` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) — read by nothing |
-| 103 | `target` | address | Module | `DelayOwnerSafe` |
+| 103 | `target` | address | Module | `DelayOwnerSafe` `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` |
 | 104 | `modules` | mapping(address⇒address) | Modifier | Governor 0x2B715634134220ffeEE9458b4e34E41A41418607 (22 hr vote period)|
 | 105 | `multisend` | address | Roles | `MultiSendCallOnly` |
 | 106 | `defaultRoles` | mapping(address⇒uint16) | Roles | Governor `0x2B715634134220ffeEE9458b4e34E41A41418607` ⇒ `1` |
@@ -116,36 +120,42 @@ Role 1 grants exactly one capability: `Delay.setTxNonce(uint256)` with no parame
 
 ---
 
-## 4. DelayOwnerSafe — new 5/11 Safe
+## 4. DelayOwnerSafe — `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` — DEPLOYED
 
-Safe v1.3.0, deployed against the **same singleton as the Ownerless Safe** `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` — copy that Safe's slot 0 verbatim rather than picking from a deployment list, since v1.3.0 ships two distinct singletons (`GnosisSafe` and `GnosisSafeL2`) at different addresses.
+Safe **v1.4.1** on the canonical L1 `Safe` singleton, one version ahead of the Ownerless Safe. Owns the Delay and is the target of `NewRoles`.
+
+Deployed 2026-09-21 by `0xeee661ed…` through the v1.4.1 `SafeProxyFactory` `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67` with `createProxyWithNonce`, in transaction `0x54b897e162dfbe00cb00296a7cd22368ecc23cfa1224a0abe3776963b51b772e`. Every row below was read back from chain and matches, except `modules`, which is empty until NewRoles is deployed and enabled.
+
+As with the PauseSafe, the `setup` call carried `to = 0xBD89A1CE4DDe368FFAB0eC35506eEcE0b1fFdc54` (`SafeToL2Setup`) with `setupToL2(0x29fcB43b…)`. That library rewrites slot 0 only when `chainId() != 1`, so on mainnet it did nothing and slot 0 holds the L1 singleton. `paymentReceiver` is the Safe UI marker `0x5afe7A11E7000000000000000000000000000000`, with `payment` and `paymentToken` both zero.
 
 | Slot | Variable | Type | Declared in | Value |
 |---|---|---|---|---|
-| 0 | `singleton` | address | SafeStorage | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` (`GnosisSafe` v1.3.0) — **identical to `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` slot 0** |
-| 1 | `modules` | mapping(address⇒address) | SafeStorage | New Roles Modifier |
-| 2 | `owners` | mapping(address⇒address) | SafeStorage | ring of 11 signers — the same set as the Proposer Safe (below) |
-| 3 | `ownerCount` | uint256 | SafeStorage | `11` |
-| 4 | `threshold` | uint256 | SafeStorage | `5` |
-| 5 | `nonce` | uint256 | SafeStorage | `0` |
-| 6 | `_deprecatedDomainSeparator` | bytes32 | SafeStorage | `0` |
+| 0 | `singleton` | address | SafeStorage | `0x41675C099F32341bf84BFc5382aF534df5C7461a` (`Safe` v1.4.1) — verified, not `SafeL2` `0x29fcB43b…` |
+| 1 | `modules` | mapping(address⇒address) | SafeStorage | ring of 1: `0x1 → NewRoles → 0x1` — **empty today**, enabled once NewRoles exists |
+| 2 | `owners` | mapping(address⇒address) | SafeStorage | ring of 11 signers, all EOAs — the same set as the Proposer Safe (below) |
+| 3 | `ownerCount` | uint256 | SafeStorage | `11` — verified |
+| 4 | `threshold` | uint256 | SafeStorage | `5` — verified |
+| 5 | `nonce` | uint256 | SafeStorage | `0` — nothing executed yet |
+| 6 | `_deprecatedDomainSeparator` | bytes32 | SafeStorage | `0` — verified |
 | 7 | `signedMessages` | mapping(bytes32⇒uint256) | SafeStorage | empty |
 | 8 | `approvedHashes` | mapping(address⇒mapping(bytes32⇒uint256)) | SafeStorage | empty |
+| `keccak256("guard_manager.guard.address")` | guard | address | GuardManager | `0x0` — verified |
+| `keccak256("fallback_manager.handler.address")` | fallback handler | address | FallbackManager | `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99` (CompatibilityFallbackHandler v1.4.1) |
 
 ### Signers
 
-The same 11 signers as the Proposer Safe `0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28`, in its owner-ring order, with threshold 5:
+The same 11 signers as the Proposer Safe `0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28`, verified set-for-set against it, with threshold 5. Listed in the deployed ring order, which starts with the deployer `0xeee661ed…` and so runs one place behind the Proposer Safe's order for signers 1–8; ring order carries no meaning beyond the `prevOwner` argument when removing an owner.
 
 | # | Signer |
 |---|---|
-| 1 | `0xF6A745f9B38FFcd17Ee8909AC89151D788F95282` |
-| 2 | `0xC43d527E3544A3d199Ce28E87994384D89d90e6E` |
-| 3 | `0x8EF485fD38b7B29a827938C9F00300eaBf8E1710` |
-| 4 | `0xbfFcAdCd5549cC378693108BcD4435776A6fa795` |
-| 5 | `0xB680373c50E9E877DA7dCF9efcc0dFB234452ad3` |
-| 6 | `0x6eb0c274EC4B1d51152e45BAED22f883B2A3Bc60` |
-| 7 | `0xE82183cfAE1C24f044315c318FD97bE7e47b31D2` |
-| 8 | `0xeee661edcFE634Dc0e29D62C26AfD62c0843b817` |
+| 1 | `0xeee661edcFE634Dc0e29D62C26AfD62c0843b817` — deployed the Safe |
+| 2 | `0xF6A745f9B38FFcd17Ee8909AC89151D788F95282` |
+| 3 | `0xC43d527E3544A3d199Ce28E87994384D89d90e6E` |
+| 4 | `0x8EF485fD38b7B29a827938C9F00300eaBf8E1710` |
+| 5 | `0xbfFcAdCd5549cC378693108BcD4435776A6fa795` |
+| 6 | `0xB680373c50E9E877DA7dCF9efcc0dFB234452ad3` |
+| 7 | `0x6eb0c274EC4B1d51152e45BAED22f883B2A3Bc60` |
+| 8 | `0xE82183cfAE1C24f044315c318FD97bE7e47b31D2` |
 | 9 | `0xc1047a4D9f6071B55585523F7F659F39A1fBA74b` |
 | 10 | `0xDB97c377F23a9Dc54c3D6F9df7bC0ca4Cf7D5A81` |
 | 11 | `0x89562FC5AEF155481aE0C7dde1300110B4dF2F1D` |
@@ -160,7 +170,7 @@ Safe v1.3.0. Remains the Delay's `avatar`/`target` and the owner of `NewRoles`. 
 
 | Slot | Variable | Value |
 |---|---|---|
-| 0 | `singleton` | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` (`GnosisSafe` v1.3.0) — the value `DelayOwnerSafe` must match |
+| 0 | `singleton` | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` (`GnosisSafe` v1.3.0) — `DelayOwnerSafe` and `PauseSafe` deliberately differ: they deploy on v1.4.1 |
 | **1** | **`modules`** | 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf (Delay Module) |
 | 3 | `ownerCount` | `9` |
 | 4 | `threshold` | `9` |
@@ -272,38 +282,43 @@ So a pause holds the queue for as long as it lasts; an entry still held when it 
 
 ---
 
-## 8. PauseSafe — new address, 1-of-10
+## 8. PauseSafe — `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` — DEPLOYED
 
-Safe v1.3.0, deployed against the **same singleton as the other Safes** — `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` (`GnosisSafe` v1.3.0), copied from the Ownerless Safe's slot 0. Holds the **pauser** role on `PauseGuard`. Threshold 1, so any single signer can pause.
+Safe **v1.4.1** on the canonical L1 `Safe` singleton, the same version as `DelayOwnerSafe` and one ahead of the Ownerless Safe. Holds the **pauser** role on `PauseGuard`. Threshold 2, so pausing takes two of the nine signers.
+
+Deployed 2026-09-21 by `0xeee661ed…` through the v1.4.1 `SafeProxyFactory` `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67` with `createProxyWithNonce`, in transaction `0x3d010efe1825c373a39c1ca54e41f003db418dda6a3a1caa9b442799f5e04e08`. Every row below was read back from chain and matches.
+
+The `setup` call carried `to = 0xBD89A1CE4DDe368FFAB0eC35506eEcE0b1fFdc54` (`SafeToL2Setup`) with `setupToL2(0x29fcB43b…)`, which is what the Safe UI sends. That library rewrites slot 0 to the `SafeL2` singleton **only when `chainId() != 1`**, so on mainnet it did nothing and slot 0 holds the L1 singleton, as required. Deploying the same way on any other chain would land on `SafeL2`. `setup` also recorded `paymentReceiver = 0x5afe7A11E7000000000000000000000000000000`, a Safe UI marker; with `payment` and `paymentToken` both zero, no payment was made.
 
 | Slot | Variable | Type | Declared in | Value |
 |---|---|---|---|---|
-| 0 | `singleton` | address | SafeStorage | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` (`GnosisSafe` v1.3.0) — **identical to `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` slot 0** |
-| 1 | `modules` | mapping(address⇒address) | SafeStorage | empty ring: `0x1 → 0x1` |
-| 2 | `owners` | mapping(address⇒address) | SafeStorage | ring of 10 signers — the same set as the Admin Safe (below) |
-| 3 | `ownerCount` | uint256 | SafeStorage | `10` |
-| 4 | `threshold` | uint256 | SafeStorage | `1` |
-| 5 | `nonce` | uint256 | SafeStorage | `0` |
+| 0 | `singleton` | address | SafeStorage | `0x41675C099F32341bf84BFc5382aF534df5C7461a` (`Safe` v1.4.1) — verified, not `SafeL2` `0x29fcB43b…` |
+| 1 | `modules` | mapping(address⇒address) | SafeStorage | empty ring: `0x1 → 0x1` — verified |
+| 2 | `owners` | mapping(address⇒address) | SafeStorage | ring of 9 signers, all EOAs — 8 drawn from the Admin Safe plus one that is not (below) |
+| 3 | `ownerCount` | uint256 | SafeStorage | `9` — verified |
+| 4 | `threshold` | uint256 | SafeStorage | `2` — verified |
+| 5 | `nonce` | uint256 | SafeStorage | `0` — nothing executed yet |
 | 6 | `_deprecatedDomainSeparator` | bytes32 | SafeStorage | `0` |
 | 7 | `signedMessages` | mapping(bytes32⇒uint256) | SafeStorage | empty |
 | 8 | `approvedHashes` | mapping(address⇒mapping(bytes32⇒uint256)) | SafeStorage | empty |
+| `keccak256("guard_manager.guard.address")` | guard | address | GuardManager | `0x0` — verified |
+| `keccak256("fallback_manager.handler.address")` | fallback handler | address | FallbackManager | `0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99` (CompatibilityFallbackHandler v1.4.1) |
 
 ### Signers
 
-The same 10 signers as the Admin Safe `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` (itself Safe v1.3.0, 4-of-10), in its owner-ring order, but with threshold 1:
+Eight of the nine are owners of the Admin Safe `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` (itself Safe v1.3.0, 4-of-10); the ninth is not. Threshold is 2. Listed in the deployed owner-ring order, which starts with the deployer rather than following the Admin Safe's order — ring order carries no meaning beyond the `prevOwner` argument when removing an owner.
 
-| # | Signer |
-|---|---|
-| 1 | `0xF6A745f9B38FFcd17Ee8909AC89151D788F95282` |
-| 2 | `0x8EF485fD38b7B29a827938C9F00300eaBf8E1710` |
-| 3 | `0xbfFcAdCd5549cC378693108BcD4435776A6fa795` |
-| 4 | `0xB680373c50E9E877DA7dCF9efcc0dFB234452ad3` |
-| 5 | `0x6eb0c274EC4B1d51152e45BAED22f883B2A3Bc60` |
-| 6 | `0xE82183cfAE1C24f044315c318FD97bE7e47b31D2` |
-| 7 | `0xeee661edcFE634Dc0e29D62C26AfD62c0843b817` |
-| 8 | `0xc1047a4D9f6071B55585523F7F659F39A1fBA74b` |
-| 9 | `0xDB97c377F23a9Dc54c3D6F9df7bC0ca4Cf7D5A81` |
-| 10 | `0x89562FC5AEF155481aE0C7dde1300110B4dF2F1D` |
+| # | Signer | Admin Safe owner |
+|---|---|---|
+| 1 | `0xeee661edcFE634Dc0e29D62C26AfD62c0843b817` | yes — deployed the Safe |
+| 2 | `0xF6A745f9B38FFcd17Ee8909AC89151D788F95282` | yes |
+| 3 | `0xbfFcAdCd5549cC378693108BcD4435776A6fa795` | yes |
+| 4 | `0xB680373c50E9E877DA7dCF9efcc0dFB234452ad3` | yes |
+| 5 | `0x6eb0c274EC4B1d51152e45BAED22f883B2A3Bc60` | yes |
+| 6 | `0xc1047a4D9f6071B55585523F7F659F39A1fBA74b` | yes |
+| 7 | `0xDB97c377F23a9Dc54c3D6F9df7bC0ca4Cf7D5A81` | yes |
+| 8 | `0x89562FC5AEF155481aE0C7dde1300110B4dF2F1D` | yes |
+| 9 | `0xC3CbFc5DA4B3d4B1258D63cA7ba56518C33f28c7` | **no** — EOA created only for pausing |
 
 ---
 

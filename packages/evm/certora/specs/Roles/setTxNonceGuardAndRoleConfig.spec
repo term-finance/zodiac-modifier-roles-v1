@@ -165,8 +165,26 @@ function governorWiredWithSetTxNonceGuard(env e, address governor) {
 function setTxNonceRoleConfigPinned(address governor, address to, uint16 role, bytes data) {
     require clearanceOf(ROLE(), delayMod) == RolesHarness.Clearance.Function;
     require to != delayMod => clearanceOf(role, to) == RolesHarness.Clearance.None;
-    require selectorOf(data) != sig:DelayTarget.setTxNonce(uint256).selector
-        => functionScopeConfigForData(role, delayMod, data) == 0;
+    // The function-scope pin (runbook step 3, "nothing but setTxNonce is
+    // allowed on the Delay") is deliberately ABSENT here.
+    //
+    // Stating it as
+    //     require selectorOf(data) != sig:DelayTarget.setTxNonce(uint256).selector
+    //         => functionScopeConfigForData(role, delayMod, data) == 0;
+    // made all four governorExec rules below report counterexamples in which
+    // to, value, operation AND the selector were simultaneously unconstrained
+    // -- i.e. the OTHER pins in this predicate stopped binding too. That is not
+    // possible for a sound require: adding one can only remove states, and the
+    // same four conclusions verify with FEWER assumptions in
+    // setTxNonceGuardSufficient.spec, whose preconditions this predicate is a
+    // superset of. Calling functionScopeConfigForData inside a require is the
+    // trigger; bisected against -bisectA (require removed) and -bisectB (same
+    // pin expressed without that getter), both of which verify.
+    //
+    // Dropping it is sound here because it strengthens the result: these rules
+    // now bound execution using only the clearance and membership pins. The
+    // pin IS load-bearing in setTxNonceRoleConfigSufficient.spec, where no
+    // guard is installed -- see the bisect alongside it.
     require role != ROLE() => !memberOf(role, governor);
 }
 

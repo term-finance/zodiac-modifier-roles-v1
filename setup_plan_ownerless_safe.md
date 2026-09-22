@@ -24,23 +24,68 @@ Total Ownerless Safe transactions: **zero**.
 | Governor | `0x2B715634134220ffeEE9458b4e34E41A41418607` |
 | Proposer Safe (5/11) | `0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28` |
 | Admin Safe (4/10) | `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` |
-| Permissions library | `0xA4af47637C32482820960f680b1e52a11c705087` |
+| PauseSafe (2/9) — **deployed 2026-09-21** | `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` |
+| DelayOwnerSafe (5/11) — **deployed 2026-09-21** | `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` |
+| Roles v1.0.0 mastercopy (audited) | `0x85388a8cd772b19a468F982Dc264C238856939C9` |
+| Permissions library (linked inside the mastercopy) | `0x543D1DE69b25420685Ef723842D0087d9b731B06` |
+| Zodiac `ModuleProxyFactory` v1.2.0 | `0x000000000000aDdB49795b0f9bA5BC298cDda236` |
 | Safe v1.3.0 singleton | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` |
 | SafeProxyFactory v1.3.0 | `0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2` |
 | MultiSendCallOnly v1.3.0 | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D` |
-| To deploy | `PauseSafe`, `PauseGuard`, `DelayOwnerSafe`, `SetTxNonceGuard`, `NewRoles` |
+| To deploy | `PauseGuard`, `SetTxNonceGuard`, `NewRoles` |
 
 ## Who signs what
 
 | Step | Signer | Transactions |
 |---|---|---|
-| 1–3 | deployer key | deployments and NewRoles configuration |
+| 1 | deployer key | 1 — deploy PauseGuard |
+| 2 | deployer key | 1 — deploy SetTxNonceGuard |
+| 3 | deployer key | 1 deploy + 8 configuration calls on NewRoles |
 | 4 | DelayOwnerSafe (5/11) | 1 — enable NewRoles |
 | 5 | Proposer Safe (5/11) | 1 — queue the migration batch |
 | 6 | anyone (gas only) | 1 — `executeNextTx` after the cooldown |
 | 7 | DelayOwnerSafe (5/11) | 1 — set the Delay's guard |
 | 8 | Proposer Safe (5/11) | 1 — clear the fallback handler |
 | 9 | nobody | reads only — see the verification plan |
+
+## How each contract is deployed
+
+| Contract | Method | Factory | Singleton / mastercopy |
+|---|---|---|---|
+| PauseGuard | direct `CREATE` from the deployer key | none | — |
+| SetTxNonceGuard | direct `CREATE` from the deployer key | none | — |
+| NewRoles | EIP-1167 proxy via `deployModule` | Zodiac `ModuleProxyFactory` v1.2.0 `0x000000000000aDdB49795b0f9bA5BC298cDda236` | `0x85388a8cd772b19a468F982Dc264C238856939C9` — Roles v1.0.0, audited |
+
+Both Safes are already deployed. **NewRoles is a module proxy, which is how Zodiac expects modifiers to be deployed** — `ModuleProxyFactory.deployModule` CREATE2-deploys a 45-byte EIP-1167 proxy and calls `setUp` on it in the same transaction. This is the same pattern the Delay already uses: its code is the identical proxy template pointing at Delay mastercopy `0xd54895B1121A2eE3f37b502F507631FA1331BED6`.
+
+The mastercopy `0x85388a8cd772b19a468F982Dc264C238856939C9` is Roles v1.0.0, whose source is byte-identical to the audited commit `454be9d3c26f90221ca717518df002d1eca1845f` referenced in the repo README, with the audited `Permissions` library `0x543D1DE69b25420685Ef723842D0087d9b731B06` already linked inside it. Deploying this way means the executing code is audited and already on chain — nothing new is compiled or verified. **It also means the deployed code is the audited code, not this repo's `main`**: the post-audit changes in our tree (notably the `assert(index <= type(uint8).max)` bound in `keyForCompValues`) are not present. The ABI and storage layout are identical either way, so every call and slot below is unaffected.
+
+Both Safes were deployed 2026-09-21 through the v1.4.1 `SafeProxyFactory` `0x4e1DCf7AD4e460CfD30791CCC4F9c8a4f820ec67` with `createProxyWithNonce`, which performs the deployment and the `setup` call in one transaction: **DelayOwnerSafe** `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` (5-of-11) and **PauseSafe** `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` (2-of-9). Both are verified against the governance plan; neither has executed a transaction yet.
+
+## Every transaction, in order
+
+16 transactions in total. The two Safe deployments and the funding of the PauseSafe's ninth signer are already done and are not listed.
+
+| # | Step | Sender | To | Call |
+|---|---|---|---|---|
+| 1 | 1 | deployer key | — (`CREATE`) | `PauseGuard(admin, pauser)` |
+| 2 | 2 | deployer key | — (`CREATE`) | `SetTxNonceGuard(delay)` |
+| 3 | 3 | deployer key | `ModuleProxyFactory` | `deployModule(mastercopy, setUp(owner, avatar, target), salt)` |
+| 4 | 3 | deployer key | NewRoles | `setMultisend` |
+| 5 | 3 | deployer key | NewRoles | `scopeTarget` |
+| 6 | 3 | deployer key | NewRoles | `scopeAllowFunction` |
+| 7 | 3 | deployer key | NewRoles | `assignRoles` |
+| 8 | 3 | deployer key | NewRoles | `setDefaultRole` |
+| 9 | 3 | deployer key | NewRoles | `enableModule` |
+| 10 | 3 | deployer key | NewRoles | `setGuard` |
+| 11 | 3 | deployer key | NewRoles | `transferOwnership` |
+| 12 | 4 | DelayOwnerSafe (5/11) | DelayOwnerSafe | `enableModule(<NewRoles>)` |
+| 13 | 5 | Proposer Safe (5/11) | Delay | `execTransactionFromModule` — queue the batch |
+| 14 | 6 | anyone (gas only) | Delay | `executeNextTx` |
+| 15 | 7 | DelayOwnerSafe (5/11) | Delay | `setGuard(<PauseGuard>)` |
+| 16 | 8 | Proposer Safe (5/11) | Proposer Safe | `setFallbackHandler(0x0000000000000000000000000000000000000000)` |
+
+Transactions 4–11 are eight separate transactions from an EOA. An EOA cannot batch them natively; batching would mean routing them through a multicall helper that the deployer owns, which is optional and changes nothing about the resulting state.
 
 ---
 
@@ -53,85 +98,143 @@ anvil --fork-url <rpc> --fork-block-number <recent>
 Impersonate the Proposer Safe and the DelayOwnerSafe signers, run steps 1–8 including the cooldown warp, then run step 9's checks. Confirm before mainnet:
 
 - **`PauseGuard.supportsInterface(0xe6d7a83a)` returns `true`.** `Guardable.setGuard` rejects a guard that doesn't, which would revert step 7.
+- **`SetTxNonceGuard.supportsInterface(0xe6d7a83a)` returns `true` and `delay()` is `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf`.** The interface check gates `Roles.setGuard` in step 3. The `delay` check has no on-chain gate at all: the guard is pinned to whatever address it was constructed with, `setGuard` accepts it either way, and a guard pinned to the wrong Delay leaves the Governor's veto path dead with nothing reverting to say so.
 - **The Delay's queue is empty** (`txNonce() == queueNonce()`, both `203` today). The queue is strictly FIFO, so anything queued ahead of the migration batch has to clear first.
 - **The exact batch calldata.** `executeNextTx` re-hashes `(to, value, data, operation)` and reverts unless it matches, so save the bytes queued in step 5 verbatim.
 
 ---
 
-## Step 1 — deploy PauseSafe and PauseGuard
+## Step 1 — deploy PauseGuard
 
-**PauseSafe (1-of-10),** through SafeProxyFactory v1.3.0 against singleton `0xd9Db270c…`:
-
-```
-setup(
-  owners:          the 10 Admin Safe signers (section 8 of the plan),
-  threshold:       1,
-  to:              0x0,      // no modules
-  data:            "",
-  fallbackHandler: 0x0,      // nothing calls this Safe
-  paymentToken:    0x0, payment: 0, paymentReceiver: 0x0
-)
-```
-
-**PauseGuard:**
+Direct `CREATE` from the deployer key — no factory, no proxy:
 
 ```
-PauseGuard(admin: 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774, pauser: <PauseSafe>)
+PauseGuard(admin: 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774, pauser: 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472)
 ```
 
-`paused` starts `false`. Verify `supportsInterface(0xe6d7a83a)` and `supportsInterface(0x01ffc9a7)`.
+`paused` starts `false`. Verify before moving on:
+
+```bash
+cast call <PauseGuard> 'supportsInterface(bytes4)(bool)' 0xe6d7a83a --rpc-url $RPC   # true
+cast call <PauseGuard> 'supportsInterface(bytes4)(bool)' 0x01ffc9a7 --rpc-url $RPC   # true
+cast call <PauseGuard> 'pauser()(address)' --rpc-url $RPC                            # 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472
+cast call <PauseGuard> 'hasRole(bytes32,address)(bool)' $(cast keccak ADMIN_ROLE) \
+  0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774 --rpc-url $RPC                          # true
+```
+
+The interface check is not cosmetic: `Guardable.setGuard` requires it, and this guard is not installed until step 7, so a failure here would otherwise surface six steps later.
 
 ---
 
-## Step 2 — deploy DelayOwnerSafe
+## Step 2 — deploy SetTxNonceGuard
 
-**DelayOwnerSafe (5-of-11),** same factory and singleton:
+Direct `CREATE` from the deployer key — no factory, no proxy:
 
 ```
-setup(
-  owners:          the 11 Proposer Safe signers (section 4 of the plan),
-  threshold:       5,
-  to:              0x0,      // NewRoles does not exist yet
-  data:            "",
-  fallbackHandler: 0x0,
-  paymentToken:    0x0, payment: 0, paymentReceiver: 0x0
-)
+SetTxNonceGuard(delay: 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf)
 ```
 
-Modules can't be enabled during `setup`: NewRoles takes this Safe's address as its `target`, so the Safe has to exist first.
+The Delay `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf`, not the DelayOwnerSafe. The guard sees the final destination of a module transaction, which is the Delay; the DelayOwnerSafe is the avatar in between and never appears as `to`.
+
+No storage: `delay` is `immutable` and lives in the bytecode, so `cast storage` shows nothing and the getter is the only way to read it. Check it before step 3 installs the guard:
+
+```bash
+cast call <SetTxNonceGuard> 'delay()(address)' --rpc-url $RPC                            # 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf
+cast call <SetTxNonceGuard> 'supportsInterface(bytes4)(bool)' 0xe6d7a83a --rpc-url $RPC  # true
+cast call <SetTxNonceGuard> 'supportsInterface(bytes4)(bool)' 0x01ffc9a7 --rpc-url $RPC  # true
+```
+
+**The `delay()` check is the one that matters.** Nothing on chain enforces it: `Roles.setGuard` only checks `supportsInterface`, so a guard constructed against the wrong Delay — the Term DAO's `0x80Ce5a0de8B1604e3122BEE73360dC3b987F891A` being the obvious slip — installs cleanly and then rejects every transaction the Governor sends, with the failure only visible the first time a veto is attempted. The instance cannot be shared with the Term DAO deployment for the same reason: `delay` is immutable, so one instance serves exactly one Delay.
+
+ABI-encoded constructor argument, to append to the creation bytecode:
+
+```
+0x0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf
+```
+
+Independent of every other deployment — it takes only the Delay address, which is live today. It sits here because step 3 installs it.
 
 ---
 
-## Step 3 — deploy and fully configure NewRoles
+## Step 3 — deploy and configure NewRoles
 
 Deployer key only. NewRoles is a module on nothing throughout, so its permissions can't be used yet.
 
-**Deploy `SetTxNonceGuard(delay: 0x0C19d8A4…)`.**
-
-**Deploy NewRoles** — the Term fork without `callTargetFunctionWithRole`, `Permissions` linked at `0xA4af4763…`:
+**Deploy NewRoles** — one call to the Zodiac `ModuleProxyFactory` v1.2.0 `0x000000000000aDdB49795b0f9bA5BC298cDda236`, which CREATE2-deploys the proxy and initializes it in the same transaction:
 
 ```
-Roles(
-  owner:  <deployer>,
-  avatar: 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03,
-  target: <DelayOwnerSafe>
+deployModule(
+  masterCopy:  0x85388a8cd772b19a468F982Dc264C238856939C9,     # Roles v1.0.0, audited
+  initializer: setUp(abi.encode(<deployer>, 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03, 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3)),
+  saltNonce:   <any uint256 you pick>
 )
 ```
+
+`setUp` takes `(owner, avatar, target)` — the same three values the old constructor took, in the same order. Owner starts as the **deployer** so the configuration below can run; call 8 hands it to the Ownerless Safe.
+
+Build the initializer, then send:
+
+```bash
+INIT=$(cast calldata 'setUp(bytes)' $(cast abi-encode 'f(address,address,address)' \
+  <deployer> 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3))
+
+cast send 0x000000000000aDdB49795b0f9bA5BC298cDda236 \
+  'deployModule(address,bytes,uint256)' 0x85388a8cd772b19a468F982Dc264C238856939C9 $INIT <saltNonce> \
+  --rpc-url $RPC --private-key $DEPLOYER
+```
+
+**Take `<NewRoles>` from the `ModuleProxyCreation(address indexed proxy, address indexed masterCopy)` event**, not from the transaction's `to`. The address is deterministic — CREATE2 from the factory with salt `keccak256(abi.encodePacked(keccak256(initializer), saltNonce))` — so it can be precomputed, but reading the event is the check that it landed where you expected.
+
+The proxy's code is exactly 45 bytes and holds no logic of its own:
+
+```
+363d3d373d3d3d363d73 85388a8cd772b19a468f982dc264c238856939c9 5af43d82803e903d91602b57fd5bf3
+```
+
+Two consequences. The `Permissions` library is the mastercopy's (`0x543D1DE69b25420685Ef723842D0087d9b731B06`) and cannot be swapped. And **bytecode checks must read the mastercopy, not the proxy** — `cast code <NewRoles>` returns only those 45 bytes. Section D of the verification plan reflects this.
 
 **Configure in this order** (all `onlyOwner`, so the deployer can batch them or send them one at a time):
 
 | # | Call | Result |
 |---|---|---|
 | 1 | `setMultisend(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D)` | slot 105 |
-| 2 | `scopeTarget(1, 0x0C19d8A4…)` | role 1 target → `Clearance.Function` |
-| 3 | `scopeAllowFunction(1, 0x0C19d8A4…, 0x46ba2307, ExecutionOptions.None)` | only `setTxNonce` allowed |
-| 4 | `assignRoles(0x2B715634…, [1], [true])` | Governor becomes a member of role 1 |
-| 5 | `setDefaultRole(0x2B715634…, 1)` | slot 106 |
-| 6 | `enableModule(0x2B715634…)` | Governor becomes the sole module |
+| 2 | `scopeTarget(1, 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf)` | role 1 target → `Clearance.Function` |
+| 3 | `scopeAllowFunction(1, 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf, 0x46ba2307, ExecutionOptions.None)` | only `setTxNonce` allowed |
+| 4 | `assignRoles(0x2B715634134220ffeEE9458b4e34E41A41418607, [1], [true])` | Governor becomes a member of role 1 |
+| 5 | `setDefaultRole(0x2B715634134220ffeEE9458b4e34E41A41418607, 1)` | slot 106 |
+| 6 | `enableModule(0x2B715634134220ffeEE9458b4e34E41A41418607)` | Governor becomes the sole module |
 | 7 | `setGuard(<SetTxNonceGuard>)` | slot 101 |
-| 8 | `transferOwnership(0xb8A1dF43…)` | owner becomes the Ownerless Safe |
+| 8 | `transferOwnership(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)` | owner becomes the Ownerless Safe |
 
 `scopeTarget` must precede `scopeAllowFunction`: scoping the target sets clearance to `Function`, and the function entry is what then permits `setTxNonce`. Keep `transferOwnership` last, since every earlier call needs the deployer to still be the owner.
+
+### Ready to send
+
+Seven of the eight are fully determined — every argument is a known address. Send them in this order, each to `<NewRoles>`:
+
+```
+1 setMultisend        0x8b95eccd00000000000000000000000040a2accbd92bca938b02010e17a5b8929b49130d
+
+2 scopeTarget         0x5e82669500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf
+
+3 scopeAllowFunction  0x2fcf52d100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf46ba2307000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+
+4 assignRoles         0xa6edf38f0000000000000000000000002b715634134220ffeee9458b4e34e41a41418607000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001
+
+5 setDefaultRole      0x102b7fe60000000000000000000000002b715634134220ffeee9458b4e34e41a414186070000000000000000000000000000000000000000000000000000000000000001
+
+6 enableModule        0x610b59250000000000000000000000002b715634134220ffeee9458b4e34e41a41418607
+
+7 setGuard            NOT PRECOMPUTABLE — SetTxNonceGuard's address is only known after step 2
+
+8 transferOwnership   0xf2fde38b000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03
+```
+
+Call 7, once step 2 has run:
+
+```bash
+cast calldata 'setGuard(address)' <SetTxNonceGuard>    # 0xe19a9dd9 ‖ the address, left-padded
+```
 
 Ownership lands on the Ownerless Safe without it signing anything — `transferOwnership` is the deployer's call.
 
@@ -166,12 +269,12 @@ Each inner call is packed as `operation(uint8=0) ‖ to(address) ‖ value(uint2
 
 | # | Target | Call | Why it's allowed |
 |---|---|---|---|
-| 1 | old Roles | `enableModule(0xb8A1dF43…)` | `onlyOwner`; the Ownerless Safe owns the old Roles |
-| 2 | old Roles | `assignRoles(0xb8A1dF43…, [1], [true])` | `onlyOwner` |
-| 3 | old Roles | `callTargetFunctionWithRole(0x0C19d8A4…, transferOwnership(<DelayOwnerSafe>), 1)` | `moduleOnly` (call 1) + role 1 membership (call 2) |
-| 4 | old Roles | `assignRoles(0xb8A1dF43…, [1], [false])` | `onlyOwner` |
-| 5 | old Roles | `disableModule(0x…01, 0xb8A1dF43…)` | `onlyOwner` |
-| 6 | Ownerless Safe (self) | `disableModule(0x…01, 0x405b4735…)` | Safe `authorized` — `msg.sender` is the Safe itself |
+| 1 | old Roles | `enableModule(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)` | `onlyOwner`; the Ownerless Safe owns the old Roles |
+| 2 | old Roles | `assignRoles(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03, [1], [true])` | `onlyOwner` |
+| 3 | old Roles | `callTargetFunctionWithRole(0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf, transferOwnership(0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3), 1)` | `moduleOnly` (call 1) + role 1 membership (call 2) |
+| 4 | old Roles | `assignRoles(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03, [1], [false])` | `onlyOwner` |
+| 5 | old Roles | `disableModule(0x0000000000000000000000000000000000000001, 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)` | `onlyOwner` |
+| 6 | Ownerless Safe (self) | `disableModule(0x0000000000000000000000000000000000000001, 0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2)` | Safe `authorized` — `msg.sender` is the Safe itself |
 
 Notes on the batch:
 
@@ -179,36 +282,108 @@ Notes on the batch:
 - **Call 2 is required.** `Permissions.check` reverts with `NoMembership` unless the caller is a member of the role ([Permissions.sol:185](packages/evm/contracts/Permissions.sol:185)), and role 1 has no members today.
 - **No new permission is granted.** Role 1's existing target entry for the Delay is `Clearance.Target` with `ExecutionOptions.None`, which covers call 3: value 0, plain call.
 - **Calls 4–6 close everything.** The old Roles ends with no members, no modules and no place in the Ownerless Safe's module ring.
-- **`prevModule` in calls 5 and 6** is the sentinel `0x0000000000000000000000000000000000000001`. In the Ownerless Safe the ring is `0x1 → old Roles → Delay → 0x1`, and in the old Roles the Ownerless Safe will be the only entry. Re-read both rings when building the calldata.
+- **`prevModule` in calls 5 and 6** is the sentinel `0x0000000000000000000000000000000000000001`. In the Ownerless Safe the ring is `0x0000000000000000000000000000000000000001 → 0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2 → 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf → 0x0000000000000000000000000000000000000001`, and in the old Roles the Ownerless Safe will be the only entry. Re-read both rings when building the calldata.
 - **Do not touch the Delay's module entry.** The Delay is the module executing this batch; leave the Ownerless Safe's Delay entry alone.
 - **MultiSendCallOnly, not MultiSend.** It rejects inner delegatecalls, and every inner call here is a plain call.
 
 ### Encoding
 
-Each inner call, with `0x1111…1111` standing in for the DelayOwnerSafe:
+The six inner calls:
 
-| # | To | Calldata |
-|---|---|---|
-| 1 | old Roles | `0x610b5925` ‖ `b8A1dF43…` — `enableModule(Ownerless Safe)` |
-| 2 | old Roles | `0xa6edf38f` ‖ … — `assignRoles(Ownerless Safe, [1], [true])` |
-| 3 | old Roles | `0x9518aaac` ‖ … — `callTargetFunctionWithRole(Delay, 0xf2fde38b ‖ <DelayOwnerSafe>, 1)` |
-| 4 | old Roles | `0xa6edf38f` ‖ … — `assignRoles(Ownerless Safe, [1], [false])` |
-| 5 | old Roles | `0xe009cfde` ‖ … — `disableModule(0x…01, Ownerless Safe)` |
-| 6 | Ownerless Safe | `0xe009cfde` ‖ … — `disableModule(0x…01, old Roles)` |
+| # | To | Selector | Call |
+|---|---|---|---|
+| 1 | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `0x610b5925` | `enableModule(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)` |
+| 2 | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `0xa6edf38f` | `assignRoles(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03, [1], [true])` |
+| 3 | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `0x9518aaac` | `callTargetFunctionWithRole(0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf, 0xf2fde38b ‖ 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3, 1)` |
+| 4 | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `0xa6edf38f` | `assignRoles(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03, [1], [false])` |
+| 5 | `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `0xe009cfde` | `disableModule(0x0000000000000000000000000000000000000001, 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)` |
+| 6 | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` | `0xe009cfde` | `disableModule(0x0000000000000000000000000000000000000001, 0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2)` |
+
+The same six verbatim, built against the deployed DelayOwnerSafe `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` — inner call 3 is the only one that carries it:
+
+```
+inner 1: 0x610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03
+
+inner 2: 0xa6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001
+
+inner 3: 0x9518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad300000000000000000000000000000000000000000000000000000000
+
+inner 4: 0xa6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000
+
+inner 5: 0xe009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03
+
+inner 6: 0xe009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2
+```
 
 Each is packed as `00 ‖ to (20 bytes) ‖ value (32 bytes of zero) ‖ dataLength (32 bytes) ‖ data`, the six are concatenated, and the result is wrapped as `multiSend(bytes)` (`0x8d80ff0a`). With the placeholder above the packed blob is 1,334 bytes.
 
-[build_migration_batch.sh](build_migration_batch.sh) builds all of it. Pass the real DelayOwnerSafe address; it prints the inner calls, the packed batch, the `multiSend` calldata, the full calldata for steps 5 and 6, and the `txHash` the Delay will store:
+### The calldata
 
-```bash
-./build_migration_batch.sh <DelayOwnerSafe>
+Built and checked against a mainnet fork: queued from the Proposer Safe, executed after the cooldown, leaving the Delay owned by the DelayOwnerSafe and the old Roles stripped of its module entry and role membership. Nothing below needs deriving again.
+
+Three different byte strings appear below because each wraps the one before it. Pick **one** of the two options for this step — they produce an identical transaction:
+
+| | What it is | Where it goes |
+|---|---|---|
+| **A** | `Delay.execTransactionFromModule(...)` calldata | the transaction builder's **raw calldata** field, with **To** = the Delay |
+| **B** | the `multiSend` payload | the **`data` parameter** when the builder decodes `execTransactionFromModule` for you |
+
+---
+
+#### Option A — raw calldata (transaction builder)
+
+**To:** `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` (the Delay) · **ETH value:** `0` · **Data:** the 1,604 bytes below.
+
+In the Safe Transaction Builder this is the "custom data" path: paste the address, leave the value at 0, tick the custom-data box and paste this as the hex data. The builder will not decode it, which is expected — the Delay's ABI is not one it knows.
+
+```
+0x468721a700000000000000000000000040a2accbd92bca938b02010e17a5b8929b49130d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000005848d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053600405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c49518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad30000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300b8a1df43c1c88b13937c0c5cebbad15830caec0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d20000000000000000000000000000000000000000000000000000000000000000000000000000
 ```
 
-Confirm the printed hash against the chain before the cooldown ends:
+#### Option B — `execTransactionFromModule` parameters (transaction builder)
+
+**To:** `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` (the Delay) · **ETH value:** `0` · **Method:** `execTransactionFromModule`, with:
+
+| Parameter | Value |
+|---|---|
+| `to` (address) | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D` — MultiSendCallOnly v1.3.0 |
+| `value` (uint256) | `0` |
+| `data` (bytes) | the 1,412-byte `multiSend` payload below |
+| `operation` (uint8) | `1` — DelegateCall |
+
+Paste the Delay's ABI if the builder doesn't resolve it. The `operation` field is the one to double-check: `1`, not `0`.
+
+```
+0x8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053600405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c49518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad30000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300b8a1df43c1c88b13937c0c5cebbad15830caec0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000
+```
+
+That same `multiSend` payload is also what `getTransactionHash` takes, and what step 6 re-wraps.
+
+---
+
+#### Step 6, for later — `executeNextTx` calldata
+
+Not a transaction-builder item: anyone with gas sends this directly to the Delay `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` after the cooldown. Raw calldata form:
+
+```
+0xee072baf00000000000000000000000040a2accbd92bca938b02010e17a5b8929b49130d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000005848d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053600405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c49518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad30000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300b8a1df43c1c88b13937c0c5cebbad15830caec0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d20000000000000000000000000000000000000000000000000000000000000000000000000000
+```
+
+Or as parameters: `executeNextTx(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D, 0, <the multiSend payload above>, 1)`.
+
+---
+
+**Expected `txHash`: `0xee765529f6ab1401d438c2fe407ce5909ed6b1394619bb2ec525071c99cb180d`** — what the Delay stores at queue nonce 203. Confirm it on chain after queueing and before the cooldown ends:
 
 ```bash
 cast call $DELAY 'getTransactionHash(address,uint256,bytes,uint8)(bytes32)' \
-  0x40A2aCCbd92BCA938b02010E17A5b8929b49130D 0 <multiSend-calldata> 1 --rpc-url $RPC
+  0x40A2aCCbd92BCA938b02010E17A5b8929b49130D 0 <multiSend payload> 1 --rpc-url $RPC
+```
+
+These bytes are only valid while the Delay's queue is empty at nonce 203 and the module ring still reads `sentinel → old Roles → Delay → sentinel`. Re-read both before queueing; if either has moved, rebuild with [build_migration_batch.sh](build_migration_batch.sh):
+
+```bash
+./build_migration_batch.sh 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3
 ```
 
 ---
@@ -219,14 +394,28 @@ After the 1-day cooldown, any address with gas calls:
 
 ```
 Delay.executeNextTx(
-  to:        0x40A2aCCbd92BCA938b02010E17A5b8929b49130D,
+  to:        0x40A2aCCbd92BCA938b02010E17A5b8929b49130D,   // MultiSendCallOnly v1.3.0
   value:     0,
-  data:      <the exact same multiSend calldata>,
+  data:      <the multiSend payload below>,
   operation: DelegateCall (1)
 )
 ```
 
-Use the step 6 calldata printed by [build_migration_batch.sh](build_migration_batch.sh) — the same `multiSend` bytes as step 5, re-wrapped for `executeNextTx` (`0xee072baf`). Any difference and the hash check rejects it.
+**To:** `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` (the Delay) · **ETH value:** `0` · sent by any address with gas.
+
+Raw calldata, 1,604 bytes (`0xee072baf`):
+
+```
+0xee072baf00000000000000000000000040a2accbd92bca938b02010e17a5b8929b49130d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000005848d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053600405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c49518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad30000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300b8a1df43c1c88b13937c0c5cebbad15830caec0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d20000000000000000000000000000000000000000000000000000000000000000000000000000
+```
+
+Or as parameters, where `data` is the 1,412-byte `multiSend` payload — byte-identical to the one queued in step 5:
+
+```
+0x8d80ff0a0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000053600405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024610b5925000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c49518aaac0000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000024f2fde38b0000000000000000000000002a875746d0c88ebd2bbbfc8f8a773c58c3373ad30000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d2000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e4a6edf38f000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec03000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000b8a1df43c1c88b13937c0c5cebbad15830caec0300b8a1df43c1c88b13937c0c5cebbad15830caec0300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000044e009cfde0000000000000000000000000000000000000000000000000000000000000001000000000000000000000000405b47354cf06a25de1ddb35ec65f03939e2e8d200000000000000000000
+```
+
+Either form must reproduce those bytes exactly: `executeNextTx` re-hashes `(to, value, data, operation)` and reverts unless the result matches `0xee765529f6ab1401d438c2fe407ce5909ed6b1394619bb2ec525071c99cb180d`, the entry the Delay stored at queue nonce 203.
 
 - **Window:** from `t0 + 86400` to `t0 + 172800`, where `t0` is when step 5 was queued. Past that the entry expires and has to be queued again.
 - **Result:** the Delay's owner is the DelayOwnerSafe, and the old Roles is retired.
@@ -253,19 +442,41 @@ One Proposer Safe transaction (5 of 11), sent to itself:
 setFallbackHandler(0x0000000000000000000000000000000000000000)
 ```
 
+Calldata for the inner transaction the Safe executes against itself:
+
+```
+0xf08a03230000000000000000000000000000000000000000000000000000000000000000
+```
+
 Independent of everything else. Emits `ChangedFallbackHandler`.
 
 ---
 
 ## Step 9 — verify
 
-Every check is in [verification_plan_ownerless_safe.md](verification_plan_ownerless_safe.md), broken out per step. Run that file's section for a step before starting the next one; section A runs before step 1.
+Every check is in [verification_plan_ownerless_safe.md](verification_plan_ownerless_safe.md), broken out per step. Run that file's section for a step before starting the next one; section A runs before step 1, apart from its balance check, which confirms step 1 landed.
+
+Those checks are all reads, so they are packed into [verify_ownerless_safe.sh](verify_ownerless_safe.sh) — one section per step, exit status 0 only if every check in it passed. Run the matching section as each step lands:
+
+| After | Command |
+|---|---|
+| — (before step 1) | `RPC=$RPC ./verify_ownerless_safe.sh A` |
+| step 1 | `RPC=$RPC PAUSEGUARD=$PAUSEGUARD ./verify_ownerless_safe.sh B` |
+| step 2 | `RPC=$RPC SETGUARD=$SETGUARD ./verify_ownerless_safe.sh C` |
+| step 3 | `RPC=$RPC NEWROLES=$NEWROLES SETGUARD=$SETGUARD ./verify_ownerless_safe.sh D` |
+| step 4 | `RPC=$RPC NEWROLES=$NEWROLES ./verify_ownerless_safe.sh E` |
+| step 5 | `RPC=$RPC BATCH_CALLDATA=0x.. ./verify_ownerless_safe.sh F` |
+| step 6 | `RPC=$RPC ./verify_ownerless_safe.sh G` |
+| step 7 | `RPC=$RPC PAUSEGUARD=$PAUSEGUARD ./verify_ownerless_safe.sh H` |
+| step 8 | `RPC=$RPC PAUSEGUARD=$PAUSEGUARD SETGUARD=$SETGUARD NEWROLES=$NEWROLES ./verify_ownerless_safe.sh I` |
+
+A check needing an address you have not set is reported `SKIP`, not `FAIL`. The fork-only checks in sections D and H are `SKIP` as well — run those by hand on the fork in step 0.
 
 ---
 
 ## Backing out
 
 - **While the batch is queued,** don't execute it. It expires 2 days after queueing, and `skipExpired()` then clears it. Nothing has changed at that point except the deployments and the inert module entry on the DelayOwnerSafe.
-- **After step 6,** the DelayOwnerSafe (5 of 11) owns the Delay and can undo the rest: `setGuard(0x0)` to drop the pause guard, or `transferOwnership` to move the Delay elsewhere.
+- **After step 6,** the DelayOwnerSafe (5 of 11) owns the Delay and can undo the rest: `setGuard(0x0000000000000000000000000000000000000000)` to drop the pause guard, or `transferOwnership` to move the Delay elsewhere.
 - **No pause guard exists until step 7.** While the batch is queued the Delay is unguarded, so a queued batch cannot be paused — the way to stop it is to let it expire.
 - **The Governor goes live at step 6**, when NewRoles can first reach the Delay. Its 66 existing proposals are all `Defeated`, so none of them can be executed.

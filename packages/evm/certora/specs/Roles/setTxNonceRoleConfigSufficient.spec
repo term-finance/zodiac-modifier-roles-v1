@@ -1,4 +1,23 @@
 /*
+ * NOTE ON THE FUNCTION-SCOPE PINS BELOW.
+ *
+ * They go through functionScopeConfigForSelector (uint32 selector), not
+ * functionScopeConfigForData (bytes blob). Same slot either way -- the bytes
+ * form does bytes4(data) on entry -- but calling the bytes form inside a CVL
+ * `require` makes every surrounding require stop binding, and all four
+ * roleConfigLimits rules then report counterexamples in which to, value,
+ * operation AND the selector are simultaneously unconstrained.
+ *
+ * That is not possible for a sound require: adding one can only remove states.
+ * Confirmed by bisecting setTxNonceGuardAndRoleConfig.spec, whose preconditions
+ * are a strict superset of setTxNonceGuardSufficient.spec's yet which failed
+ * the same four conclusions until the bytes-form call was removed.
+ *
+ * Unlike that spec, the pins here are load-bearing -- no guard is installed, so
+ * the options pin is what forces value == 0 and Operation.Call -- so they
+ * cannot be dropped, only restated. Do not switch them back to the bytes form.
+ */
+/*
  * Property 3 — the setTxNonce role configuration alone is sufficient:
  * SetTxNonceGuard is absent, and the scoping still admits nothing but
  * setTxNonce on the Delay.
@@ -55,7 +74,7 @@ methods {
     function memberOf(uint16, address) external returns (bool) envfree;
     function moduleEntry(address) external returns (address) envfree;
     function clearanceOf(uint16, address) external returns (RolesHarness.Clearance) envfree;
-    function functionScopeConfigForData(uint16, address, bytes) external returns (uint256) envfree;
+    function functionScopeConfigForSelector(uint16, address, uint32) external returns (uint256) envfree;
     function unpackFunctionOptions(uint256) external returns (RolesHarness.ExecutionOptions, bool, uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
     function multisend() external returns (address) envfree;
@@ -78,7 +97,9 @@ definition ROLE() returns uint16 = 1;
 function setTxNonceScopedWithNoOptions(bytes data) {
     RolesHarness.ExecutionOptions options; bool isWildcarded; uint256 length;
     options, isWildcarded, length =
-        unpackFunctionOptions(functionScopeConfigForData(ROLE(), delayMod, data));
+        unpackFunctionOptions(
+            functionScopeConfigForSelector(ROLE(), delayMod, selectorOf(data))
+        );
     require options == RolesHarness.ExecutionOptions.None;
 }
 
@@ -96,7 +117,7 @@ function setTxNonceRoleConfigWithoutGuard(env e, address governor, address to, u
 
     // scopeAllowFunction(1, delay, setTxNonce, None), and nothing else.
     require selectorOf(data) != sig:DelayTarget.setTxNonce(uint256).selector
-        => functionScopeConfigForData(role, delayMod, data) == 0;
+        => functionScopeConfigForSelector(role, delayMod, selectorOf(data)) == 0;
     setTxNonceScopedWithNoOptions(data);
 
     // assignRoles(governor, [1], [true]).

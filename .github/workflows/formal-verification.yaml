@@ -18,7 +18,9 @@ jobs:
           - "Roles-setTxNonceGuardAndRoleConfig.conf"
           - "Roles-setTxNonceGuardSufficient.conf"
           - "Roles-setTxNonceRoleConfigSufficient.conf"
+          - "Roles-configIntegrity.conf"
           - "Delay-pauseGuardSufficient.conf"
+          - "Delay-moduleIntegrity.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
