@@ -1,0 +1,54 @@
+{
+  "availableOutputCount": 15,
+  "functionalPolicyTheoremAccepted": false,
+  "inputComparison": {
+    "certora/confs/Roles-delayProtection.conf": {
+      "matchesCurrent": false,
+      "submittedSha256": "ae70c164c5bb83bc08094533c1e71436d19ceb217269460447c19f98f46e7188"
+    },
+    "certora/harness/RolesHarness.sol": {
+      "matchesCurrent": false,
+      "submittedSha256": "6d2ae9cb92b84d469e98efb33126b20c858099308c1e2ff16db2806c7cde2ec7"
+    },
+    "certora/specs/Roles/delayProtection.spec": {
+      "matchesCurrent": false,
+      "submittedSha256": "51cb145026ae233ef1e81aee6e4b87ab1709cbe518cc159804fce0f559f3a0a7"
+    },
+    "contracts/Permissions.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "29952bcebecfa8d7cdf15c8c9c7871c7540e17cab2dab7f7024fdd7bd512e11b"
+    },
+    "contracts/Roles.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "d2721bf908bf48411a0471570f1460c4328074e26783d57fd3e9f5c3b99c73c6"
+    }
+  },
+  "jobStatus": "SUCCEEDED",
+  "reportUrl": "https://prover.certora.com/output/99679/3145c5ac666a495991816e45f7f685f2?anonymousKey=a5e3f0d70735cb66a5cab38e4402c1e93f2522f0",
+  "retainedOutputCount": 15,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeForwarded": "SANITY_FAILED"
+  },
+  "sanityInstanceCount": 9,
+  "scope": "Single permission-configuration transition with explicit multisend and veto exclusions; no deployment or arbitrary-history closure.",
+  "semanticClosureCertified": false,
+  "terminal": true,
+  "uncompressedOutputSha256": {
+    "rule_output_1.json": "e4fe697bcbfad24d5456a8dae86f1f825c7814aae0a1993f790f222599e95297",
+    "rule_output_10.json": "86e7d3f659d06439b71adb17ad8bb2881ca7da1fee83e99682af19092d0a6c29",
+    "rule_output_11.json": "9bcac02b7279deeceeab9c8fbe3d1f008abb2318dbbf798becb423203ac767b8",
+    "rule_output_12.json": "d7e45b207281b24d83c80f9f67ed85542debcd8e73f0da2ce82a20a0d8483afb",
+    "rule_output_13.json": "f19b686d405634104f9a49c2d1d0c22f1b96f532c93b76e65a3f65966a9f14d0",
+    "rule_output_14.json": "abbe166b873753b6df48f866634a66ee61e3a0e88f1e6aabd11f2fc7044effa0",
+    "rule_output_15.json": "de368d0b9c6b0d277a48bf4332c64905042a7d4a9b61126e09d31b973736c57d",
+    "rule_output_2.json": "c7d21532d7a1d32396ce308b0193efad856f9c9e6017a1868ed2b9ba476b8b54",
+    "rule_output_3.json": "9a8bc28d91748126e50ddacb6d8b4dc0938644170982f2b3423273e83eacc0ac",
+    "rule_output_4.json": "3d2a24d1b8d77e489da444cfc17f63b7195bb59326e6fa824c8140c13f9cae3b",
+    "rule_output_5.json": "78e50ca66138268dd9fc2b84aae745c63c830a0aeb534493fe2148e83df06193",
+    "rule_output_6.json": "1d739689c2c2e5326dae48f193e0b653e17fbfef1260b722725e78435da3716b",
+    "rule_output_7.json": "d853c1e88d9de03be63ba3d583c90808d74488eaaead237921e0a92e3bc02b50",
+    "rule_output_8.json": "c52c2d7076490e8ee1f62aa19593860c2b0652bf1c48e741943c01c489757581",
+    "rule_output_9.json": "27cde43aab83ab48d5a437270fded0a079b4ee25d00f0d7ec64f477807cf1997"
+  }
+}

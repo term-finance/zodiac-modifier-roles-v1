@@ -1,0 +1,59 @@
+{
+  "context": "packages/evm/certora/confs/Roles-delayProtection.conf",
+  "diagnostic": {
+    "evidence": "../evidence/delay-protection-2026-09-22/independent-boundary/assessment.json",
+    "functional_context_fingerprint_matches_submission": true,
+    "note": "Current unfiltered diagnostic exposes boundary/reachability violations; incomplete jobs and missing instances do not discharge any semantic obligation.",
+    "passed": false
+  },
+  "fingerprint": "c239ee33b8a2451827d0abf261a86fa7ac7ce3e252e907b4e6d110a7022fd415",
+  "obligations": {
+    "adequacy": {
+      "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
+      "evidence": [],
+      "status": "open"
+    },
+    "bindings": {
+      "claim": "Source/compiler/deployed code and mutable proxy, diamond, registry and role bindings match the claimed deployment scope.",
+      "evidence": [],
+      "status": "open"
+    },
+    "calls": {
+      "claim": "Compiler/bytecode call inventory and per-instance resolution reports cover typed, dynamic, library and delegate calls.",
+      "evidence": [],
+      "status": "open"
+    },
+    "models": {
+      "claim": "Each external summary refines the real environment conservatively, including reentrancy, revert and return-data behavior.",
+      "evidence": [],
+      "status": "open"
+    },
+    "results": {
+      "claim": "Exact rule/method instances, call-resolution evidence, sanity results and tool versions are retained; no timeout or skipped instance passes.",
+      "evidence": [],
+      "status": "open"
+    },
+    "roots": {
+      "claim": "All selectors, fallback/receive, constructors, initialization and upgrade transitions are accounted for.",
+      "evidence": [],
+      "status": "open"
+    },
+    "scope": {
+      "claim": "Each functional rule's explored executions are included in the closure proof; filters, bounds and assumptions are justified.",
+      "evidence": [],
+      "status": "open"
+    },
+    "targets": {
+      "claim": "Every possible receiver/selector/code/storage-context tuple is included or soundly modeled; target invariants are inductive.",
+      "evidence": [],
+      "status": "open"
+    },
+    "writers": {
+      "claim": "Every writer of relevant ordinary, namespaced and transient storage, including other facets and callbacks, is covered.",
+      "evidence": [],
+      "status": "open"
+    }
+  },
+  "schema": 1,
+  "status": "unproved"
+}

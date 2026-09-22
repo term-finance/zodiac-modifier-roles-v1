@@ -1,0 +1,7 @@
+{
+  "archive_sha256": "8b0898a46d5e581daa28865cd6dfb85559e03c54f9c8d69c8c43d91c438b29b4",
+  "cli": "7.31.0",
+  "solc": "0.8.30",
+  "solc_sha256": "738dcdc6afddeb505ee4e4ef24f1c1fdba2b8c924e614cbbf5801a5b062dd683",
+  "limitations": "This binds submitted compiler inputs. It is not deployed-bytecode equivalence or semantic closure."
+}

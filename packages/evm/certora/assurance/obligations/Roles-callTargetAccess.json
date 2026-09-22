@@ -1,0 +1,77 @@
+{
+  "context": "packages/evm/certora/confs/Roles-callTargetAccess.conf",
+  "context_revisions": [
+    {
+      "fingerprint": "41b31fbb7fbe84c7d95552c03e5edec6c67b347a87eefdf999df4ccd5741f348",
+      "note": "Historical diagnostic context, before two read-only selector getters, the veto-only spec and its CI configuration."
+    }
+  ],
+  "diagnostic": {
+    "evidence": "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json",
+    "functional_context_fingerprint_matches_submission": false,
+    "group": "zodiac-modifier-roles-v1-73a255793cd1",
+    "job_status": "SUCCEEDED",
+    "note": "Historical diagnostic only. Harness selector getters and CI/context changed; evidence is not a proof of this current context. All closure obligations remain open.",
+    "passed": false
+  },
+  "fingerprint": "f2ed098338cde69782e998b95a43bd593e5ffcbba0552a9e7e658cebcdfa1ccd",
+  "obligations": {
+    "adequacy": {
+      "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
+      "evidence": [],
+      "status": "open"
+    },
+    "bindings": {
+      "claim": "Source/compiler/deployed code and mutable proxy, diamond, registry and role bindings match the claimed deployment scope.",
+      "evidence": [],
+      "status": "open"
+    },
+    "calls": {
+      "claim": "Compiler/bytecode call inventory and per-instance resolution reports cover typed, dynamic, library and delegate calls.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json"
+      ],
+      "status": "open"
+    },
+    "models": {
+      "claim": "Each external summary refines the real environment conservatively, including reentrancy, revert and return-data behavior.",
+      "evidence": [],
+      "status": "open"
+    },
+    "results": {
+      "claim": "Exact rule/method instances, call-resolution evidence, sanity results and tool versions are retained; no timeout or skipped instance passes.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json"
+      ],
+      "status": "open"
+    },
+    "roots": {
+      "claim": "All selectors, fallback/receive, constructors, initialization and upgrade transitions are accounted for.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json"
+      ],
+      "status": "open"
+    },
+    "scope": {
+      "claim": "Each functional rule's explored executions are included in the closure proof; filters, bounds and assumptions are justified.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json"
+      ],
+      "status": "open"
+    },
+    "targets": {
+      "claim": "Every possible receiver/selector/code/storage-context tuple is included or soundly modeled; target invariants are inductive.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-73a255793cd1/manifest.json"
+      ],
+      "status": "open"
+    },
+    "writers": {
+      "claim": "Every writer of relevant ordinary, namespaced and transient storage, including other facets and callbacks, is covered.",
+      "evidence": [],
+      "status": "open"
+    }
+  },
+  "schema": 1,
+  "status": "unproved"
+}

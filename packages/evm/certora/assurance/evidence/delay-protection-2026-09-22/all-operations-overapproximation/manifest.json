@@ -1,0 +1,20 @@
+{
+  "filesSha256": {
+    "assessment.json": "93cd77bd7ee82ff454e8db70a4bba1a5445bd062817a860d4731510b31b3ca62",
+    "jobData.json": "5674a65968b133533bb8f818019d4ed3a0d83e8a8a1399bad945f929733126f6",
+    "jsonOutput.json": "6068375ec4d057ba1c24efa4e572374ff7a496d51ef892d0b679c66ad2affbb1",
+    "progress.json": "0d0a6d48dca325ccfc2afe47308121bf4802ff580ecfbd357f951bc5ddada4a6",
+    "rule_output_1.json.gz": "9809974765ee4f6afc0299dd2e224e9e80b60b782bec02bcaa7a7b94d66b664a",
+    "rule_output_2.json.gz": "18a6e967fb72ae4b5a1a989a20b8d89bb705604240f52d586c23ee078415e226",
+    "rule_output_3.json.gz": "07ac38418b6bb598dc5c9602b151389ab0cbbfb37e8bf9f0b3a6f633adab5298",
+    "rule_output_4.json.gz": "f6f7214cbfbbd381a7f808841ac6a2f76228fe500affa3558d2c51d1557c6cbf",
+    "rule_output_5.json.gz": "aee29253036e2f9c124c4883f113f5d59ade0c6800566a67cbdf7ea0cd615c9d",
+    "rule_output_6.json.gz": "175f6fa2b761033a3a9b2ccc1e1b45621f3f9282a0cdfdd2300ec13077dc028e",
+    "rule_output_7.json.gz": "cbe08ddd7557842e581bbc46bd4682a78e36bc9b07628d6fee1f090e95487581",
+    "rule_output_8.json.gz": "2ee67c9e245eb3771503df5a070957fa84916523c69edc615b2185ca254928d7",
+    "rule_output_9.json.gz": "9603a4130dd0152a535db1a9d7ee750b1257e420448f2597b58117cbdbc266e2",
+    "submission.log": "ddb79676981393972fdd347e01647a778f4232fe5d3ee719cd54492abfab7c90",
+    "submitted-inputs.zip": "65bbd352e7f5a6d803958a8f1c2020339c2c8fb55da3921344009fec5c3157bd"
+  },
+  "semanticClosureCertified": false
+}

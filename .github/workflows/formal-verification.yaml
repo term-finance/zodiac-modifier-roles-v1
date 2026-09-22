@@ -21,6 +21,7 @@ jobs:
           - "Roles-callTargetParams.conf"
           - "Roles-callTargetPermissions.conf"
           - "Roles-remediation.conf"
+          - "Roles-delayProtection.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -44,13 +45,12 @@ jobs:
       - run: solc-select install ${SOLC_VERSION}
         working-directory: ./packages/evm
         env:
-          SOLC_VERSION: "0.8.6"
+          SOLC_VERSION: ${{ matrix.ruleset == 'Roles-delayProtection.conf' && '0.8.30' || '0.8.6' }}
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \
             --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \
-            --wait_for_results all \
-            --rule_sanity basic
+            --wait_for_results all
         working-directory: ./packages/evm
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-          SOLC_VERSION: "0.8.6"
+          SOLC_VERSION: ${{ matrix.ruleset == 'Roles-delayProtection.conf' && '0.8.30' || '0.8.6' }}

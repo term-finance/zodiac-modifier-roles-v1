@@ -1,0 +1,26 @@
+{
+  "filesSha256": {
+    "assessment.json": "b91cada75f636c906a7deea4bf9bd1d7d405e15e5a693f337f7019af462fc57e",
+    "jobData.json": "f9a5d49cbc75772a0f5e978822586eccc8a0b1a106e5d1c6d8f10ede2299f462",
+    "jsonOutput.json": "8fa1dd1f323f05fff5d9ac99a2c04f52991bfb4ef791b53f071af2a2f0f3a10c",
+    "progress.json": "9f4819f4b40e9b285ef1b99530af9f7fdb495974d0eb31b1df5cf39fd55bba48",
+    "rule_output_1.json.gz": "f6f7214cbfbbd381a7f808841ac6a2f76228fe500affa3558d2c51d1557c6cbf",
+    "rule_output_10.json.gz": "3c799c49db2a493004edd13ee743083a7ca41a864b06ceae92cd6a67c6e4ea13",
+    "rule_output_11.json.gz": "a2e7d24c17f6c970fea6c8e9e74bd0dbdde92d088b2b87b5c4dd9e614ff7d1ba",
+    "rule_output_12.json.gz": "559e067443615dbd6faffcea045ea52c2b5934a1391bdfbf957b55f8ba1edfb4",
+    "rule_output_13.json.gz": "dfb21f8aaacb858160d2828a74de5738d00a8f9f6dd2d9e255e98ebee1428f05",
+    "rule_output_14.json.gz": "391c9316d01b335703a32575769db4fd976fe45ddc8a9b4b20513d0304f338f2",
+    "rule_output_15.json.gz": "cc190510e8248c80dec57d957482f2a245b633a0080dd90c666cbffb8f132a97",
+    "rule_output_2.json.gz": "c02021c0f9d7016f39477ddd89a552498fa2b16c8e58ab7cc906d27698f92dba",
+    "rule_output_3.json.gz": "311a023942f28a75acc5974c1924cea21a4aa1bbdacd9943d951db30aeeb589a",
+    "rule_output_4.json.gz": "9809974765ee4f6afc0299dd2e224e9e80b60b782bec02bcaa7a7b94d66b664a",
+    "rule_output_5.json.gz": "175f6fa2b761033a3a9b2ccc1e1b45621f3f9282a0cdfdd2300ec13077dc028e",
+    "rule_output_6.json.gz": "d5201609ab83ea10ebb5cde7999414cf14fe68197a1995088fcecc944583d2f1",
+    "rule_output_7.json.gz": "7f9b418c550f8a92a56645a0f74d66ce997e1e84a4bb13b1bcfb59a1f800bd91",
+    "rule_output_8.json.gz": "66f6766dba21d83db712a6ad2961919b5c1cdd57efb59fb03189ae54539aec36",
+    "rule_output_9.json.gz": "2394f57c94a54fde054f5298ef3924dc397a873155769896fc79a86de4a013e0",
+    "submission.log": "a1b937ef40136204d4036775f4f17b1dff39b1d53ceb9c9c97b94927579f1bf6",
+    "submitted-inputs.zip": "aefe854e6e6c633465c2d840cd95fd2819f331dee8bbcaac94ff701b58ed5a57"
+  },
+  "semanticClosureCertified": false
+}

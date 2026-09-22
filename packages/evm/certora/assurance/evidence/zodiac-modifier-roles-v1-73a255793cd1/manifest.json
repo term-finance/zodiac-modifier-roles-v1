@@ -1,0 +1,45 @@
+{
+  "current_context_fingerprints": {
+    "packages/evm/certora/confs/Roles-callTargetAccess.conf": "f2ed098338cde69782e998b95a43bd593e5ffcbba0552a9e7e658cebcdfa1ccd",
+    "packages/evm/certora/confs/Roles-callTargetExecution.conf": "b4a20b2504a7e37ae45c8165a3d0e5b3136506fc3797a59d07f8cfd544f1d521"
+  },
+  "diagnostic_inputs_match_current_companions": false,
+  "full_artifact_location": "planning/cvl-assurance-2026-09-17/validation/prover/zodiac-modifier-roles-v1-73a255793cd1",
+  "historical_context_fingerprints": {
+    "packages/evm/certora/confs/Roles-callTargetAccess.conf": "41b31fbb7fbe84c7d95552c03e5edec6c67b347a87eefdf999df4ccd5741f348",
+    "packages/evm/certora/confs/Roles-callTargetExecution.conf": "15f7d0dc3d12d13adb1c591bb50d47fca72d31c3c760bc954c8c7078f36ed4bc"
+  },
+  "instance_progress_at_snapshot": {
+    "VERIFIED": 83,
+    "VIOLATED": 11
+  },
+  "kind": "independent-boundary-diagnostic",
+  "limitations": "Historical diagnostic observation only. Full compiler archives and per-instance outputs are retained in the named simulator workspace location; they are not embedded in this source repository. Matching companion inputs does not establish functional-rule scope inclusion or semantic closure.",
+  "owned_source_comparison": {
+    "certora/harness/RolesHarness.sol": {
+      "matches_current_file": false,
+      "submitted_sha256": "efd571045d7dcdadf439541d01d4dd08e36d290803a7a019b9d49ddd52a69408"
+    },
+    "contracts/Permissions.sol": {
+      "matches_current_file": true,
+      "submitted_sha256": "29952bcebecfa8d7cdf15c8c9c7871c7540e17cab2dab7f7024fdd7bd512e11b"
+    },
+    "contracts/Roles.sol": {
+      "matches_current_file": true,
+      "submitted_sha256": "d2721bf908bf48411a0471570f1460c4328074e26783d57fd3e9f5c3b99c73c6"
+    }
+  },
+  "retained_files_sha256": {
+    "assessment.json": "fa198fd0c765a23898316b07a8f67fd55b77dfad14390825487ac30e174de9b0",
+    "compiler-inputs.json": "046f11813f7af882d0b357f6ef58d0b129e47f477fdc8a54291749310f16c986",
+    "job-data.json": "71eddf2fc9c76edcef93cc9515e4469a517d8741f92a778fd80f8fa201ccee60",
+    "job-status.json": "6bd8b8fb3cd7345b0f232a03f7f14d0cda7e78617903b97b607528eb94dfa461",
+    "output.json": "3d76b49e5aa24df4359ccd07598795a26f4a725fc942df12c615eb0ca730cf86",
+    "outputs-manifest.json": "c6a6915fb3c26d2506bdd00782293b36b3d7080a7840e06b9d7957eb30b825ed",
+    "prover-version.json": "97293c340fb2659ef09b792743190493f38bd704750c15a48549673edc0fc3c8",
+    "receipt.json": "25ed0f1862ad974f45f0b8a3f9c7df41785c018ab85987bc749b185808e542c0",
+    "server-output-manifest.json": "c26a74dc00d9dad461423a8a0d960af97b919d8641443a5bf2b1975c444fdada"
+  },
+  "revision_note": "Two pure selector getters and a new spec/CI context were added. The unchanged production Roles and Permissions files still match; the historical harness and proof context do not.",
+  "semantic_closure_certified": false
+}

@@ -1,0 +1,432 @@
+{
+  "configurations": [
+    "Roles-callTargetPermissions.conf",
+    "Roles-remediation.conf"
+  ],
+  "diagnostic_passed": false,
+  "errors": [
+    "dependencyClosureBoundary: non-success instances: FAIL",
+    "dependencyClosureBoundary: result instances do not match the compiled method universe",
+    "dependencyClosureReachable: non-success instances: FAIL",
+    "dependencyClosureReachable: result instances do not match the compiled method universe",
+    "sanity method universe differs from the compiled diagnostic scope",
+    "some instances lack a verified assertion and explicit verified sanity result"
+  ],
+  "expected_methods": 60,
+  "failed_assertions": [
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_53.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.assignRoles(address,uint16[],bool[])",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "scene-escape",
+      "outputs": [
+        "rule_output_55.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.execTransactionWithRole(address,uint256,bytes,uint8,uint16,bool)",
+        "Call, creation or destruction escaped th..."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_57.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.execTransactionWithRoleReturnData(address,uint256,bytes,uint8,uint16,bool)",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_56.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.scopeFunction(uint16,address,bytes4,bool[],uint8[],uint8[],bytes[],uint8)",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "hashing-bound",
+      "outputs": [
+        "rule_output_59.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.scopeParameter(uint16,address,bytes4,uint256,uint8,uint8,bytes)",
+        "Trying to hash a non-constant length array whose length may exceed the bound (set in option \"--hashing_length_bound\", current value is 224). Optimistic unbounded hashing is currently deactivated (can be activated via option \"--optimistic_hashing\")."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_63.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.getModulesPaginated(address,uint256)",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "scene-escape",
+      "outputs": [
+        "rule_output_77.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.setGuard(address)",
+        "Call, creation or destruction escaped th..."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_94.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.callTargetFunctionWithRole(address,bytes,uint16)",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    },
+    {
+      "kind": "unwinding",
+      "outputs": [
+        "rule_output_98.json"
+      ],
+      "path": [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "RolesHarness.scopeParameterAsOneOf(uint16,address,bytes4,uint256,uint8,bytes[])",
+        "Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 1. Please consult our documentation to be aware of the consequences on soundness when setting this flag."
+      ],
+      "status": "VIOLATED"
+    }
+  ],
+  "failure_kinds": {
+    "hashing-bound": 1,
+    "scene-escape": 2,
+    "unwinding": 6
+  },
+  "id": "zodiac-modifier-roles-v1-2bc152f14e59",
+  "job_status": "SUCCEEDED",
+  "nonparametric_roots_requiring_separate_proof": [
+    "RolesHarness.constructor"
+  ],
+  "result_checker_sha256": "bfcdcc0162a4bc0574dba192d6784bd9129ae860d86f1ec98ff933afc4e12d67",
+  "result_sha256": "9cdf9cd4da692847e2daed8eecfcd2ff37b5c61a71e32b6df71ea4c691f63562",
+  "rules": {
+    "dependencyClosureBoundary": {
+      "counts": {
+        "FAIL": 9,
+        "SUCCESS": 40
+      },
+      "missing": [
+        [
+          "Permissions",
+          "163592dd"
+        ],
+        [
+          "Permissions",
+          "2af6aecb"
+        ],
+        [
+          "Permissions",
+          "3c5a24e2"
+        ],
+        [
+          "Permissions",
+          "512ce0f2"
+        ],
+        [
+          "Permissions",
+          "5ebbaa68"
+        ],
+        [
+          "Permissions",
+          "77cff804"
+        ],
+        [
+          "Permissions",
+          "a2f6f6d0"
+        ],
+        [
+          "Permissions",
+          "cfe4317a"
+        ],
+        [
+          "Permissions",
+          "db50e575"
+        ],
+        [
+          "Permissions",
+          "edf909e3"
+        ],
+        [
+          "Permissions",
+          "ee54ca53"
+        ]
+      ],
+      "unexpected": []
+    },
+    "dependencyClosureReachable": {
+      "counts": {
+        "FAIL": 2,
+        "SUCCESS": 47
+      },
+      "missing": [
+        [
+          "Permissions",
+          "163592dd"
+        ],
+        [
+          "Permissions",
+          "2af6aecb"
+        ],
+        [
+          "Permissions",
+          "3c5a24e2"
+        ],
+        [
+          "Permissions",
+          "512ce0f2"
+        ],
+        [
+          "Permissions",
+          "5ebbaa68"
+        ],
+        [
+          "Permissions",
+          "77cff804"
+        ],
+        [
+          "Permissions",
+          "a2f6f6d0"
+        ],
+        [
+          "Permissions",
+          "cfe4317a"
+        ],
+        [
+          "Permissions",
+          "db50e575"
+        ],
+        [
+          "Permissions",
+          "edf909e3"
+        ],
+        [
+          "Permissions",
+          "ee54ca53"
+        ]
+      ],
+      "unexpected": []
+    }
+  },
+  "sanity": {
+    "errors": [
+      "sanity method universe differs from the compiled diagnostic scope",
+      "some instances lack a verified assertion and explicit verified sanity result"
+    ],
+    "not_verified": [
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "163592dd"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "2af6aecb"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "3c5a24e2"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "512ce0f2"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "5ebbaa68"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "77cff804"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "a2f6f6d0"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "cfe4317a"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "db50e575"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "edf909e3"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "Permissions",
+        "ee54ca53"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "33a0480c"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "3c1952b8"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "6928e74b"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "93933772"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "9518aaac"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "a6edf38f"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "b0c19912"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "cc2f8452"
+      ],
+      [
+        "dependencyClosureBoundary",
+        "RolesHarness",
+        "e19a9dd9"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "163592dd"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "2af6aecb"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "3c5a24e2"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "512ce0f2"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "5ebbaa68"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "77cff804"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "a2f6f6d0"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "cfe4317a"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "db50e575"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "edf909e3"
+      ],
+      [
+        "dependencyClosureReachable",
+        "Permissions",
+        "ee54ca53"
+      ],
+      [
+        "dependencyClosureReachable",
+        "RolesHarness",
+        "93933772"
+      ],
+      [
+        "dependencyClosureReachable",
+        "RolesHarness",
+        "9518aaac"
+      ]
+    ],
+    "passed": false,
+    "required_instances": 120,
+    "verified_instances": 87
+  },
+  "semantic_closure_certified": false
+}

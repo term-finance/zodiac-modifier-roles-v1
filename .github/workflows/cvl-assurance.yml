@@ -1,0 +1,20 @@
+name: CVL dependency accounting
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    name: Spec inventory and closure-obligation freshness (not a proof)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+      - run: python3 certora/assurance/check.py check --inventory-only
+      - name: Report semantic closure status
+        run: |
+          echo 'This job checks accounting only. Semantic dependency closure remains uncertified; see packages/evm/certora/assurance/obligations.' >> "$GITHUB_STEP_SUMMARY"

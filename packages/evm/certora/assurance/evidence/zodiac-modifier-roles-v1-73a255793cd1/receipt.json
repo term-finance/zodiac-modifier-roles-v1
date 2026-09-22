@@ -1,0 +1,33 @@
+{
+  "id": "zodiac-modifier-roles-v1-73a255793cd1",
+  "repo": "zodiac-modifier-roles-v1",
+  "representative": "Roles-callTargetAccess.conf",
+  "configurations": [
+    "Roles-callTargetAccess.conf",
+    "Roles-callTargetExecution.conf"
+  ],
+  "context_fingerprints": {
+    "packages/evm/certora/confs/Roles-callTargetAccess.conf": "41b31fbb7fbe84c7d95552c03e5edec6c67b347a87eefdf999df4ccd5741f348",
+    "packages/evm/certora/confs/Roles-callTargetExecution.conf": "15f7d0dc3d12d13adb1c591bb50d47fca72d31c3c760bc954c8c7078f36ed4bc"
+  },
+  "diagnostic_group_sha256": "73a255793cd1d6f53d921fb65a445bcee0ef5056c5103bf9753fafa62ed9c659",
+  "workdir": "/private/tmp/term-fv-closure-roles/runs/Roles-callTargetAccess",
+  "command": [
+    "/private/tmp/claude-501/-Users-robert-src-term-finance/1cd2afe7-d5c4-417c-a41f-6cc9e8ead5f0/scratchpad/certora-research/venv-7.31.0/bin/certoraRun",
+    "certora/assurance/confs/Roles-callTargetAccess.conf",
+    "--solc",
+    "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30",
+    "--smt_timeout",
+    "300",
+    "--wait_for_results",
+    "none",
+    "--msg",
+    "Dependency closure boundary audit zodiac-modifier-roles-v1-73a255793cd1"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 3.46,
+  "report_urls": [
+    "https://prover.certora.com/output/99679/4ee5772b1361410981d765d8175eb10b?anonymousKey=f58964e09378f816b6e9719379eef1fd8b67a332"
+  ],
+  "solver_result": "not-fetched"
+}
