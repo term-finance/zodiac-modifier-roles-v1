@@ -87,6 +87,13 @@
  *                                         cancellation the pause still stands
  *     executeNextTxAfterSetTxNonceReopensOnUnpause
  *                                         attribution witness for it
+ *   a skipped entry stays skipped
+ *     txNonceNeverDecreases               over every entry point of both
+ *                                         contracts, txNonce only moves up
+ *     executeNextTxConsumesOnlyTheEntryAtTxNonce
+ *                                         a successful executeNextTx ran the
+ *                                         entry stored at the current txNonce
+ *                                         and advanced txNonce by exactly one
  *
  * Non-vacuity witness: withoutPauseGuardExecuteNextTxForwardsUnchecked (with
  * no guard installed executeNextTx forwards without any check, so the guard is
@@ -136,6 +143,8 @@ using DummyAvatar as delayTargetContract;
 methods {
     function txNonce() external returns (uint256) envfree;
     function queueNonce() external returns (uint256) envfree;
+    function txHash(uint256) external returns (bytes32) envfree;
+    function getTransactionHash(address, uint256, bytes, Enum.Operation) external returns (bytes32) envfree;
     function guard() external returns (address) envfree;
     function target() external returns (address) envfree;
     function owner() external returns (address) envfree;
@@ -839,4 +848,52 @@ rule withoutPauseGuardExecuteNextTxForwardsUnchecked(
 
     satisfy forwardedToTarget,
         "executeNextTx cannot forward without a guard, so the guard rules prove nothing about the guard";
+}
+
+/*
+ * A SKIPPED ENTRY STAYS SKIPPED.
+ *
+ * 4.18-4.19 show the owner's setTxNonce lands during a pause. That moves
+ * txNonce past the pending entry; these two rules are what make the skip
+ * permanent. Together: once txNonce > k, txNonce never returns to k
+ * (txNonceNeverDecreases), and executeNextTx only ever runs the entry stored
+ * at txNonce (executeNextTxConsumesOnlyTheEntryAtTxNonce). So the entry at
+ * index k can never be the one executed.
+ *
+ * What this does not say: that the same TRANSACTION can never run. The hash
+ * check compares against txHash[txNonce], so an identical transaction queued
+ * again at a later index is a new entry and can execute. That is a fresh
+ * proposal through the queue, cooldown and pause, not the skipped entry
+ * coming back.
+ *
+ * Every write to txNonce in Delay.sol is setTxNonce (:142, which requires the
+ * new value to be strictly greater), executeNextTx (:223) or skipExpired
+ * (:234), both increments under checked arithmetic. No guard or pause state is
+ * assumed: both rules hold whatever is installed.
+ */
+rule txNonceNeverDecreases(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+    uint256 before = txNonce();
+
+    f(e, args);
+
+    assert txNonce() >= before,
+        "txNonce moved backwards, so a skipped queue entry could become executable again";
+}
+
+rule executeNextTxConsumesOnlyTheEntryAtTxNonce(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e;
+    uint256 nonceBefore = txNonce();
+    bytes32 storedHash = txHash(nonceBefore);
+
+    executeNextTx(e, to, value, data, operation);
+
+    assert getTransactionHash(to, value, data, operation) == storedHash,
+        "executeNextTx ran a transaction other than the entry stored at txNonce";
+    assert to_mathint(txNonce()) == nonceBefore + 1,
+        "executeNextTx did not advance txNonce by exactly one";
 }
