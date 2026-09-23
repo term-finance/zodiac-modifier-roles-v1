@@ -5,11 +5,11 @@ Expected storage state after the migration.
 **Topology**
 
 ```
-Branch 1   Proposer Safe 0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28 (5/11)  --module-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf (+ PauseGuard)  --module-->  Ownerless Safe 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
-Branch 2   Governor 0x2B715634134220ffeEE9458b4e34E41A41418607              --module-->  NewRoles (+ SetTxNonceGuard)  --target-->  DelayOwnerSafe 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3 (5/11)  --owner-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf
+Branch 1   Proposer Safe 0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28 (5/11)  --module-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf (+ PauseGuard 0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618)  --module-->  Ownerless Safe 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
+Branch 2   Governor 0x2B715634134220ffeEE9458b4e34E41A41418607              --module-->  NewRoles 0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3 (+ SetTxNonceGuard 0x7aE03372ECDcEe335CdEfB7d354d507F0506616C)  --target-->  DelayOwnerSafe 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3 (5/11)  --owner-->  Delay 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf
 
-Pause      PauseSafe 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472 (2/9)  --pause-->                  PauseGuard
-           Admin Safe 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774        --unpause / setPauser-->    PauseGuard
+Pause      PauseSafe 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472 (2/9)  --pause-->                  PauseGuard 0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618
+           Admin Safe 0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774        --unpause / setPauser-->    PauseGuard 0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618
 ```
 
 **Existing contracts**
@@ -25,7 +25,7 @@ Pause      PauseSafe 0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472 (2/9)  --pause--
 | PauseSafe | `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` | **deployed 2026-09-21** — becomes `PauseGuard` pauser |
 | DelayOwnerSafe | `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` | **deployed 2026-09-21** — becomes the Delay's owner and NewRoles' target |
 
-**Placeholders** — contracts that do not exist yet: `NewRoles`, `SetTxNonceGuard`, `PauseGuard`. `DelayOwnerSafe` (section 4) and `PauseSafe` (section 8) are already deployed.
+**Placeholders** — none. `NewRoles` (section 2), `SetTxNonceGuard` (section 3), `DelayOwnerSafe` (section 4), `PauseGuard` (section 7) and `PauseSafe` (section 8) are all deployed.
 
 **Safe versions** — the three existing Safes stay on v1.3.0 (`GnosisSafe` `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552`); the two new ones, `DelayOwnerSafe` and `PauseSafe`, both deployed 2026-09-21, are on v1.4.1 (`Safe` `0x41675C099F32341bf84BFc5382aF534df5C7461a`). Nothing in the topology crosses a version boundary in a way that matters: the Delay and NewRoles reach a Safe only through `execTransactionFromModule`, whose interface and behaviour are identical in both, and no Safe here validates EIP-1271 signatures, which is where v1.4.1 tightened the rules (`GS027`).
 
@@ -50,7 +50,7 @@ EIP-1167 proxy → mastercopy `0xd54895B1121A2eE3f37b502F507631FA1331BED6` (Dela
 | 1–50 | `__gap` | uint256[50] | ContextUpgradeable | zero |
 | **51** | **`_owner`** | address | OwnableUpgradeable | **`DelayOwnerSafe (0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3)`** ← was `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles) |
 | 52–100 | `__gap` | uint256[49] | OwnableUpgradeable | zero |
-| **101** | **`guard`** | address | Guardable | **`PauseGuard`** ← was `0x0` |
+| **101** | **`guard`** | address | Guardable | **`PauseGuard (0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618)`** ← was `0x0` |
 | 102 | `avatar` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) — read by nothing |
 | 103 | `target` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) |
 | 104 | `modules` | mapping(address⇒address) | Modifier | devops safe 0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28 |
@@ -74,7 +74,9 @@ Queue history — all 203 slots consumed (`txNonce == queueNonce`):
 
 ---
 
-## 2. NewRoles — new address
+## 2. NewRoles — `0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3` — DEPLOYED
+
+Section D of the verification plan passes 19/19 against it. The fork-only permission test also passes: `setTxNonce` is allowed through role 1 and the default role, and `setTxCooldown`, a delegatecall and a non-member caller are all rejected.
 
 Replaces `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Deploys a EIP-1167 proxy against Gnosis Guild's audited Roles v1.0.0 mastercopy `0x85388a8cd772b19a468F982Dc264C238856939C9`, with its audited `Permissions` library `0x543D1DE69b25420685Ef723842D0087d9b731B06`. Standard Roles v1 slot layout.
 
@@ -85,7 +87,7 @@ Replaces `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Deploys a EIP-1167 proxy 
 | 1–50 | `__gap` | uint256[50] | ContextUpgradeable | zero |
 | 51 | `_owner` | address | OwnableUpgradeable | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) |
 | 52–100 | `__gap` | uint256[49] | OwnableUpgradeable | zero |
-| 101 | `guard` | address | Guardable | `SetTxNonceGuard` |
+| 101 | `guard` | address | Guardable | `SetTxNonceGuard (0x7aE03372ECDcEe335CdEfB7d354d507F0506616C)` |
 | 102 | `avatar` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) — read by nothing |
 | 103 | `target` | address | Module | `DelayOwnerSafe` `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` |
 | 104 | `modules` | mapping(address⇒address) | Modifier | Governor 0x2B715634134220ffeEE9458b4e34E41A41418607 (22 hr vote period)|
@@ -109,7 +111,9 @@ Role 1 grants exactly one capability: `Delay.setTxNonce(uint256)` with no parame
 
 ---
 
-## 3. SetTxNonceGuard — new address
+## 3. SetTxNonceGuard — `0x7aE03372ECDcEe335CdEfB7d354d507F0506616C` — DEPLOYED
+
+Source verified on Etherscan. Section C of the verification plan passes 3/3 against it.
 
 | Item | Value |
 |---|---|
@@ -131,7 +135,7 @@ As with the PauseSafe, the `setup` call carried `to = 0xBD89A1CE4DDe368FFAB0eC35
 | Slot | Variable | Type | Declared in | Value |
 |---|---|---|---|---|
 | 0 | `singleton` | address | SafeStorage | `0x41675C099F32341bf84BFc5382aF534df5C7461a` (`Safe` v1.4.1) — verified, not `SafeL2` `0x29fcB43b…` |
-| 1 | `modules` | mapping(address⇒address) | SafeStorage | ring of 1: `0x1 → NewRoles → 0x1` — **empty today**, enabled once NewRoles exists |
+| 1 | `modules` | mapping(address⇒address) | SafeStorage | ring of 1: `0x1 → NewRoles (0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3) → 0x1` — **empty today**, enabled by setup step 5 |
 | 2 | `owners` | mapping(address⇒address) | SafeStorage | ring of 11 signers, all EOAs — the same set as the Proposer Safe (below) |
 | 3 | `ownerCount` | uint256 | SafeStorage | `11` — verified |
 | 4 | `threshold` | uint256 | SafeStorage | `5` — verified |
@@ -226,7 +230,7 @@ Proposal history carries over because the Governor is reused. Every one of the 6
 
 | Field | Value |
 |---|---|
-| `target` | `NewRoles` |
+| `target` | `NewRoles` `0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3` |
 | `value` | `0` |
 | `calldata` | `execTransactionWithRole(0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf, 0, setTxNonce(n), Call, 1, true)` |
 
@@ -246,9 +250,9 @@ Execution window for the veto is `[tp + 22h, t0 + 24h)`, i.e. **two hours when `
 
 ---
 
-## 7. PauseGuard — new address
+## 7. PauseGuard — `0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618` — DEPLOYED
 
-Installed on the **Delay** (slot 101). While paused, every `executeNextTx` reverts.
+Section B of the verification plan passes 9/9 against it. Installed on the **Delay** (slot 101). While paused, every `executeNextTx` reverts.
 
 | Item | Value |
 |---|---|

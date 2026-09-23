@@ -1,4 +1,4 @@
-# Certora proof inventory
+# Configuration Proof
 
 One row per lemma. The lemma is the primary key; the value is the rule (or rules) that establish
 it. Where several rules share a lemma they are alternative routes to the same claim — a different
