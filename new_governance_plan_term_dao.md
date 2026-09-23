@@ -57,7 +57,7 @@ Queue history — all 8 slots consumed (`txNonce == queueNonce`):
 
 ## 2. NewRoles — new address
 
-Full deployment. Term fork **without** `callTargetFunctionWithRole`, **with** the `execTransactionFromModule` / `execTransactionFromModuleReturnData` overrides. Permissions library linked at `0xa3849D0da1511c51ee327827fF372c647fb8CFC3` (unchanged — `Permissions.sol` is untouched, so the slot layout below is identical to the current mod).
+Full deployment. Deploys a EIP-1167 proxy against Gnosis Guild's audited Roles v1.0.0 mastercopy `0x85388a8cd772b19a468F982Dc264C238856939C9`, with its audited `Permissions` library `0x543D1DE69b25420685Ef723842D0087d9b731B06`. Standard Roles v1 slot layout.
 
 | Slot | Variable | Type | Declared in | Value |
 |---|---|---|---|---|
@@ -70,7 +70,7 @@ Full deployment. Term fork **without** `callTargetFunctionWithRole`, **with** th
 | 102 | `avatar` | address | Module | `0xA5Ca93f1fa4dBB6E8141f6Bb22d74a79E07Fa2A1` (Term DAO) — read by nothing |
 | **103** | **`target`** | address | Module | **`DelayOwnerSafe`** ← was `0xA5Ca93f1fa4dBB6E8141f6Bb22d74a79E07Fa2A1` |
 | **104** | **`modules`** | mapping(address⇒address) | Modifier | `NewGovernor` |
-| **105** | **`multisend`** | address | Roles | **`MultiSendCallOnly`** ← was `0x0` |
+| **105** | **`multisend`** | address | Roles | **`MultiSendCallOnly` v1.4.1 `0x9641d764fc13c8B624c04430C7356C1C7C8102e2`** ← was `0x0` |
 | **106** | **`defaultRoles`** | mapping(address⇒uint16) | Roles | **`NewGovernor` ⇒ `1`** — live state in this build |
 | 107 | `roles` | mapping(uint16⇒Role) | Roles | role 1 only (below) |
 

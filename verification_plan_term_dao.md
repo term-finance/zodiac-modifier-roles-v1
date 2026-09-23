@@ -325,7 +325,7 @@ cast code $MASTERCOPY --rpc-url $RPC | grep -c 635229073f    # 1 — execTransac
 cast code $MASTERCOPY --rpc-url $RPC | tr 'A-F' 'a-f' | grep -c 73543d1de69b25420685ef723842d0087d9b731b06   # 1 — linked Permissions
 ```
 
-**Unlike the previous plan, this deployment and the ownerless one share a mastercopy and therefore a `Permissions` library.** That is expected — the mastercopy is stateless and both proxies hold their own storage — so there is no longer a "must differ" check here. What must still differ is the two proxies' own addresses; confirm they are not the same contract:
+**This deployment and the ownerless one share a mastercopy and therefore a `Permissions` library.** That is expected — the mastercopy is stateless and both proxies hold their own storage. What must differ is the two proxies' own addresses; confirm they are not the same contract:
 
 ```bash
 lc() { printf '%s' "$1" | tr 'A-Z' 'a-z'; }

@@ -30,6 +30,30 @@ contract RolesHarness is Roles {
         return modules[module];
     }
 
+    /// @dev Exposes Permissions.checkTransaction — the per-entry gate that BOTH
+    /// the direct path (Permissions.sol:190) and checkMultisendTransaction's
+    /// loop body (Permissions.sol:236) call. Internal library functions are
+    /// inlined into importers, so this runs the same code the module runs, not
+    /// a copy of it.
+    ///
+    /// The point of exposing it is to state the per-entry restriction WITHOUT
+    /// driving the multisend loop, so the claim does not inherit `loop_iter`
+    /// as a bound on batch length.
+    ///
+    /// Declared `view` so it is excluded from the parametric rules that
+    /// quantify over state-changing entry points, in particular
+    /// governorSucceedsOnlyThroughRolesExecEntryPoints, which filters
+    /// `!f.isView && !f.isPure`.
+    function checkEntry(
+        uint16 roleId,
+        address to,
+        uint256 value,
+        bytes memory data,
+        Enum.Operation operation
+    ) external view {
+        Permissions.checkTransaction(roles[roleId], to, value, data, operation);
+    }
+
     function clearanceOf(
         uint16 roleId,
         address targetAddress

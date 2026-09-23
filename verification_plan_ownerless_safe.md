@@ -40,7 +40,8 @@ export GOV=0x2B715634134220ffeEE9458b4e34E41A41418607
 export PROPOSER=0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28
 export ADMINSAFE=0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774
 export SENTINEL=0x0000000000000000000000000000000000000001
-export MULTISEND=0x40A2aCCbd92BCA938b02010E17A5b8929b49130D
+export MULTISEND=0x40A2aCCbd92BCA938b02010E17A5b8929b49130D        # v1.3.0 — the migration batch
+export ROLES_MULTISEND=0x9641d764fc13c8B624c04430C7356C1C7C8102e2  # v1.4.1 — NewRoles multisend
 export PAUSESAFE=0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472
 export DELAYOWNER=0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3
 export MASTERCOPY=0x85388a8cd772b19a468F982Dc264C238856939C9   # Roles v1.0.0, audited
@@ -144,7 +145,7 @@ Wiring:
 cast call $NEWROLES 'owner()(address)' --rpc-url $RPC                    # 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03 (Ownerless Safe)
 cast call $NEWROLES 'avatar()(address)' --rpc-url $RPC                   # 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
 cast call $NEWROLES 'target()(address)' --rpc-url $RPC                   # 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3 (DelayOwnerSafe)
-cast call $NEWROLES 'multisend()(address)' --rpc-url $RPC                # 0x40A2aCCbd92BCA938b02010E17A5b8929b49130D (MultiSendCallOnly)
+cast call $NEWROLES 'multisend()(address)' --rpc-url $RPC                # 0x9641d764fc13c8B624c04430C7356C1C7C8102e2 (MultiSendCallOnly v1.4.1)
 cast call $NEWROLES 'guard()(address)' --rpc-url $RPC                    # SetTxNonceGuard
 cast call $NEWROLES 'defaultRoles(address)(uint16)' $GOV --rpc-url $RPC   # 1
 cast call $NEWROLES 'isModuleEnabled(address)(bool)' $GOV --rpc-url $RPC  # true
@@ -332,7 +333,7 @@ Run this once everything is done; it is the same list as the plan's tables, in o
 | Delay | `txNonce`, `queueNonce` | equal |
 | Delay | `avatar`, `target` | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (both) |
 | NewRoles | `owner`, `avatar`, `target` | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03`, `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03`, `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` |
-| NewRoles | `multisend`, `guard` | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D`, SetTxNonceGuard |
+| NewRoles | `multisend`, `guard` | `0x9641d764fc13c8B624c04430C7356C1C7C8102e2`, SetTxNonceGuard |
 | NewRoles | `defaultRoles(Governor)`, modules | `1`, `[0x2B715634134220ffeEE9458b4e34E41A41418607]` (Governor) |
 | NewRoles | role 1 slots | `0x…01`, `0x…02`, `0x2000…0` (section D) |
 | NewRoles | code | the 45-byte EIP-1167 template pointing at `0x85388a8cd772b19a468F982Dc264C238856939C9` — exact string match |

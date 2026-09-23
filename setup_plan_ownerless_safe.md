@@ -31,7 +31,8 @@ Total Ownerless Safe transactions: **zero**.
 | Zodiac `ModuleProxyFactory` v1.2.0 | `0x000000000000aDdB49795b0f9bA5BC298cDda236` |
 | Safe v1.3.0 singleton | `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` |
 | SafeProxyFactory v1.3.0 | `0xa6B71E26C5e0845f74c812102Ca7114b6a896AB2` |
-| MultiSendCallOnly v1.3.0 | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D` |
+| MultiSendCallOnly v1.3.0 | `0x40A2aCCbd92BCA938b02010E17A5b8929b49130D` — the migration batch (Ownerless Safe, v1.3.0) |
+| MultiSendCallOnly v1.4.1 | `0x9641d764fc13c8B624c04430C7356C1C7C8102e2` — NewRoles `multisend` (DelayOwnerSafe, v1.4.1) |
 | To deploy | `PauseGuard`, `SetTxNonceGuard`, `NewRoles` |
 
 ## Who signs what
@@ -197,7 +198,7 @@ Two consequences. The `Permissions` library is the mastercopy's (`0x543D1DE69b25
 
 | # | Call | Result |
 |---|---|---|
-| 1 | `setMultisend(0x40A2aCCbd92BCA938b02010E17A5b8929b49130D)` | slot 105 |
+| 1 | `setMultisend(0x9641d764fc13c8B624c04430C7356C1C7C8102e2)` | slot 105 |
 | 2 | `scopeTarget(1, 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf)` | role 1 target → `Clearance.Function` |
 | 3 | `scopeAllowFunction(1, 0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf, 0x46ba2307, ExecutionOptions.None)` | only `setTxNonce` allowed |
 | 4 | `assignRoles(0x2B715634134220ffeEE9458b4e34E41A41418607, [1], [true])` | Governor becomes a member of role 1 |
@@ -213,7 +214,7 @@ Two consequences. The `Permissions` library is the mastercopy's (`0x543D1DE69b25
 Seven of the eight are fully determined — every argument is a known address. Send them in this order, each to `<NewRoles>`:
 
 ```
-1 setMultisend        0x8b95eccd00000000000000000000000040a2accbd92bca938b02010e17a5b8929b49130d
+1 setMultisend        0x8b95eccd0000000000000000000000009641d764fc13c8b624c04430c7356c1c7c8102e2
 
 2 scopeTarget         0x5e82669500000000000000000000000000000000000000000000000000000000000000010000000000000000000000000c19d8a404079d71e5ca3e32fe3f758ab543acdf
 

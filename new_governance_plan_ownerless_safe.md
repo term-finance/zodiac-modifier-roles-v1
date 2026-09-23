@@ -48,7 +48,7 @@ EIP-1167 proxy → mastercopy `0xd54895B1121A2eE3f37b502F507631FA1331BED6` (Dela
 | 0.0 | `_initialized` | bool | Initializable | `true` |
 | 0.1 | `_initializing` | bool | Initializable | `false` |
 | 1–50 | `__gap` | uint256[50] | ContextUpgradeable | zero |
-| **51** | **`_owner`** | address | OwnableUpgradeable | **`DelayOwnerSafe`** ← was `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles) |
+| **51** | **`_owner`** | address | OwnableUpgradeable | **`DelayOwnerSafe (0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3)`** ← was `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles) |
 | 52–100 | `__gap` | uint256[49] | OwnableUpgradeable | zero |
 | **101** | **`guard`** | address | Guardable | **`PauseGuard`** ← was `0x0` |
 | 102 | `avatar` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) — read by nothing |
@@ -76,7 +76,7 @@ Queue history — all 203 slots consumed (`txNonce == queueNonce`):
 
 ## 2. NewRoles — new address
 
-Full deployment replacing `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Term fork **without** `callTargetFunctionWithRole`, **with** the `execTransactionFromModule` / `execTransactionFromModuleReturnData` overrides. Permissions library linked at `0xA4af47637C32482820960f680b1e52a11c705087` (the library `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` links; `Permissions.sol` is untouched, so the slot layout below is the standard Roles v1 layout).
+Replaces `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Deploys a EIP-1167 proxy against Gnosis Guild's audited Roles v1.0.0 mastercopy `0x85388a8cd772b19a468F982Dc264C238856939C9`, with its audited `Permissions` library `0x543D1DE69b25420685Ef723842D0087d9b731B06`. Standard Roles v1 slot layout.
 
 | Slot | Variable | Type | Declared in | Value |
 |---|---|---|---|---|
@@ -89,7 +89,7 @@ Full deployment replacing `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. Term for
 | 102 | `avatar` | address | Module | `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` (Ownerless Safe) — read by nothing |
 | 103 | `target` | address | Module | `DelayOwnerSafe` `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` |
 | 104 | `modules` | mapping(address⇒address) | Modifier | Governor 0x2B715634134220ffeEE9458b4e34E41A41418607 (22 hr vote period)|
-| 105 | `multisend` | address | Roles | `MultiSendCallOnly` |
+| 105 | `multisend` | address | Roles | `MultiSendCallOnly` v1.4.1 `0x9641d764fc13c8B624c04430C7356C1C7C8102e2` |
 | 106 | `defaultRoles` | mapping(address⇒uint16) | Roles | Governor `0x2B715634134220ffeEE9458b4e34E41A41418607` ⇒ `1` |
 | 107 | `roles` | mapping(uint16⇒Role) | Roles | role 1 only (below) |
 
@@ -253,7 +253,7 @@ Installed on the **Delay** (slot 101). While paused, every `executeNextTx` rever
 | Item | Value |
 |---|---|
 | `paused` | `false` at deployment |
-| `pauser` | `PauseSafe` — replaced by `admin` via `setPauser` |
+| `pauser` | `PauseSafe (0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472)` — replaced by `admin` via `setPauser` |
 | `admin` | Admin Safe `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` (existing) — no function changes it |
 | `supportsInterface(0xe6d7a83a)` | `true` — required by `Guardable.setGuard` |
 | `supportsInterface(0x01ffc9a7)` | `true` |

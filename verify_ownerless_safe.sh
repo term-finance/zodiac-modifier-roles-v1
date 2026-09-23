@@ -33,7 +33,8 @@ PROPOSER=0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28
 ADMINSAFE=0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774
 PAUSESAFE=0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472
 DELAYOWNER=0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3
-MULTISEND=0x40A2aCCbd92BCA938b02010E17A5b8929b49130D
+MULTISEND=0x40A2aCCbd92BCA938b02010E17A5b8929b49130D        # v1.3.0 — the migration batch
+ROLES_MULTISEND=0x9641d764fc13c8B624c04430C7356C1C7C8102e2  # v1.4.1 — NewRoles multisend
 SENTINEL=0x0000000000000000000000000000000000000001
 ZERO=0x0000000000000000000000000000000000000000
 NINTH=0xC3CbFc5DA4B3d4B1258D63cA7ba56518C33f28c7   # PauseSafe signer that is not an Admin Safe owner
@@ -171,7 +172,7 @@ section_D() {
   check "owner == Ownerless Safe"        "$OWNERLESS"  "$(rd $NEWROLES 'owner()(address)')"
   check "avatar == Ownerless Safe"       "$OWNERLESS"  "$(rd $NEWROLES 'avatar()(address)')"
   check "target == DelayOwnerSafe"       "$DELAYOWNER" "$(rd $NEWROLES 'target()(address)')"
-  check "multisend == MultiSendCallOnly" "$MULTISEND"  "$(rd $NEWROLES 'multisend()(address)')"
+  check "multisend == MultiSendCallOnly" "$ROLES_MULTISEND"  "$(rd $NEWROLES 'multisend()(address)')"
   check "defaultRoles(Governor) == 1"    "1"           "$(rd $NEWROLES 'defaultRoles(address)(uint16)' $GOV)"
   check "Governor enabled as module"     "true"        "$(rd $NEWROLES 'isModuleEnabled(address)(bool)' $GOV)"
   local g; g=$(rd $NEWROLES 'guard()(address)')

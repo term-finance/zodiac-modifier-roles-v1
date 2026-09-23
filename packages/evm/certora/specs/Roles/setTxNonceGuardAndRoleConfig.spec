@@ -36,7 +36,8 @@
  *     onlyOwner and carries its own require()s on the nonce value; a rejected
  *     call comes back as success == false through the Safe rather than as a
  *     revert. governorExecTransactionWithRoleLimitedToDelaySetTxNonce bounds what is
- *     attempted, not what lands.
+ *     attempted, not what lands. setTxNonceLands.spec follows the call into
+ *     the Delay and covers what lands.
  *   - Anything about the 9/9 Safe's own signed transactions. The Safe owners
  *     retain every power they had; this is about the module path only.
  *
