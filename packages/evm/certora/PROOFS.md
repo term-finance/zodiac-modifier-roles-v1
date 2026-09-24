@@ -36,6 +36,10 @@ Following conclusions must be covered by the premises proved:
 9. Proposer Safe is only address that can successfully propose transactions to Delay Modifier queue.
 10. Delay Module is the only address that can use Ownerless Safe as target to execute transactions.
 11. Roles Module is the only address that can use DelayOwnerSafe as target to execute transactions.
+12. Nobody can manage PauseGuard's roles outside of `setPauser`: `grantRole`, `revokeRole` and `renounceRole` always revert, `ADMIN_ROLE` membership is fixed at deployment, and the role-admin wiring cannot be re-pointed.
+13. A transaction queued by the Proposer Safe executes on the Ownerless Safe once the cooldown has passed, if it hasn't expired and the system isn't paused.
+14. A Governor proposal to call `Delay.setTxNonce(uint256)` through the Roles Modifier can be successfully proposed and, once it passes, successfully executed.
+15. Any Governor proposal that calls the Roles Modifier with anything other than `Delay.setTxNonce(uint256)` can pass the vote but fails on execution.
  
 
 This conclusion is the sum of sixteen premises, each established below:
