@@ -23,7 +23,7 @@ The summation of all of the conclusions drawn from FV proofs should prove the fo
 *  Every permissable function call to contracts in this governance system succeeds.
 
 
-This governance configuration above satisfies the following:
+Following conclusions must be covered by the premises proved:
 
 1. Governor module successfully executes `Delay.setTxNonce(uint256)` through Roles Modifier execution entry points. 
 2. Permission to execute governance vetos (`Delay.setTxNonce(uint256)`) is exclusive to the Governor contract.
