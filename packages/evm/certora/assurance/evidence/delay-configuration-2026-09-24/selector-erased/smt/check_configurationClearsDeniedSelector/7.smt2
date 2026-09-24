@@ -1,0 +1,167 @@
+(set-logic QF_AUFBV)
+; benchmark generated from python API
+(set-info :status unknown)
+(declare-fun balance_00 () (Array (_ BitVec 160) (_ BitVec 256)))
+(declare-fun balance_457e8b2_01 () (Array (_ BitVec 160) (_ BitVec 256)))
+(declare-fun p_roleId_uint16_e8f6c1a_00 () (_ BitVec 256))
+(declare-fun p_target_address_2805145_00 () (_ BitVec 256))
+(declare-fun p_denied_bytes4_18594e4_00 () (_ BitVec 256))
+(declare-fun p_permitted_bytes4_472108b_00 () (_ BitVec 256))
+(declare-fun p_observedTarget_address_5326c21_00 () (_ BitVec 256))
+(declare-fun p_observedSelector_bytes4_e53850f_00 () (_ BitVec 256))
+(declare-fun f_sha3_512 ((_ BitVec 512)) (_ BitVec 256))
+(declare-fun p_roleSlot_uint256_6f4c4c9_00 () (_ BitVec 256))
+(declare-fun f_inv_sha3_512 ((_ BitVec 160)) (_ BitVec 512))
+(declare-fun f_inv_sha3_size ((_ BitVec 160)) (_ BitVec 256))
+(declare-fun storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 () (Array (_ BitVec 769) (_ BitVec 256)))
+(declare-fun storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_16ed8be_01 () (Array (_ BitVec 769) (_ BitVec 256)))
+(declare-fun storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c57776c_02 () (Array (_ BitVec 769) (_ BitVec 256)))
+(declare-fun storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c7968c7_03 () (Array (_ BitVec 769) (_ BitVec 256)))
+(declare-fun storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_b07c06d_04 () (Array (_ BitVec 769) (_ BitVec 256)))
+(assert
+ (= balance_457e8b2_01 (store balance_00 (_ bv728815563385977040452943777879061427756277306518 160) (_ bv79228162514264337593543950335 256))))
+(assert
+ (= p_roleId_uint16_e8f6c1a_00 (concat (_ bv0 240) ((_ extract 15 0) p_roleId_uint16_e8f6c1a_00))))
+(assert
+ (= p_target_address_2805145_00 (concat (_ bv0 96) ((_ extract 159 0) p_target_address_2805145_00))))
+(assert
+ (= p_denied_bytes4_18594e4_00 (concat ((_ extract 255 224) p_denied_bytes4_18594e4_00) (_ bv0 224))))
+(assert
+ (= p_permitted_bytes4_472108b_00 (concat ((_ extract 255 224) p_permitted_bytes4_472108b_00) (_ bv0 224))))
+(assert
+ (= p_observedTarget_address_5326c21_00 (concat (_ bv0 96) ((_ extract 159 0) p_observedTarget_address_5326c21_00))))
+(assert
+ (= p_observedSelector_bytes4_e53850f_00 (concat ((_ extract 255 224) p_observedSelector_bytes4_e53850f_00) (_ bv0 224))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (let ((?x59 (concat ?x49 (_ bv0 96) ?x58)))
+ (let ((?x60 (f_sha3_512 ?x59)))
+ (not (= ?x60 (_ bv0 256))))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (let ((?x59 (concat ?x49 (_ bv0 96) ?x58)))
+ (let ((?x60 (f_sha3_512 ?x59)))
+ (bvule ?x60 (_ bv115792089237316195423570985008687907853269984665640564039439137263839420088320 256)))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (let ((?x59 (concat ?x49 (_ bv0 96) ?x58)))
+ (= (f_inv_sha3_512 ((_ extract 159 0) (f_sha3_512 ?x59))) ?x59)))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (let ((?x59 (concat ?x49 (_ bv0 96) ?x58)))
+ (let ((?x60 (f_sha3_512 ?x59)))
+ (let ((?x66 ((_ extract 159 0) ?x60)))
+ (= (f_inv_sha3_size ?x66) (_ bv512 256))))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x74 (concat (_ bv0 96) ?x36 ?x73)))
+ (let ((?x75 (f_sha3_512 ?x74)))
+ (not (= ?x75 (_ bv0 256))))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x74 (concat (_ bv0 96) ?x36 ?x73)))
+ (let ((?x75 (f_sha3_512 ?x74)))
+ (bvule ?x75 (_ bv115792089237316195423570985008687907853269984665640564039439137263839420088320 256)))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x74 (concat (_ bv0 96) ?x36 ?x73)))
+ (= (f_inv_sha3_512 ((_ extract 159 0) (f_sha3_512 ?x74))) ?x74)))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x74 (concat (_ bv0 96) ?x36 ?x73)))
+ (let ((?x75 (f_sha3_512 ?x74)))
+ (let ((?x79 ((_ extract 159 0) ?x75)))
+ (= (f_inv_sha3_size ?x79) (_ bv512 256))))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x87 (concat (_ bv0 96) ?x36 ?x73 (_ bv0 257))))
+ (let ((?x88 (select storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 ?x87)))
+ (let ((?x92 (store storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 ?x87 (concat ((_ extract 255 8) ?x88) (_ bv2 8)))))
+ (= storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_16ed8be_01 ?x92)))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x87 (concat (_ bv0 96) ?x36 ?x73 (_ bv0 257))))
+ (let ((?x88 (select storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 ?x87)))
+ (let ((?x95 ((_ extract 255 16) ?x88)))
+ (let ((?x97 (concat ?x95 (_ bv2 16))))
+ (let ((?x98 (store storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_16ed8be_01 ?x87 ?x97)))
+ (= storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c57776c_02 ?x98)))))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x100 (concat ?x36 (_ bv0 96) ?x58)))
+ (let ((?x101 (f_sha3_512 ?x100)))
+ (not (= ?x101 (_ bv0 256))))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x100 (concat ?x36 (_ bv0 96) ?x58)))
+ (let ((?x101 (f_sha3_512 ?x100)))
+ (bvule ?x101 (_ bv115792089237316195423570985008687907853269984665640564039439137263839420088320 256)))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x100 (concat ?x36 (_ bv0 96) ?x58)))
+ (= (f_inv_sha3_512 ((_ extract 159 0) (f_sha3_512 ?x100))) ?x100)))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x100 (concat ?x36 (_ bv0 96) ?x58)))
+ (let ((?x101 (f_sha3_512 ?x100)))
+ (let ((?x105 ((_ extract 159 0) ?x101)))
+ (= (f_inv_sha3_size ?x105) (_ bv512 256))))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x111 (concat ?x36 (_ bv0 96) ?x58 (_ bv0 257))))
+ (let ((?x112 (store storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c57776c_02 ?x111 (_ bv0 256))))
+ (= storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c7968c7_03 ?x112))))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x111 (concat ?x36 (_ bv0 96) ?x58 (_ bv0 257))))
+ (let ((?x116 (store storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_c7968c7_03 ?x111 (_ bv14474011154664524427946373126085988481658748083205070504932198000989141204992 256))))
+ (= storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_b07c06d_04 ?x116))))))
+(assert
+ (let ((?x73 (bvadd (_ bv1 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x87 (concat (_ bv0 96) ?x36 ?x73 (_ bv0 257))))
+ (let ((?x88 (select storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 ?x87)))
+ (let ((?x95 ((_ extract 255 16) ?x88)))
+ (let ((?x97 (concat ?x95 (_ bv2 16))))
+ (bvule (concat (_ bv0 8) ?x95 (_ bv0 8)) ?x97))))))))
+(assert
+ (let ((?x40 ((_ extract 255 224) p_denied_bytes4_18594e4_00)))
+ (let ((?x45 ((_ extract 255 224) p_permitted_bytes4_472108b_00)))
+ (= ?x45 ?x40))))
+(assert
+ (let ((?x36 ((_ extract 159 0) p_target_address_2805145_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (= ?x49 ?x36))))
+(assert
+ (let ((?x53 ((_ extract 255 224) p_observedSelector_bytes4_e53850f_00)))
+ (let ((?x40 ((_ extract 255 224) p_denied_bytes4_18594e4_00)))
+ (not (= ?x40 ?x53)))))
+(assert
+ (let ((?x53 ((_ extract 255 224) p_observedSelector_bytes4_e53850f_00)))
+ (let ((?x45 ((_ extract 255 224) p_permitted_bytes4_472108b_00)))
+ (not (= ?x45 ?x53)))))
+(assert
+ (let ((?x58 (bvadd (_ bv2 256) p_roleSlot_uint256_6f4c4c9_00)))
+ (let ((?x49 ((_ extract 159 0) p_observedTarget_address_5326c21_00)))
+ (let ((?x128 (select storage_0x7fa9385be102ac3eac297483dd6233d62b3e1496_769_00 (concat ?x49 (_ bv0 96) ?x58 (_ bv0 257)))))
+ (not (= ?x128 (_ bv14474011154664524427946373126085988481658748083205070504932198000989141204992 256)))))))
+
+
+(check-sat)
+(get-model)

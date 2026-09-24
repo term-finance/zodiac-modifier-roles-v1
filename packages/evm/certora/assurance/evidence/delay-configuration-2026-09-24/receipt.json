@@ -1,0 +1,174 @@
+{
+  "startedAt": "2026-09-24T22:37:54.060178+00:00",
+  "tools": {
+    "forge": {
+      "path": "/opt/homebrew/Cellar/foundry/1.8.3/bin/forge",
+      "sha256": "de852308c8d975c9a12fe8e65ce7df62a055e72c84e0d15762f86f7c0a964b4f",
+      "version": "forge Version: 1.8.3-Homebrew\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T09:58:25.000000000Z (1789466305)\nBuild Profile: release"
+    },
+    "halmos": {
+      "path": "/Users/robert/.local/share/uv/tools/halmos/bin/halmos",
+      "sha256": "cf0555695d494a2299b7046dca853e3cdc74437615c67f3350fa0948c0f1c935",
+      "version": "halmos 0.3.3"
+    },
+    "solc": {
+      "path": "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30",
+      "sha256": "738dcdc6afddeb505ee4e4ef24f1c1fdba2b8c924e614cbbf5801a5b062dd683",
+      "version": "solc, the solidity compiler commandline interface\nVersion: 0.8.30+commit.73712a01.Darwin.appleclang"
+    },
+    "solver": {
+      "path": "/Users/robert/.local/share/uv/tools/halmos/bin/z3",
+      "sha256": "6a445d914dce13d8bc6ef0d7c39fb88582ff2258a28e031975b798cd62cf7af5",
+      "version": "Z3 version 4.12.6 - 64 bit"
+    }
+  },
+  "runs": {
+    "original": {
+      "command": [
+        "/Users/robert/.local/share/uv/tools/halmos/bin/halmos",
+        "--root",
+        "/var/folders/g9/_tfpv3994jggcn7_gc0j2wg00000gn/T/term-delay-lemma-1d4h2e2p",
+        "--contract",
+        "DelayConfigurationLemma",
+        "--storage-layout",
+        "generic",
+        "--solver-command",
+        "/Users/robert/.local/share/uv/tools/halmos/bin/z3",
+        "--solver-timeout-assertion",
+        "120s",
+        "--solver-timeout-branching",
+        "100ms",
+        "--loop",
+        "16",
+        "--json-output",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/original/result.json",
+        "--dump-smt-queries",
+        "--dump-smt-directory",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/original/smt",
+        "--statistics",
+        "--no-status"
+      ],
+      "exitCode": 0
+    },
+    "missing-revocation": {
+      "command": [
+        "/Users/robert/.local/share/uv/tools/halmos/bin/halmos",
+        "--root",
+        "/var/folders/g9/_tfpv3994jggcn7_gc0j2wg00000gn/T/term-delay-lemma-qnlhove4",
+        "--contract",
+        "DelayConfigurationLemma",
+        "--storage-layout",
+        "generic",
+        "--solver-command",
+        "/Users/robert/.local/share/uv/tools/halmos/bin/z3",
+        "--solver-timeout-assertion",
+        "120s",
+        "--solver-timeout-branching",
+        "100ms",
+        "--loop",
+        "16",
+        "--json-output",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/missing-revocation/result.json",
+        "--dump-smt-queries",
+        "--dump-smt-directory",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/missing-revocation/smt",
+        "--statistics",
+        "--no-status"
+      ],
+      "exitCode": 1
+    },
+    "selector-erased": {
+      "command": [
+        "/Users/robert/.local/share/uv/tools/halmos/bin/halmos",
+        "--root",
+        "/var/folders/g9/_tfpv3994jggcn7_gc0j2wg00000gn/T/term-delay-lemma-fhum7ou_",
+        "--contract",
+        "DelayConfigurationLemma",
+        "--storage-layout",
+        "generic",
+        "--solver-command",
+        "/Users/robert/.local/share/uv/tools/halmos/bin/z3",
+        "--solver-timeout-assertion",
+        "120s",
+        "--solver-timeout-branching",
+        "100ms",
+        "--loop",
+        "16",
+        "--json-output",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/selector-erased/result.json",
+        "--dump-smt-queries",
+        "--dump-smt-directory",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/selector-erased/smt",
+        "--statistics",
+        "--no-status"
+      ],
+      "exitCode": 1
+    },
+    "target-wide-clearance": {
+      "command": [
+        "/Users/robert/.local/share/uv/tools/halmos/bin/halmos",
+        "--root",
+        "/var/folders/g9/_tfpv3994jggcn7_gc0j2wg00000gn/T/term-delay-lemma-cpn56g_v",
+        "--contract",
+        "DelayConfigurationLemma",
+        "--storage-layout",
+        "generic",
+        "--solver-command",
+        "/Users/robert/.local/share/uv/tools/halmos/bin/z3",
+        "--solver-timeout-assertion",
+        "120s",
+        "--solver-timeout-branching",
+        "100ms",
+        "--loop",
+        "16",
+        "--json-output",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/target-wide-clearance/result.json",
+        "--dump-smt-queries",
+        "--dump-smt-directory",
+        "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/target-wide-clearance/smt",
+        "--statistics",
+        "--no-status"
+      ],
+      "exitCode": 1
+    }
+  },
+  "semanticClosureCertified": false,
+  "repositoryInputs": {
+    "certora/lemmas/DelayConfiguration.t.sol": "e6169fe18537f68c81ad0ce184c08212140a38de15b03b5488b7e9783bb8ddb3",
+    "certora/lemmas/check-delay-configuration.py": "aca9e9ea3bb6ca24bb863be9b1253ad689acf1cf2622f8e417d9842383fee3c2",
+    "certora/lemmas/run-delay-configuration.py": "cc305ac28a00debcd921871a8e1402079b135d8d8291a300d7d9666612c40d9b"
+  },
+  "completedAt": "2026-09-24T22:38:04.749994+00:00",
+  "artifacts": {
+    "missing-revocation/build.log": "5cd1033d5b5bc545d2cde56190bcfa0e5db8260bc7124fcde5d2531e002c4bd2",
+    "missing-revocation/compiler.json.gz": "417a3cfb85f5fcd2a7906aaecb9f1fd38afbdeacacfef244fd6d42f2e9499c8a",
+    "missing-revocation/foundry.toml": "248d1807a07cc2e5d5d5f073f50fa136550cd79c8afc59e4fd761ddb92665bf7",
+    "missing-revocation/halmos.log": "11ffc0a2942933c7ad30fab38940493aff57fa42770e39257de8259a9c4de669",
+    "missing-revocation/result.json": "e923bf9027446ca4d56edf73f90996f495bdc1c9d761bd410bdb0d06f6a763be",
+    "missing-revocation/smt/check_configurationClearsDeniedSelector/6.smt2": "ca1e70d625df905719be6f5b72e06654012dacf0db2e4b86229d1d8e445e2596",
+    "missing-revocation/smt/check_configurationClearsDeniedSelector/6.smt2.out": "caa46d853c39f5a95f659d187cafe2b022215af89986d5e042feefbc5eec2302",
+    "original/build.log": "10591429573f24adaac3bd20612c195b139cfd8658159c9108be0d9425a224a1",
+    "original/compiler.json.gz": "a3522bc82a10d96d9ee9c092bcd1dcc8ab9a5149fc337263f417f5ca10b8938c",
+    "original/foundry.toml": "248d1807a07cc2e5d5d5f073f50fa136550cd79c8afc59e4fd761ddb92665bf7",
+    "original/halmos.log": "2eea4153d5c4bcdb38d94a866c79ae6cb13a12638dcd449b700e6de48b01b13d",
+    "original/result.json": "2d888c06234690bef7facf9f5cc4e5f78a194fb05164e74eaf973324d3174957",
+    "selector-erased/build.log": "820959ebf62c8b9ad6697c44500d889e3abe52535807ba4a2d1778d6dbdca78f",
+    "selector-erased/compiler.json.gz": "7f86fd8d9b36daf3d6a408e51e4cc26e53f8fa143ce1ffc3fad81fd303a7ca61",
+    "selector-erased/foundry.toml": "248d1807a07cc2e5d5d5f073f50fa136550cd79c8afc59e4fd761ddb92665bf7",
+    "selector-erased/halmos.log": "7def1d80a577366a8ee03867253b619c7bd083f8ede2b78a81d9ac878b16a07c",
+    "selector-erased/result.json": "a74a116945334affcfae11e58684577ef11049ab52302575d60478bd4d0c0750",
+    "selector-erased/smt/check_configurationClearsDeniedSelector/6.smt2": "3e3231a44936e3b331a02314c8438e1926a69baadbbbe753bf4af13991180657",
+    "selector-erased/smt/check_configurationClearsDeniedSelector/6.smt2.out": "54eda2466e8bb7e487713250b9a4db99f3a77170584833459ec4695ae3ce1c87",
+    "selector-erased/smt/check_configurationClearsDeniedSelector/7.smt2": "9d0132847aec12d46689c7239d41e24d0efa187d532cab20b3decd96e242c1fa",
+    "selector-erased/smt/check_configurationClearsDeniedSelector/7.smt2.out": "bae668e12befd37ce424fcb6cc6a5721d9b12dceeea5fa5793336b5e37934871",
+    "selector-erased/smt/check_packedKeyHasExactRepresentation/2.smt2": "44bd8a9a601b60a5b1d9b3629b13862d4c861fba95e477f2d50cefb228b68bce",
+    "selector-erased/smt/check_packedKeyHasExactRepresentation/2.smt2.out": "1b08e572da48a1001f53006f1d646c0a0e27001cf3cd34a1059422d862bfaf6c",
+    "target-wide-clearance/build.log": "2512e683da5e5a1b2af2cb45f57b60cb4b036c29329a210e117842dcf01defc9",
+    "target-wide-clearance/compiler.json.gz": "03a80e2a299a145afa8ab068eaa3e670562ae8d783000e0e4d1633d4d1a50895",
+    "target-wide-clearance/foundry.toml": "248d1807a07cc2e5d5d5f073f50fa136550cd79c8afc59e4fd761ddb92665bf7",
+    "target-wide-clearance/halmos.log": "b39ba955139095b297cd31c1e429360775fe3dfe3257db7c4e86d1a1d05569d0",
+    "target-wide-clearance/result.json": "3aa5bc10a84668d3d392a1df40519184c6d6da141ea9bdf049dc029e2d16444a",
+    "target-wide-clearance/smt/check_configurationClearsDeniedSelector/6.smt2": "903170ede99dd43fdcb1c0ff4e684fc09466cd29764733f5419f1178302666c2",
+    "target-wide-clearance/smt/check_configurationClearsDeniedSelector/6.smt2.out": "192816a8e87b4d7cd9b47b228e9471e9ae92f49667f5fc56934864657a62e72c"
+  }
+}

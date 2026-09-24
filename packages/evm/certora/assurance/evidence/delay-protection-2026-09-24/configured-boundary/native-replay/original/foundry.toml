@@ -1,0 +1,12 @@
+[profile.default]
+src = "certora/harness"
+test = "certora/lemmas"
+libs = ["node_modules"]
+solc = "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30"
+evm_version = "paris"
+optimizer = true
+optimizer_runs = 1
+via_ir = false
+dynamic_test_linking = false
+build_info = true
+remappings = ["@gnosis.pm/=node_modules/@gnosis.pm/", "@openzeppelin/=node_modules/@openzeppelin/"]

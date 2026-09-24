@@ -1,0 +1,31 @@
+No files changed, compilation skipped
+
+Running 2 tests for certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/selector-erased/smt/DelayConfigurationLemma-constructor
+setup: 0.00s (decode: 0.00s, run: 0.00s)
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/selector-erased/smt/check_configurationClearsDeniedSelector
+[31mCounterexample: 
+    p_denied_bytes4_18594e4_00 = 0x10000000000000000000000000000000000000000000000000000000000
+    p_observedSelector_bytes4_e53850f_00 = 0x00
+    p_observedTarget_address_5326c21_00 = 0x00
+    p_permitted_bytes4_472108b_00 = 0xfffffeff00000000000000000000000000000000000000000000000000000000
+    p_roleId_uint16_e8f6c1a_00 = 0x00
+    p_roleSlot_uint256_6f4c4c9_00 = 0x00
+    p_target_address_2805145_00 = 0x00[0m
+[31mCounterexample: 
+    p_denied_bytes4_18594e4_00 = 0xffffffff00000000000000000000000000000000000000000000000000000000
+    p_observedSelector_bytes4_e53850f_00 = 0x00
+    p_observedTarget_address_5326c21_00 = 0x00
+    p_permitted_bytes4_472108b_00 = 0xffffffff00000000000000000000000000000000000000000000000000000000
+    p_roleId_uint16_e8f6c1a_00 = 0x00
+    p_roleSlot_uint256_6f4c4c9_00 = 0x00
+    p_target_address_2805145_00 = 0x00[0m
+[31m[FAIL][0m check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4) (paths: 11, time: 0.90s (paths: 0.90s, models: 0.00s), bounds: [])
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/selector-erased/smt/check_packedKeyHasExactRepresentation
+[31mCounterexample: 
+    p_selector_bytes4_ce391c4_00 = 0xffffffff00000000000000000000000000000000000000000000000000000000
+    p_target_address_888938a_00 = 0x00[0m
+[31m[FAIL][0m check_packedKeyHasExactRepresentation(address,bytes4) (paths: 4, time: 0.09s (paths: 0.08s, models: 0.00s), bounds: [])
+Symbolic test result: 0 passed; 2 failed; time: 0.99s
+
+[time] total: 1.13s (build: 0.13s, load: 0.01s, tests: 0.99s)

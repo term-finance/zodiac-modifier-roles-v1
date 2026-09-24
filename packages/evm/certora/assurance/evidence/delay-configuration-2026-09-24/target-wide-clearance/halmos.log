@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Running 2 tests for certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/target-wide-clearance/smt/DelayConfigurationLemma-constructor
+setup: 0.00s (decode: 0.00s, run: 0.00s)
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/target-wide-clearance/smt/check_configurationClearsDeniedSelector
+[31mCounterexample: 
+    p_denied_bytes4_10496b0_00 = 0x1663284000000000000000000000000000000000000000000000000000000000
+    p_observedSelector_bytes4_0dea2c4_00 = 0xac111a4500000000000000000000000000000000000000000000000000000000
+    p_observedTarget_address_10d02e0_00 = 0xb60e0f8646f046c61eb9c7de60248c0f419fdf50
+    p_permitted_bytes4_ad01276_00 = 0x1663284000000000000000000000000000000000000000000000000000000000
+    p_roleId_uint16_936d4d3_00 = 0x00
+    p_roleSlot_uint256_111b339_00 = 0x00
+    p_target_address_64279a0_00 = 0x10000000000000000000000000000000000000[0m
+[31m[FAIL][0m check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4) (paths: 7, time: 0.20s (paths: 0.16s, models: 0.04s), bounds: [])
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/target-wide-clearance/smt/check_packedKeyHasExactRepresentation
+[32m[PASS][0m check_packedKeyHasExactRepresentation(address,bytes4) (paths: 3, time: 0.04s (paths: 0.04s, models: 0.00s), bounds: [])
+Symbolic test result: 1 passed; 1 failed; time: 0.24s
+
+[time] total: 0.44s (build: 0.17s, load: 0.03s, tests: 0.25s)

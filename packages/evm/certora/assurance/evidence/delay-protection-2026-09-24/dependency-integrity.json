@@ -1,0 +1,42 @@
+{
+  "lockSha256": "3c897b096af2618ffbb90f677223ba38ec042256a8f6bef8707791114cba5359",
+  "packages": [
+    {
+      "package": "@gnosis.pm/zodiac",
+      "version": "1.0.1",
+      "resolved": "https://registry.yarnpkg.com/@gnosis.pm/zodiac/-/zodiac-1.0.1.tgz",
+      "integrity": "sha512-MBfTXmE9LO8xcByrMxaH9RhwHObzn1ZNrd3g00ly0836wmRq/PJOvVbHJ51McD3VoVveaFFC8S5OVwomRZNFpw==",
+      "matchedFiles": {
+        "node_modules/@gnosis.pm/zodiac/contracts/core/Modifier.sol": "a7b393576551c3eeef82bd95cdbe47c8dd22b869426cb86411f11f05a450cb68",
+        "node_modules/@gnosis.pm/zodiac/contracts/core/Module.sol": "c557a87f052b7f5f00d88a18ea4a7a6e2b62420ff41d2dd25c323c0b39831c46",
+        "node_modules/@gnosis.pm/zodiac/contracts/factory/FactoryFriendly.sol": "44cd0d1625d10dd3482d41cd3d6197df1a1d2e51ed6d78f9e63b2cbd3890866d",
+        "node_modules/@gnosis.pm/zodiac/contracts/guard/BaseGuard.sol": "39373f945892fc0a16ee7ec323a24f039ee480951aa19f49c7ae279342de3a17",
+        "node_modules/@gnosis.pm/zodiac/contracts/guard/Guardable.sol": "6b359df3fb6906c4092d1f55c4890996d864ec4e12f820a906b7368012db7bee",
+        "node_modules/@gnosis.pm/zodiac/contracts/interfaces/IAvatar.sol": "4bcd682c51f1565202a9b16fbdf51410301e76b0f86c8c86349ff4f0422f60da",
+        "node_modules/@gnosis.pm/zodiac/contracts/interfaces/IGuard.sol": "4cbc6a20cd34b90ef2db9c36ef047551a37d353364d93798daf0bd32c95c1fe7"
+      }
+    },
+    {
+      "package": "@gnosis.pm/safe-contracts",
+      "version": "1.3.0",
+      "resolved": "https://registry.yarnpkg.com/@gnosis.pm/safe-contracts/-/safe-contracts-1.3.0.tgz",
+      "integrity": "sha512-1p+1HwGvxGUVzVkFjNzglwHrLNA67U/axP0Ct85FzzH8yhGJb4t9jDjPYocVMzLorDoWAfKicGy1akPY9jXRVw==",
+      "matchedFiles": {
+        "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c",
+        "node_modules/@gnosis.pm/safe-contracts/contracts/interfaces/IERC165.sol": "5aac96d8d1b2f7ffd09a7213ee7109a343b1a8617e9e899af2050a82d069cfa8"
+      }
+    },
+    {
+      "package": "@openzeppelin/contracts-upgradeable",
+      "version": "4.3.1",
+      "resolved": "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.3.1.tgz",
+      "integrity": "sha512-vqS3gb1J5xlKc+7a931a5Qmg3HDR168E6aCfPY6lPrdFZV4TymN2+HVJNCqCo+KP2UMYDtqRsXu+KB/0L0E34g==",
+      "matchedFiles": {
+        "node_modules/@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol": "50be14ba1da013afb247752c368784ce5da4b62caac969280f6c6bcef7b07d33",
+        "node_modules/@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol": "8954474eb8ba4a536daa0a690f24680587079d364172d9f965f367d2a9f25839",
+        "node_modules/@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol": "e371ddabc7037582ee174eae18b32662bda7723e5664aed8a469fc0847a7a2b8"
+      }
+    }
+  ],
+  "allImportedDependencySourcesMatchLockedArchives": true
+}

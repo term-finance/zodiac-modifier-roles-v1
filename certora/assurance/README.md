@@ -1,7 +1,8 @@
 # CVL assurance records
 
-The inventory registers **seven CVL modules and seven proof contexts**, including
-all six pre-existing configurations and the new veto-only Delay policy rule.
+The inventory registers **eight CVL modules and eight proof contexts**, including
+all six pre-existing configurations, the veto-only Delay policy rule and a
+conditional forwarding-boundary lemma.
 Every context has an independent boundary diagnostic and all nine semantic
 obligation families. **None has a semantic dependency-closure certificate.**
 
@@ -88,7 +89,7 @@ inlining without exact SMT byte maps produced three violated assertions
 counterexamples require triage; neither attempt is accepted. The canonical spec
 and exact-memory configuration are preserved, with no case removed.
 
-The approved configuration-bound lifetime policy is now recorded for all seven
+The approved configuration-bound lifetime policy is now recorded for all eight
 contexts: code, role, registry, model, context or incomplete-history changes
 invalidate a certificate permanently; a matching restored snapshot cannot revive
 it. All certificates remain unissued while semantic obligations are open.
@@ -97,6 +98,39 @@ A separate bytecode-level Halmos lemma proves packed-key injectivity for arbitra
 address/selector pairs using the actual `Permissions.keyForFunctions` body. See
 `symbolic-packed-key` for its compiler inputs and six explored paths. This is a
 supporting lemma, not acceptance of the still-failing CVL permission theorem.
+
+Two additional [configuration lemmas](../../packages/evm/certora/lemmas/README.md)
+now prove the exact packed-key representation and the actual library transition
+from arbitrary existing grants at an arbitrary Role storage location. The latter
+includes a frame condition for unrelated function grants. The evidence checker
+accepts both lemmas and rejects three compiling implementation mutants; fifteen
+damaged-evidence controls also fail as required. No calldata bounds or scalar
+preconditions were added. These lemmas discharge that library-level sub-obligation,
+not the full forwarding, deployment or semantic-closure theorem.
+
+The separate [configured-boundary lemma](../../packages/evm/certora/lemmas/CONFIGURED_BOUNDARY.md)
+now has an accepted conditional result for all three implemented forwarders
+(job `082ee9fed45347319b98ee00b115674e`). Six outcome assertions and eighteen
+automatic sanity instances pass. Three automatic sanity witnesses hit loop
+limits and others contain arithmetic imprecision, so four independent native
+tests supply twelve feasible cases covering non-vacuity and each premise across
+the three methods. Two pre-revert effect mutants are refuted and independently
+demonstrated in the local EVM. The checker rejects seventeen damaged or misleading
+evidence variants, including missing witnesses and default external summaries.
+Twelve imported dependency files match their three integrity-verified locked npm
+packages. This result still needs public-wrapper composition, deployment bindings
+and configuration-history obligations; the original unsplit policy remains open.
+
+Run the retained-result checks from `packages/evm`:
+
+```sh
+python3 certora/lemmas/check-configured-boundary.py certora/assurance/evidence/delay-protection-2026-09-24/configured-boundary
+python3 certora/lemmas/test-configured-boundary-checker.py
+```
+
+The new CI context reruns the CVL lemma and checks the retained supporting
+evidence. It does not issue a semantic closure certificate. All earlier
+unsuccessful diagnostics and their exact inputs remain retained.
 
 Combining both exact overlapping-write inlining and exact SMT byte maps in the
 original unsplit rule also produced error 27672571 in its main assertion

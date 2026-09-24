@@ -1,0 +1,41 @@
+{
+  "commands": {
+    "original": [
+      "forge",
+      "test",
+      "--offline",
+      "--match-contract",
+      "Boundary(MutationReplay|FeasibilityWitnesses)",
+      "--match-test",
+      "test_",
+      "--json"
+    ],
+    "call-before-revert": [
+      "forge",
+      "test",
+      "--offline",
+      "--match-contract",
+      "BoundaryMutationReplay",
+      "--match-test",
+      "test_observeCallBeforeRollback",
+      "--json"
+    ],
+    "write-before-rejection": [
+      "forge",
+      "test",
+      "--offline",
+      "--match-contract",
+      "BoundaryMutationReplay",
+      "--match-test",
+      "test_observeWriteBeforeRollback",
+      "--json"
+    ]
+  },
+  "forge": {
+    "version": "forge Version: 1.8.3-Homebrew\nCommit SHA: cae51ad458f6abb64852b7709eb784352429825d\nBuild Timestamp: 2026-09-15T09:58:25.000000000Z (1789466305)\nBuild Profile: release\n",
+    "sha256": "de852308c8d975c9a12fe8e65ce7df62a055e72c84e0d15762f86f7c0a964b4f"
+  },
+  "scope": "Four successful native witness tests cover all three forwarders each. They establish feasibility and necessity of each premise. Two mutation controls prove pre-revert effects are observed. These are independent feasible EVM witnesses, not replays of imprecise symbolic valuations.",
+  "source": "certora/lemmas/BoundaryMutationReplay.t.sol",
+  "semanticClosureCertified": false
+}

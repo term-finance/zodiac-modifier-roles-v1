@@ -1,0 +1,36 @@
+{
+  "collectedAt": "2026-09-24T23:03:01.417990+00:00",
+  "jobId": "3fa9799434894cd9abe1096453785814",
+  "reportUrl": "https://prover.certora.com/output/99679/3fa9799434894cd9abe1096453785814?anonymousKey=e25ce2f033affd5914f34da07dded6811c33a636",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "VIOLATED",
+    "envfreeFuncsStaticCheck": "VERIFIED"
+  },
+  "sanityStatuses": [],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "directConfiguredRejection",
+      "status": "VIOLATED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "Detected one overflow in counter example 0: delayConfiguredBoundary.spec:25:5 : Unsigned overflow: Sub(0x4 CANON20:bv256) : [4, 12] -> -8 (width = 256)"
+        },
+        {
+          "severity": "info",
+          "message": "The rule contains only reverting paths."
+        }
+      ]
+    },
+    {
+      "ruleId": null,
+      "status": "VIOLATED",
+      "errors": []
+    }
+  ],
+  "retainedRuleOutputs": 4,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

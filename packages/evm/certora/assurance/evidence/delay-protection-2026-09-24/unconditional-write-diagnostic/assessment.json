@@ -1,0 +1,58 @@
+{
+  "collectedAt": "2026-09-24T23:03:19.451831+00:00",
+  "jobId": "6c1f77fffbb244608c4b18626b4823db",
+  "reportUrl": "https://prover.certora.com/output/99679/6c1f77fffbb244608c4b18626b4823db?anonymousKey=6a1213e6ac3dd416b02f06fe505130f65da8aa54",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "SANITY_FAILED",
+    "envfreeFuncsStaticCheck": "VERIFIED"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "directConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_34_4",
+      "status": "SANITY_FAILED"
+    }
+  ],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "directConfiguredRejection",
+      "status": "SANITY_FAILED",
+      "errors": [
+        {
+          "severity": "info",
+          "message": "The rule result was successfully determined without running SMT solver (i.e. solely by static analysis)"
+        },
+        {
+          "severity": "info",
+          "message": "The rule contains only reverting paths."
+        }
+      ]
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_34_4",
+      "status": "SANITY_FAILED",
+      "errors": [
+        {
+          "severity": "info",
+          "message": "The rule result was successfully determined without running SMT solver (i.e. solely by static analysis)"
+        },
+        {
+          "severity": "info",
+          "message": "The rule contains only reverting paths."
+        },
+        {
+          "severity": "warning",
+          "message": "The assert tautology sanity check failed. The respective assert is a tautology, i.e. is always true. See https://docs.certora.com/en/latest/docs/prover/checking/sanity.html#assert-tautology-checks"
+        }
+      ]
+    }
+  ],
+  "retainedRuleOutputs": 6,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

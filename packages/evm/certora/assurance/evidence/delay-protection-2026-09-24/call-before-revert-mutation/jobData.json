@@ -1,0 +1,30 @@
+{
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-rule",
+    "directConfiguredRejection",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:01:05.259000Z",
+  "jobStatus": "SUCCEEDED",
+  "jobSource": "COMMAND",
+  "startTime": "2026-09-24T23:00:01.475000Z",
+  "outputUrl": "https://prover.certora.com/output/99679/3fa9799434894cd9abe1096453785814/",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/3fa9799434894cd9abe1096453785814/f/outputs",
+  "anonymousKey": "e25ce2f033affd5914f34da07dded6811c33a636",
+  "contract": "RolesHarness",
+  "jobId": "3fa9799434894cd9abe1096453785814",
+  "postTime": "2026-09-24T22:59:07.773314Z",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "notifyMsg": "Mutation control call-then-revert must be detected before rollback"
+}

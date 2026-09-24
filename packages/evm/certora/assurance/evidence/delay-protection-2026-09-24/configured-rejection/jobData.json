@@ -1,0 +1,26 @@
+{
+  "anonymousKey": "c7589365c2d2d79faca3a3a4d36400b1251ddd8e",
+  "postTime": "2026-09-24T22:24:52.518051Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/c7d4d50c184845bcbcfd29ac056aec50/f/outputs",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "jobSource": "COMMAND",
+  "outputUrl": "https://prover.certora.com/output/99679/c7d4d50c184845bcbcfd29ac056aec50/",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600"
+  ],
+  "finishTime": "2026-09-24T22:50:58.107000Z",
+  "startTime": "2026-09-24T22:25:08.462000Z",
+  "contract": "RolesHarness",
+  "javaArgs": [],
+  "notifyMsg": "Configured Roles rejection under independently proved postcondition",
+  "jobId": "c7d4d50c184845bcbcfd29ac056aec50",
+  "jobStatus": "SUCCEEDED"
+}

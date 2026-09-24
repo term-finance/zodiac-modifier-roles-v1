@@ -1,0 +1,186 @@
+{
+    "exitcode": 1,
+    "test_results": {
+        "certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma": [
+            {
+                "name": "check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4)",
+                "exitcode": 1,
+                "num_models": 2,
+                "models": [
+                    {
+                        "model": {
+                            "p_observedTarget_address_5326c21_00": {
+                                "full_name": "p_observedTarget_address_5326c21_00",
+                                "variable_name": "observedTarget",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_target_address_2805145_00": {
+                                "full_name": "p_target_address_2805145_00",
+                                "variable_name": "target",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_permitted_bytes4_472108b_00": {
+                                "full_name": "p_permitted_bytes4_472108b_00",
+                                "variable_name": "permitted",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 115792082308609901965856557779265030489224901540894447446530456364285295591424
+                            },
+                            "p_denied_bytes4_18594e4_00": {
+                                "full_name": "p_denied_bytes4_18594e4_00",
+                                "variable_name": "denied",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 6901746346790563787434755862277025452451108972170386555162524223799296
+                            },
+                            "p_roleId_uint16_e8f6c1a_00": {
+                                "full_name": "p_roleId_uint16_e8f6c1a_00",
+                                "variable_name": "roleId",
+                                "solidity_type": "uint16",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_observedSelector_bytes4_e53850f_00": {
+                                "full_name": "p_observedSelector_bytes4_e53850f_00",
+                                "variable_name": "observedSelector",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_roleSlot_uint256_6f4c4c9_00": {
+                                "full_name": "p_roleSlot_uint256_6f4c4c9_00",
+                                "variable_name": "roleSlot",
+                                "solidity_type": "uint256",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            }
+                        },
+                        "is_valid": true
+                    },
+                    {
+                        "model": {
+                            "p_observedTarget_address_5326c21_00": {
+                                "full_name": "p_observedTarget_address_5326c21_00",
+                                "variable_name": "observedTarget",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_target_address_2805145_00": {
+                                "full_name": "p_target_address_2805145_00",
+                                "variable_name": "target",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_permitted_bytes4_472108b_00": {
+                                "full_name": "p_permitted_bytes4_472108b_00",
+                                "variable_name": "permitted",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 115792089210356248756420345214020892766250353992003419616917011526809519390720
+                            },
+                            "p_denied_bytes4_18594e4_00": {
+                                "full_name": "p_denied_bytes4_18594e4_00",
+                                "variable_name": "denied",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 115792089210356248756420345214020892766250353992003419616917011526809519390720
+                            },
+                            "p_roleId_uint16_e8f6c1a_00": {
+                                "full_name": "p_roleId_uint16_e8f6c1a_00",
+                                "variable_name": "roleId",
+                                "solidity_type": "uint16",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_observedSelector_bytes4_e53850f_00": {
+                                "full_name": "p_observedSelector_bytes4_e53850f_00",
+                                "variable_name": "observedSelector",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_roleSlot_uint256_6f4c4c9_00": {
+                                "full_name": "p_roleSlot_uint256_6f4c4c9_00",
+                                "variable_name": "roleSlot",
+                                "solidity_type": "uint256",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            }
+                        },
+                        "is_valid": true
+                    }
+                ],
+                "num_paths": [
+                    11,
+                    3,
+                    0
+                ],
+                "time": [
+                    0.8991344170644879,
+                    0.8990116249769926,
+                    0.00011825002729892731
+                ],
+                "num_bounded_loops": 0
+            },
+            {
+                "name": "check_packedKeyHasExactRepresentation(address,bytes4)",
+                "exitcode": 1,
+                "num_models": 1,
+                "models": [
+                    {
+                        "model": {
+                            "p_selector_bytes4_ce391c4_00": {
+                                "full_name": "p_selector_bytes4_ce391c4_00",
+                                "variable_name": "selector",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 115792089210356248756420345214020892766250353992003419616917011526809519390720
+                            },
+                            "p_target_address_888938a_00": {
+                                "full_name": "p_target_address_888938a_00",
+                                "variable_name": "target",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            }
+                        },
+                        "is_valid": true
+                    }
+                ],
+                "num_paths": [
+                    4,
+                    1,
+                    0
+                ],
+                "time": [
+                    0.08528454229235649,
+                    0.08039779216051102,
+                    0.004867957904934883
+                ],
+                "num_bounded_loops": 0
+            }
+        ]
+    }
+}

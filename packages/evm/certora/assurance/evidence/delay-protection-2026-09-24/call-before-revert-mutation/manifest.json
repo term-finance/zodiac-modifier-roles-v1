@@ -1,0 +1,16 @@
+{
+  "filesSha256": {
+    "assessment.json": "68e73e7908079fb793de3b9374ac89885875d9adbb58fa6e30f035e885af80ab",
+    "compile.log": "df8dad46f4c2859d3c290dfab68f7791a8909073bbe921034bee7da91967ffac",
+    "diagnostic.json": "2b9f4e6d37d2660d478d9703b89d34d38125c72ce63fe6ad4300f3343707e09c",
+    "jobData.json": "3a08f20e9a191af5a7a3bae10fc231c3e0d6555364804ffe7057b772ea2d2cdb",
+    "progress.json": "d41f54ea26fc34343816df1de20a37ccd43a3029b96c96d4d2daace7bc018a44",
+    "rule_output_1.json.gz": "9ed2ecf5644e978685e4958b3e30be60f96f22cdeff362c3451034db09760f78",
+    "rule_output_2.json.gz": "1598bddf9e9ca36fd662858b53321a48db096d916f71806ad216eae113c899b2",
+    "rule_output_3.json.gz": "21094ac576c2dbb17db418a0982ff3f336f5c9f61c94375e643838b2ef684684",
+    "rule_output_4.json.gz": "c99c32a4d840d5d96814465f34c7b88bfae0c88143946814554181f6b6a4aca7",
+    "run.json": "54e14b76561e9bc7273992c18316884aee2b1abab038417ab0134da709a2ecf9",
+    "submission.log": "1bf028fc563176198b84ab70efdbb8a5760c8e0815dfef64fc5f76df5a2ec99a",
+    "submitted-inputs.zip": "30282f451726d1fc16f0ff3b0a27e4e803ff8ac52b997687807d987bba8d7e6b"
+  }
+}

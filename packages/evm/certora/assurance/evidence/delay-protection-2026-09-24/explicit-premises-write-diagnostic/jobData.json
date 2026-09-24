@@ -1,0 +1,30 @@
+{
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-rule",
+    "directConfiguredRejection",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:15:32.695000Z",
+  "jobStatus": "SUCCEEDED",
+  "jobSource": "COMMAND",
+  "startTime": "2026-09-24T23:08:30.970000Z",
+  "outputUrl": "https://prover.certora.com/output/99679/f20ce8b4f7d64ea89d049fc17e8cc0c4/",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/f20ce8b4f7d64ea89d049fc17e8cc0c4/f/outputs",
+  "anonymousKey": "047143cf78e6345daa080c403a399b955f02e8ba",
+  "contract": "RolesHarness",
+  "jobId": "f20ce8b4f7d64ea89d049fc17e8cc0c4",
+  "postTime": "2026-09-24T23:07:56.984640Z",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "notifyMsg": "Configured boundary negative control explicit-write-mutation"
+}

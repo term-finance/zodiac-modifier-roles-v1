@@ -1,0 +1,5 @@
+{
+  "mutation": "call-then-revert",
+  "expected": "directConfiguredRejection violated on attempted-effect assertion; lastReverted remains true",
+  "semanticClosureCertified": false
+}

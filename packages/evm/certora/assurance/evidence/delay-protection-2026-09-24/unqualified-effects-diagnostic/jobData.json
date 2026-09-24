@@ -1,0 +1,28 @@
+{
+  "anonymousKey": "6ce1780e778bbec9a52cd04f1890f07d6fb88a03",
+  "postTime": "2026-09-24T22:45:36.928567Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/cfe025727e5a450f9417f0d18ef5ced0/f/outputs",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "jobSource": "COMMAND",
+  "outputUrl": "https://prover.certora.com/output/99679/cfe025727e5a450f9417f0d18ef5ced0/",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T22:50:51.167000Z",
+  "startTime": "2026-09-24T22:46:19.365000Z",
+  "contract": "RolesHarness",
+  "javaArgs": [],
+  "notifyMsg": "Roles configured rejection before any external or storage effect",
+  "jobId": "cfe025727e5a450f9417f0d18ef5ced0",
+  "jobStatus": "SUCCEEDED"
+}

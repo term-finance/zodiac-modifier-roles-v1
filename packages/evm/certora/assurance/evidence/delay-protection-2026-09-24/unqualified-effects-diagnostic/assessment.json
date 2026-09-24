@@ -1,0 +1,59 @@
+{
+  "collectedAt": "2026-09-24T22:53:09.374750+00:00",
+  "jobId": "cfe025727e5a450f9417f0d18ef5ced0",
+  "reportUrl": "https://prover.certora.com/output/99679/cfe025727e5a450f9417f0d18ef5ced0?anonymousKey=6ce1780e778bbec9a52cd04f1890f07d6fb88a03",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "VIOLATED",
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "returnDataConfiguredRejection": "VIOLATED",
+    "safeConfiguredRejection": "VIOLATED"
+  },
+  "sanityStatuses": [],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "directConfiguredRejection",
+      "status": "VIOLATED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "Detected one overflow in counter example 0: delayConfiguredBoundary.spec:22:5 : Unsigned overflow: Sub(0x4 CANON22:bv256) : [4, 3840] -> -3836 (width = 256)"
+        }
+      ]
+    },
+    {
+      "ruleId": null,
+      "status": "VIOLATED",
+      "errors": []
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection",
+      "status": "VIOLATED",
+      "errors": []
+    },
+    {
+      "ruleId": null,
+      "status": "VIOLATED",
+      "errors": []
+    },
+    {
+      "ruleId": "safeConfiguredRejection",
+      "status": "VIOLATED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "Detected one overflow in counter example 0: delayConfiguredBoundary.spec:22:5 : Unsigned overflow: Sub(0x4 CANON26:bv256) : [4, 12] -> -8 (width = 256)"
+        }
+      ]
+    },
+    {
+      "ruleId": null,
+      "status": "VIOLATED",
+      "errors": []
+    }
+  ],
+  "retainedRuleOutputs": 6,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

@@ -22,6 +22,7 @@ jobs:
           - "Roles-callTargetPermissions.conf"
           - "Roles-remediation.conf"
           - "Roles-delayProtection.conf"
+          - "Roles-configuredBoundary.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -40,15 +41,27 @@ jobs:
       # packages/evm/node_modules, so the install has to land there.
       - run: yarn install --immutable
         working-directory: ./packages/evm
+      - name: Check retained permission configuration proofs
+        if: matrix.ruleset == 'Roles-delayProtection.conf' || matrix.ruleset == 'Roles-configuredBoundary.conf'
+        run: |
+          python3 certora/lemmas/check-delay-configuration.py certora/assurance/evidence/delay-configuration-2026-09-24
+          python3 certora/lemmas/test-delay-configuration-checker.py
+        working-directory: ./packages/evm
+      - name: Check retained conditional boundary proof
+        if: matrix.ruleset == 'Roles-configuredBoundary.conf'
+        run: |
+          python3 certora/lemmas/check-configured-boundary.py certora/assurance/evidence/delay-protection-2026-09-24/configured-boundary
+          python3 certora/lemmas/test-configured-boundary-checker.py
+        working-directory: ./packages/evm
       - run: pip3 install -r requirements.txt
         working-directory: ./packages/evm
       - name: Current prover for exact byte-memory policy checks
-        if: matrix.ruleset == 'Roles-delayProtection.conf'
+        if: matrix.ruleset == 'Roles-delayProtection.conf' || matrix.ruleset == 'Roles-configuredBoundary.conf'
         run: pip3 install certora-cli==8.19.2
       - run: solc-select install ${SOLC_VERSION}
         working-directory: ./packages/evm
         env:
-          SOLC_VERSION: ${{ matrix.ruleset == 'Roles-delayProtection.conf' && '0.8.30' || '0.8.6' }}
+          SOLC_VERSION: ${{ (matrix.ruleset == 'Roles-delayProtection.conf' || matrix.ruleset == 'Roles-configuredBoundary.conf') && '0.8.30' || '0.8.6' }}
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \
             --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \
@@ -56,4 +69,4 @@ jobs:
         working-directory: ./packages/evm
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-          SOLC_VERSION: ${{ matrix.ruleset == 'Roles-delayProtection.conf' && '0.8.30' || '0.8.6' }}
+          SOLC_VERSION: ${{ (matrix.ruleset == 'Roles-delayProtection.conf' || matrix.ruleset == 'Roles-configuredBoundary.conf') && '0.8.30' || '0.8.6' }}

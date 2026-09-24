@@ -1,0 +1,5 @@
+{
+  "mutation": "explicit-write-mutation",
+  "expected": "Counterexample to persistent effect assertion with lastReverted true",
+  "semanticClosureCertified": false
+}

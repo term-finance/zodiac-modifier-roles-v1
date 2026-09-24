@@ -1,0 +1,27 @@
+{
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-smt_preciseBytemaps",
+    "true"
+  ],
+  "finishTime": "2026-09-24T22:25:03.166000Z",
+  "jobStatus": "SUCCEEDED",
+  "jobSource": "COMMAND",
+  "startTime": "2026-09-24T22:17:09.688000Z",
+  "outputUrl": "https://prover.certora.com/output/99679/fa4138634d4043c1bbd000b8bc40320f/",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/fa4138634d4043c1bbd000b8bc40320f/f/outputs",
+  "anonymousKey": "8220ffe334f4e6f878260647d799427e3f00c71b",
+  "contract": "RolesHarness",
+  "jobId": "fa4138634d4043c1bbd000b8bc40320f",
+  "postTime": "2026-09-24T22:15:58.404877Z",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "notifyMsg": "Roles exact byte memory with default arithmetic"
+}

@@ -34,6 +34,16 @@
       "fingerprint": "da025aad82e85ba6dd3733afba60fa8f63f37f5def9c33a8b010e8261165be7c",
       "reason": "Accounting checker now requires sticky configuration-certificate invalidation. Functional inputs and prior diagnostic result bindings are unchanged; no proof is promoted.",
       "status": "unproved"
+    },
+    {
+      "fingerprint": "b9573a87ab3c642dbc6c4204c09ac50937b81c3191b625aa114e78ee6a18c0d3",
+      "reason": "Added supporting configuration lemmas, conditional boundary context and retained-evidence CI checks. Historical results are not reapproved.",
+      "status": "unproved"
+    },
+    {
+      "fingerprint": "c6f83215725275b6da1e3bec9f59f297fd87e7dbdf5bdf08b641dd6de010794c",
+      "reason": "Retained explicit native sanity witnesses and evidence-checker CI for the conditional boundary lemma. All full-context obligations remain open.",
+      "status": "unproved"
     }
   ],
   "diagnostic": {
@@ -44,7 +54,7 @@
     "note": "Historical diagnostic only. Harness selector getters and CI/context changed; evidence is not a proof of this current context. All closure obligations remain open.",
     "passed": false
   },
-  "fingerprint": "b9573a87ab3c642dbc6c4204c09ac50937b81c3191b625aa114e78ee6a18c0d3",
+  "fingerprint": "a9a2a5e3cc91454db045e0e5ff939da03346db84a53fecd6c894e85339ff2ab3",
   "obligations": {
     "adequacy": {
       "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
@@ -107,7 +117,7 @@
     "approved": "2026-09-22",
     "binding_predicate_status": "not established",
     "kind": "configuration-bound with explicit invalidation",
-    "note": "Approval permits this scope; it does not approve missing dependencies, summaries or weaker functional properties.",
+    "note": "Supporting lemmas are partial; no deployment or complete context certificate is issued.",
     "semantic_evidence_status": "open"
   },
   "status": "unproved"

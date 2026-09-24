@@ -1,0 +1,12 @@
+No files changed, compilation skipped
+
+Running 2 tests for certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/original/smt/DelayConfigurationLemma-constructor
+setup: 0.02s (decode: 0.02s, run: 0.00s)
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/original/smt/check_configurationClearsDeniedSelector
+[32m[PASS][0m check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4) (paths: 13, time: 0.83s (paths: 0.83s, models: 0.00s), bounds: [])
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/original/smt/check_packedKeyHasExactRepresentation
+[32m[PASS][0m check_packedKeyHasExactRepresentation(address,bytes4) (paths: 3, time: 0.00s (paths: 0.00s, models: 0.00s), bounds: [])
+Symbolic test result: 2 passed; 0 failed; time: 0.86s
+
+[time] total: 1.43s (build: 0.52s, load: 0.05s, tests: 0.86s)

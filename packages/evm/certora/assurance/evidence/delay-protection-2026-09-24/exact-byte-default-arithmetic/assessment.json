@@ -1,0 +1,56 @@
+{
+  "collectedAt": "2026-09-24T22:44:32.088815+00:00",
+  "jobId": "fa4138634d4043c1bbd000b8bc40320f",
+  "reportUrl": "https://prover.certora.com/output/99679/fa4138634d4043c1bbd000b8bc40320f?anonymousKey=8220ffe334f4e6f878260647d799427e3f00c71b",
+  "terminal": true,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeForwarded": "ERROR"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "revokedSelectorCannotBeForwarded-require_not_redundant_23_4",
+      "status": "ERROR"
+    },
+    {
+      "ruleId": "revokedSelectorCannotBeForwarded-require_not_redundant_26_4",
+      "status": "ERROR"
+    }
+  ],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "revokedSelectorCannotBeForwarded",
+      "status": "ERROR",
+      "errors": [
+        {
+          "severity": "error",
+          "message": "Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeForwarded had an error"
+        }
+      ]
+    },
+    {
+      "ruleId": "revokedSelectorCannotBeForwarded-require_not_redundant_23_4",
+      "status": "ERROR",
+      "errors": [
+        {
+          "severity": "error",
+          "message": "Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeForwarded-require_not_redundant_23_4 had an error"
+        }
+      ]
+    },
+    {
+      "ruleId": "revokedSelectorCannotBeForwarded-require_not_redundant_26_4",
+      "status": "ERROR",
+      "errors": [
+        {
+          "severity": "error",
+          "message": "Encountered an unexpected error in Prover, please report in certora.com. Error code 27672571. Error message: Rule revokedSelectorCannotBeForwarded-require_not_redundant_26_4 had an error"
+        }
+      ]
+    }
+  ],
+  "retainedRuleOutputs": 6,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}
