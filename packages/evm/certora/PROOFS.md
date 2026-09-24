@@ -26,7 +26,7 @@ The summation of all of the conclusions drawn from FV proofs should prove the fo
 
 * OwnerlessSafe transactions (including OwnerlessSafe configuration changes) can either go thru 9/9 approval or be proposed by 5/11 Proposer Safe to Delay Modifier.
 
-* DelayOwnerSafe transactions (including DelayOwnerSafe configurations) can either go thru 5/11 approval or be executed from the Roles mod iff SetTxNonceGuard is removed and Roles scope changed. Roles mod configuration changes must go thru 9/9 approval on ownerless safe or be proposed by 5/11 proposer safe to Delay Modifier.
+* DelayOwnerSafe transactions (including DelayOwnerSafe configurations) that don't include `Delay.setTxNonce`, can either go thru 5/11 approval or be executed from the Roles mod iff SetTxNonceGuard is removed and Roles scope changed. Roles mod configuration changes must go thru 9/9 approval on ownerless safe or be proposed by 5/11 proposer safe to Delay Modifier.
 
 * Delay Modifier configuration changes, besides setTxNonce, must go thru DelayOwnerSafe transaction. As stated above DelayOwnerSafe transactions can either go thru 5/11 approval or be executed from the Roles mod if Roles mod guard is removed and Roles scope changed. Roles mod configuration changes must go thru 9/9 approval on ownerless safe or be proposed by 5/11 proposer safe to Delay Modifier.
 
