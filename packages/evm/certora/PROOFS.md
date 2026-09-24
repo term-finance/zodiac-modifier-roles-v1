@@ -20,6 +20,8 @@ The summation of all of the conclusions drawn from FV proofs should prove the fo
 
 *  Every write function on every contract in the governance system above executes successfully ONLY when called by the intended address.
 
+* Intended workflows succeed when called by permissable caller.
+
 Following conclusions must be covered by the premises proved:
 
 1. Governor module successfully executes `Delay.setTxNonce(uint256)` through Roles Modifier execution entry points. 
