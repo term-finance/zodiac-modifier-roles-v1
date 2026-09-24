@@ -16,11 +16,35 @@ Pause controls
   PauseSafe (2/9) --pause-->               PauseGuard
   Admin Safe     --unpause / setPauser-->  PauseGuard
 ```
+
+
 The summation of all of the conclusions drawn from FV proofs should prove the following generalizations: 
 
-*  Every write function on every contract in the governance system above executes successfully ONLY when called by the intended address.
+* ProposerSafe configuration changes must go through 5/11 multi sig approval from its owners.
 
-* Intended multi-step call paths succeed when called by permissable caller.
+* AdminSafe configuration changes must go through 4/10 multi sig approval its owners.
+
+* OwnerlessSafe configuration changes must either go through 9/9 multi sig approval or be proposed thru 5/11 ProposerSafe.
+
+* DelayOwnerSafe configuration changes must go through a 5/11 multisig approval, but 2 different multisigs are possible. First one is direct owner sign/execution from DelayOwner Multisig. Second one is execution from Roles Modifier with DelayOwnerSafe as target, possible only after 5/11 Proposer safe has proposed to Delay Modifier the removal of SetTxNonce and reconfiguration of roles scope on Roles modifier to allow for.
+
+* Delay Modifier configuration changes, besides setTxNonce, must go through a 5/11 multisig approval. 2 paths are possible. First one is direct owner sign/execution from DelayOwner Multisig. Second one is execution from Roles Modifier with DelayOwner as target, only after 5/11 Proposer safe has proposed to Delay Modifier the removal of SetTxNonce and reconfiguration of roles scope on Roles modifier.
+
+* Roles Modifier configuration changes must be initiated by the 5/11 proposer multisig safe.
+
+* Governor configuration changes are not possible.
+
+*  Every write function on every contract in the governance system above executes successfully when called by the intended address.
+
+*  Every write function on every contract in the governance system above fails to execute when not called by the intended address.
+
+* Governor module successfully executes `Delay.setTxNonce(uint256)` through Roles Modifier. 
+
+* A transaction queued by the Proposer Safe executes on the Ownerless Safe once the cooldown has passed, if it hasn't expired and the system isn't paused.
+
+* A Governor proposal to call `Delay.setTxNonce(uint256)` through the Roles Modifier can be successfully proposed and, once it passes vote, successfully executed.
+
+* Any Governor proposal that calls the Roles Modifier with anything other than `Delay.setTxNonce(uint256)` can pass the vote but fails on execution.
 
 Following conclusions must be covered by the premises proved:
 
