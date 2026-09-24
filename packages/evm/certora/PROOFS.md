@@ -20,7 +20,7 @@ The summation of all of the conclusions drawn from FV proofs should prove the fo
 
 *  Every write function on every contract in the governance system above executes successfully ONLY when called by the intended address.
 
-* Intended workflows succeed when called by permissable caller.
+* Intended multi-step call paths succeed when called by permissable caller.
 
 Following conclusions must be covered by the premises proved:
 
