@@ -1,0 +1,45 @@
+{
+  "availableOutputCount": 6,
+  "functionalPolicyTheoremAccepted": false,
+  "inputComparison": {
+    "certora/confs/Roles-delayProtection.conf": {
+      "matchesCurrent": true,
+      "submittedSha256": "49085727fe03d46a479b19e4a6e1f6f2d0d22a20ff5d408a463b6198d936622c"
+    },
+    "certora/harness/RolesHarness.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "e0b22d28ab997b37a10cda53a1aa92d612ab373be6701d74733c517f68d0f2b7"
+    },
+    "certora/specs/Roles/delayProtection.spec": {
+      "matchesCurrent": true,
+      "submittedSha256": "491b2c011b6a3f857897c16b705063a7a539dc876c983960d10ac7d19be3a896"
+    },
+    "contracts/Permissions.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "29952bcebecfa8d7cdf15c8c9c7871c7540e17cab2dab7f7024fdd7bd512e11b"
+    },
+    "contracts/Roles.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "d2721bf908bf48411a0471570f1460c4328074e26783d57fd3e9f5c3b99c73c6"
+    }
+  },
+  "jobStatus": "SUCCEEDED",
+  "reportUrl": "https://prover.certora.com/output/99679/27555a8c5fa944aeb6df82be49575889?anonymousKey=e8ba803789303662cfc2232090e835091c82d5d7",
+  "retainedOutputCount": 6,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeForwarded": "ERROR"
+  },
+  "sanityInstanceCount": 2,
+  "scope": "Single permission-configuration transition with explicit multisend and veto exclusions; no deployment or arbitrary-history closure.",
+  "semanticClosureCertified": false,
+  "terminal": true,
+  "uncompressedOutputSha256": {
+    "rule_output_1.json": "fcc872b3ff9a18adaee5d0d1240d72dbe603babcdd3a6a978e256dc742b4d6bd",
+    "rule_output_2.json": "16246d1da54ee5f2eba8b02c38e9f6f6bc7d8d774340b96e674eca6d6d5e1b70",
+    "rule_output_3.json": "e64b8025d016d6511298a1b033954413476d2f9fa745dcc5c2fad5d5670c0012",
+    "rule_output_4.json": "ef8acf011c8a32bd3f5e841d337a46708ede183817b7a00cf8080235eaeae8d9",
+    "rule_output_5.json": "22415be3893bb2597eb34486e664337ebb9a5237694e3f810ddb21dce7af6371",
+    "rule_output_6.json": "2d3ce7779e9e245ce31303f5564daca7c68afa51899a2eac35dfa2ff1249e00d"
+  }
+}

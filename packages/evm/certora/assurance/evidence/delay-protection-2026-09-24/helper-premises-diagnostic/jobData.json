@@ -1,0 +1,28 @@
+{
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:04:21.491000Z",
+  "jobStatus": "SUCCEEDED",
+  "jobSource": "COMMAND",
+  "startTime": "2026-09-24T22:57:39.413000Z",
+  "outputUrl": "https://prover.certora.com/output/99679/f4ad89a7308144bc9e52a255411a05e6/",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/f4ad89a7308144bc9e52a255411a05e6/f/outputs",
+  "anonymousKey": "9ba4a3321bfb62e275167019e9c15526b7b63444",
+  "contract": "RolesHarness",
+  "jobId": "f4ad89a7308144bc9e52a255411a05e6",
+  "postTime": "2026-09-24T22:56:14.804487Z",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "notifyMsg": "Denied selector cannot cross the owned Permissions boundary or attempt writes"
+}

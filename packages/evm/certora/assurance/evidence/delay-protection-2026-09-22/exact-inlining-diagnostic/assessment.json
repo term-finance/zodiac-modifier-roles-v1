@@ -1,0 +1,13 @@
+{
+  "reportUrl": "https://prover.certora.com/output/99679/8077cd2558594e04b531d9b8489fcfa2?anonymousKey=f7c394764529fec66305670c53881b28355a39c9",
+  "terminal": true,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeDirectForwarded": "VIOLATED",
+    "revokedSelectorCannotBeReturnDataForwarded": "VIOLATED",
+    "revokedSelectorCannotBeSafeForwarded": "VIOLATED"
+  },
+  "functionalPolicyTheoremAccepted": false,
+  "semanticClosureCertified": false,
+  "reason": "Violated model assertions; requires counterexample triage and native replay. No proof accepted."
+}

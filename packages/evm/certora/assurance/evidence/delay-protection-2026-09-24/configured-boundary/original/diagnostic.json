@@ -1,0 +1,4 @@
+{
+  "scope": "All three implemented forwarders; same configured predicate and full input domain; explicit HAVOC_ALL for typed and dynamic unresolved calls; actual Roles and Permissions bodies retained.",
+  "semanticClosureCertified": false
+}

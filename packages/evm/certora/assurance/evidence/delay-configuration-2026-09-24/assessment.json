@@ -1,0 +1,24 @@
+{
+  "accepted": true,
+  "groups": {
+    "original": {
+      "accepted": true,
+      "instances": 2
+    },
+    "missing-revocation": {
+      "accepted": true,
+      "instances": 2
+    },
+    "selector-erased": {
+      "accepted": true,
+      "instances": 2
+    },
+    "target-wide-clearance": {
+      "accepted": true,
+      "instances": 2
+    }
+  },
+  "errors": [],
+  "semanticClosureCertified": false,
+  "scope": "Library key representation and permission-configuration transition, with arbitrary existing grants and a frame condition. No deployed binding or forwarding theorem."
+}

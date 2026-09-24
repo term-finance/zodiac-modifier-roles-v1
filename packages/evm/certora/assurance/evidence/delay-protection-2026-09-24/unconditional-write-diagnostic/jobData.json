@@ -1,0 +1,30 @@
+{
+  "anonymousKey": "6a1213e6ac3dd416b02f06fe505130f65da8aa54",
+  "postTime": "2026-09-24T22:59:31.563551Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/6c1f77fffbb244608c4b18626b4823db/f/outputs",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "jobSource": "COMMAND",
+  "outputUrl": "https://prover.certora.com/output/99679/6c1f77fffbb244608c4b18626b4823db/",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-rule",
+    "directConfiguredRejection",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:01:10.482000Z",
+  "startTime": "2026-09-24T23:00:03.038000Z",
+  "contract": "RolesHarness",
+  "javaArgs": [],
+  "notifyMsg": "Mutation control write-then-revert must be detected before rollback",
+  "jobId": "6c1f77fffbb244608c4b18626b4823db",
+  "jobStatus": "SUCCEEDED"
+}

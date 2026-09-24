@@ -1,0 +1,12 @@
+{
+  "source": "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm",
+  "canonicalConfig": "/Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/confs/Roles-delayProtection.conf",
+  "changes": {
+    "precise_bitwise_ops": {
+      "before": true,
+      "after": false
+    }
+  },
+  "scope": "Diagnostic only. Same source, rules, preconditions, all three forwarding entrypoints and pessimistic loop handling. Default arithmetic may overapproximate bitwise operations; it introduces no assumption excluding inputs.",
+  "semanticClosureCertified": false
+}

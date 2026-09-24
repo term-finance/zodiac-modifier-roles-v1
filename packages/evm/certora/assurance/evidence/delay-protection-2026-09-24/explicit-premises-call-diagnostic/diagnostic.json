@@ -1,0 +1,5 @@
+{
+  "mutation": "explicit-call-mutation",
+  "expected": "Counterexample to persistent effect assertion with lastReverted true",
+  "semanticClosureCertified": false
+}

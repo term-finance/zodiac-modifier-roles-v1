@@ -1,0 +1,22 @@
+{
+  "anonymousKey": "87c2a933803695ad143c633e110051fdca9de2cf",
+  "buildArgs": "certora/assurance/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results none",
+  "contract": "RolesHarness",
+  "finishTime": "2026-09-22T12:06:38.248000Z",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-rule",
+    "dependencyClosureBoundary,dependencyClosureReachable",
+    "-ruleSanityChecks",
+    "basic"
+  ],
+  "javaArgs": [],
+  "jobId": "254d0aabcbeb42bdba868e4f2a17c8a9",
+  "jobSource": "COMMAND",
+  "jobStatus": "SUCCEEDED",
+  "outputUrl": "https://prover.certora.com/output/99679/254d0aabcbeb42bdba868e4f2a17c8a9/",
+  "postTime": "2026-09-22T11:59:45.812978Z",
+  "startTime": "2026-09-22T12:00:18.570000Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/254d0aabcbeb42bdba868e4f2a17c8a9/f/outputs"
+}

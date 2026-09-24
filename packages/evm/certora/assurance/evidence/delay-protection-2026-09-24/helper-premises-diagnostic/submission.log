@@ -1,0 +1,275 @@
+Compiling certora/harness/RolesHarness.sol...
+Compiling certora/harness/RolesHarness.sol to expose internal function information and local variables...
+Compiling contracts/Permissions.sol...
+Compiling contracts/Permissions.sol to expose internal function information and local variables...
+
+Connecting to server...
+
+[32mJob submitted to server[0m
+
+Manage your jobs at https://prover.certora.com
+Follow your job and see verification results at https://prover.certora.com/output/99679/f4ad89a7308144bc9e52a255411a05e6
+Output:
+processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |[INFO]: prover-container-version: 1.1.4
+[INFO]: Overcommit memory value: 1
+[INFO]: s5cmd: cp s3://certora-prod/uploadFiles/99679/f4ad89a7308144bc9e52a255411a05e6.zip /home/appuser/code/job.zip
+[INFO]: s5cmd: cp s3://tac-optimizer-artifacts/8.19.2/tac_optimizer-8.19.2 /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd: cp s3://prover-artifacts/8.19.2/emv-8.19.2.jar /home/appuser/bin/emv.jar
+[INFO]: inputs download time :: 0.7809 seconds
+[INFO]: tac optimizer ready on PATH at /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd transferred 406 file(s)
+[INFO]: cache download time :: 0.6878 seconds
+[INFO]: Command: java -Xmx31999m -XX:+UseParallelGC -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -XX:G1PeriodicGCInterval=15 -XX:NewRatio=5 -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/home/appuser/code/java_error/java_error%p.log -DoutputUrl=s3://certora-prod/outputs/99679/output_f4ad89a7308144bc9e52a255411a05e6/ -DjobId=f4ad89a7308144bc9e52a255411a05e6 -DuserId=99679 -jar /home/appuser/bin/emv.jar -cache b17e79ec8809f6d5eafd5011a2f75c8fe407462694f16276b54e33ae526eb488-optimisticFalse-iter2-None--certora-cli-8.19.2 -b 2 -contract RolesHarness -smt_preciseBitwiseOps -ruleSanityChecks advanced -t 600 -enableStorageSplitting false -userGlobalTimeout 7200 -globalTimeout 7500
+Start Thu Sep 24 22:57:42 GMT 2026
+Start Thu Sep 24 22:57:42 GMT 2026
+Warning: The type `Role` will not be accessible in CVL code
+Reason(s):
+	struct field `members` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `targets` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `functions` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValues` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValuesOneOf` cannot be expressed in CVL: [mapping types are not supported]
+Warning: Warning: Contract RolesHarness has multiple storage slots with the same name - __gap (multiple inheritance could cause this), they will be ignored
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+The scene contains 21 contracts:
+Permissions : 0xce4604a000000000000000000000001d,
+RolesHarness : 0xce4604a000000000000000000000000e,
+ecrecover : 0x1,
+sha256 : 0x2,
+ripemd160 : 0x3,
+identity : 0x4,
+bigmod : 0x5,
+bn256Add : 0x6,
+bn256ScalarMul : 0x7,
+bn256Pairing : 0x8,
+Precompiled244 : 0xf4,
+Precompiled245 : 0xf5,
+Precompiled246 : 0xf6,
+Precompiled247 : 0xf7,
+Precompiled248 : 0xf8,
+Precompiled249 : 0xf9,
+Precompiled250 : 0xfa,
+Precompiled251 : 0xfb,
+Precompiled252 : 0xfc,
+Precompiled253 : 0xfd,
+Precompiled254 : 0xfe
+Running initial transformations
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Memory partitioning failed while analyzing contract Permissions, function check(Role,address,address,uint256,bytes,Enum.Operation).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function getModulesPaginated(address,uint256).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function multisendEntryAt(bytes,uint256). No precise source code information available for the location, range information points to the next enclosing external method that inlined the call. I.e. inspect the highlighted method and any of it's potentially inlined callees. This can lead to longer running times. 
+Exception in thread "Thread-1" java.io.IOException: Cannot run program "killall": Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at java.base/java.lang.Runtime.exec(Runtime.java:681)
+	at java.base/java.lang.Runtime.exec(Runtime.java:530)
+	at utils.LongProcessKiller.run(LongProcessKiller.kt:44)
+Caused by: java.io.IOException: Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 4 more
+Ping 1m - Processed 0/4 (0%) rules. 0 tasks complete, 7 pending.
+Has CVL checks.
+Checking CVL certora/specs/delayConfiguredBoundary.spec for contract RolesHarness
+Unrolling loops 2 times, unwinding condition is asserted
+Checking rule directConfiguredRejection (1 out of 4)...
+Checking rule envfreeFuncsStaticCheck (4 out of 4)...
+Checking rule returnDataConfiguredRejection (3 out of 4)...
+Checking rule safeConfiguredRejection (2 out of 4)...
+Result for envfreeFuncsStaticCheck: envfreeFuncsStaticCheck: functionScopeConfigForData(uint16,address,bytes): SUCCESS
+multisend(): SUCCESS
+clearanceOf(uint16,address): SUCCESS
+Starting to run on rule directConfiguredRejection
+Starting to run on rule returnDataConfiguredRejection
+Starting to run on rule safeConfiguredRejection
+Ping 2m - Processed 1/4 (25%) rules. 4 tasks complete, 3 pending.
+Total time for returnDataConfiguredRejection: 24 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 21 seconds
+Verified: returnDataConfiguredRejection
+returnDataConfiguredRejection: Properties successfully verified on all inputs
+Starting to run on rule returnDataConfiguredRejection-assertion_not_tautological_52_4
+Starting to run on rule returnDataConfiguredRejection-rule_not_vacuous
+Attempted 10 splits, and proved a total weighing 93.75% for safeConfiguredRejection
+Attempted 10 splits, and proved a total weighing 93.75% for directConfiguredRejection
+Attempted 20 splits, and proved a total weighing 99.8046875% for safeConfiguredRejection
+Attempted 20 splits, and proved a total weighing 99.8046875% for directConfiguredRejection
+Total time for safeConfiguredRejection: 39 seconds ; Split time: 0 seconds ; Number of problems: 21 ; Solver time : 31 seconds
+Verified: safeConfiguredRejection
+safeConfiguredRejection: Properties successfully verified on all inputs
+Total time for directConfiguredRejection: 40 seconds ; Split time: 0 seconds ; Number of problems: 21 ; Solver time : 33 seconds
+Verified: directConfiguredRejection
+directConfiguredRejection: Properties successfully verified on all inputs
+Ping 3m - Processed 4/4 (100%) rules. 7 tasks complete, 6 pending.
+Starting to run on rule safeConfiguredRejection-assertion_not_tautological_43_4
+Starting to run on rule safeConfiguredRejection-rule_not_vacuous
+Starting to run on rule directConfiguredRejection-assertion_not_tautological_34_4
+Starting to run on rule directConfiguredRejection-rule_not_vacuous
+Ping 4m - Processed 4/4 (100%) rules. 7 tasks complete, 6 pending.
+Total time for returnDataConfiguredRejection-assertion_not_tautological_52_4: 5 seconds ; Split time: 0 seconds ; Number of problems: 1 ; Solver time : 4 seconds
+Verified: returnDataConfiguredRejection-assertion_not_tautological_52_4
+returnDataConfiguredRejection-assertion_not_tautological_52_4: Properties successfully verified on all inputs
+Total time for directConfiguredRejection-assertion_not_tautological_34_4: 5 seconds ; Split time: 0 seconds ; Number of problems: 1 ; Solver time : 5 seconds
+Verified: directConfiguredRejection-assertion_not_tautological_34_4
+directConfiguredRejection-assertion_not_tautological_34_4: Properties successfully verified on all inputs
+Total time for safeConfiguredRejection-assertion_not_tautological_43_4: 10 seconds ; Split time: 0 seconds ; Number of problems: 1 ; Solver time : 9 seconds
+Verified: safeConfiguredRejection-assertion_not_tautological_43_4
+safeConfiguredRejection-assertion_not_tautological_43_4: Properties successfully verified on all inputs
+Total time for returnDataConfiguredRejection-rule_not_vacuous: 47 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 46 seconds
+Violated: returnDataConfiguredRejection-rule_not_vacuous
+returnDataConfiguredRejection-rule_not_vacuous: A property is violated
+Result for returnDataConfiguredRejection: returnDataConfiguredRejection: SANITY_FAIL
+Ping 5m - Processed 4/4 (100%) rules. 11 tasks complete, 2 pending.
+Total time for safeConfiguredRejection-rule_not_vacuous: 64 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 62 seconds
+Violated: safeConfiguredRejection-rule_not_vacuous
+safeConfiguredRejection-rule_not_vacuous: A property is violated
+Result for safeConfiguredRejection: safeConfiguredRejection: SANITY_FAIL
+Total time for directConfiguredRejection-rule_not_vacuous: 83 seconds ; Split time: 0 seconds ; Number of problems: 4 ; Solver time : 81 seconds
+Violated: directConfiguredRejection-rule_not_vacuous
+directConfiguredRejection-rule_not_vacuous: A property is violated
+Result for directConfiguredRejection: directConfiguredRejection: SANITY_FAIL
+Results for envfreeFuncsStaticCheck:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|functionScopeConfigForData(uint16,addres|Not violated |0         |                                                            |no local variables                                |
+|s,bytes)                                |(unsat)      |          |                                                            |                                                  |
+|multisend()                             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|clearanceOf(uint16,address)             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Results for all:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|envfreeFuncsStaticCheck                 |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|returnDataConfiguredRejection           |Not violated |89        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|safeConfiguredRejection                 |Not violated |104       |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|directConfiguredRejection               |Not violated |105       |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|assertion_not_tautological_52_4         |Not violated |69        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|assertion_not_tautological_34_4         |Not violated |69        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|assertion_not_tautological_43_4         |Not violated |74        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|rule_not_vacuous                        |Not violated |112       |Assert message: sanity check for rule returnDataConfigur... |Permissions=2^84                                  |
+|                                        |(sat)        |          |                                                            |RolesHarness=0xc0000000000000000000000000000000000|
+|                                        |             |          |                                                            |00000                                             |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x400000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=2^255 + 2                        |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 24                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|returnDataConfiguredRejection           |Sanity check |89        |                                                            |no local variables                                |
+|                                        |failed       |          |                                                            |                                                  |
+|rule_not_vacuous                        |Not violated |128       |Assert message: sanity check for rule safeConfiguredReje... |Permissions=130                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=2^255                            |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 24                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|safeConfiguredRejection                 |Sanity check |104       |                                                            |no local variables                                |
+|                                        |failed       |          |                                                            |                                                  |
+|rule_not_vacuous                        |Not violated |147       |Assert message: sanity check for rule directConfiguredRe... |Permissions=55                                    |
+|                                        |(sat)        |          |                                                            |RolesHarness=119                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x3011                          |
+|                                        |             |          |                                                            |caller.msg.value=0x80000000000000d09d76dd223f08000|
+|                                        |             |          |                                                            |ba7fffffffeffffffffffffffffffffff                 |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=4294967040                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15 + 17                                    |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x6b12                                         |
+|                                        |             |          |                                                            |value=0                                           |
+|directConfiguredRejection               |Sanity check |105       |                                                            |no local variables                                |
+|                                        |failed       |          |                                                            |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Failures summary:
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule returnDataConfigur...
+sanity check (vacuity of rule) for rule returnDataConfiguredRejection
+Failed on returnDataConfiguredRejection:
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule safeConfiguredReje...
+sanity check (vacuity of rule) for rule safeConfiguredRejection
+Failed on safeConfiguredRejection:
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule directConfiguredRe...
+sanity check (vacuity of rule) for rule directConfiguredRejection
+Failed on directConfiguredRejection:
+Ping 6m - Processed 4/4 (100%) rules. 13 tasks complete, 0 pending.
+Error: Timed out waiting for background tasks:
+    StandaloneCoroutine{Active}@1dcad125
+[ForkJoinPool-1-worker-27] ERROR ALWAYS - Timed out waiting for background tasks:
+    StandaloneCoroutine{Active}@1dcad125
+Done 6m
+Done 6m
+Event reporter: all events were sent without errors
+[INFO]: Live-mirror upload summary: 152 uploads, 46 unique keys, 106 redundant re-uploads, 3.30 uploads/key.
+[INFO]: s5cmd: cp /home/appuser/code/f4ad89a7308144bc9e52a255411a05e6.tar.gz s3://certora-prod/outputs/99679/output_f4ad89a7308144bc9e52a255411a05e6/f4ad89a7308144bc9e52a255411a05e6.tar.gz
+[INFO]: s5cmd transferred 376 file(s)
+[INFO]: Cache upload took 1.0853 seconds
+[INFO]: Timings :: prover=398.5039 seconds, exit_code=100, timed_out=False
+
+Finished verification request
+ERROR: Prover found violations:
+
+[rule] directConfiguredRejection: SANITY_FAIL
+[rule] returnDataConfiguredRejection: SANITY_FAIL
+[rule] safeConfiguredRejection: SANITY_FAIL
+report url: https://prover.certora.com/output/99679/f4ad89a7308144bc9e52a255411a05e6?anonymousKey=9ba4a3321bfb62e275167019e9c15526b7b63444
+
+Violations were found
+

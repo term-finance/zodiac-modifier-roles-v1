@@ -1,0 +1,24 @@
+{
+    "exitcode": 0,
+    "test_results": {
+        "test/PackedKeyLemma.t.sol:PackedKeyLemma": [
+            {
+                "name": "check_packedKeyInjective(address,address,bytes4,bytes4)",
+                "exitcode": 0,
+                "num_models": 0,
+                "models": [],
+                "num_paths": [
+                    6,
+                    2,
+                    0
+                ],
+                "time": [
+                    0.010000375099480152,
+                    0.009991833008825779,
+                    7.124617695808411e-06
+                ],
+                "num_bounded_loops": 0
+            }
+        ]
+    }
+}

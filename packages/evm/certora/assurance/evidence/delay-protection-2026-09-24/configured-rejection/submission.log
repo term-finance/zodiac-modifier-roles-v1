@@ -1,0 +1,131 @@
+Compiling certora/harness/RolesHarness.sol...
+Compiling certora/harness/RolesHarness.sol to expose internal function information and local variables...
+Compiling contracts/Permissions.sol...
+Compiling contracts/Permissions.sol to expose internal function information and local variables...
+
+Connecting to server...
+
+[32mJob submitted to server[0m
+
+Manage your jobs at https://prover.certora.com
+Follow your job and see verification results at https://prover.certora.com/output/99679/c7d4d50c184845bcbcfd29ac056aec50
+Output:
+processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /[INFO]: prover-container-version: 1.1.4
+[INFO]: Overcommit memory value: 1
+[INFO]: s5cmd: cp s3://tac-optimizer-artifacts/8.19.2/tac_optimizer-8.19.2 /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd: cp s3://certora-prod/uploadFiles/99679/c7d4d50c184845bcbcfd29ac056aec50.zip /home/appuser/code/job.zip
+[INFO]: s5cmd: cp s3://prover-artifacts/8.19.2/emv-8.19.2.jar /home/appuser/bin/emv.jar
+[INFO]: inputs download time :: 0.7830 seconds
+[INFO]: tac optimizer ready on PATH at /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd transferred 390 file(s)
+[INFO]: cache download time :: 0.5462 seconds
+[INFO]: Command: java -Xmx31999m -XX:+UseParallelGC -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -XX:G1PeriodicGCInterval=15 -XX:NewRatio=5 -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/home/appuser/code/java_error/java_error%p.log -DoutputUrl=s3://certora-prod/outputs/99679/output_c7d4d50c184845bcbcfd29ac056aec50/ -DjobId=c7d4d50c184845bcbcfd29ac056aec50 -DuserId=99679 -jar /home/appuser/bin/emv.jar -cache b17e79ec8809f6d5eafd5011a2f75c8fe407462694f16276b54e33ae526eb488-optimisticFalse-iter2-None--certora-cli-8.19.2 -b 2 -contract RolesHarness -smt_preciseBitwiseOps -ruleSanityChecks advanced -t 600 -userGlobalTimeout 7200 -globalTimeout 7500
+Start Thu Sep 24 22:25:11 GMT 2026
+Start Thu Sep 24 22:25:11 GMT 2026
+Warning: The type `Role` will not be accessible in CVL code
+Reason(s):
+	struct field `members` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `targets` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `functions` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValues` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValuesOneOf` cannot be expressed in CVL: [mapping types are not supported]
+Warning: Warning: Contract RolesHarness has multiple storage slots with the same name - __gap (multiple inheritance could cause this), they will be ignored
+The scene contains 21 contracts:
+Permissions : 0xce4604a000000000000000000000001d,
+RolesHarness : 0xce4604a000000000000000000000000e,
+ecrecover : 0x1,
+sha256 : 0x2,
+ripemd160 : 0x3,
+identity : 0x4,
+bigmod : 0x5,
+bn256Add : 0x6,
+bn256ScalarMul : 0x7,
+bn256Pairing : 0x8,
+Precompiled244 : 0xf4,
+Precompiled245 : 0xf5,
+Precompiled246 : 0xf6,
+Precompiled247 : 0xf7,
+Precompiled248 : 0xf8,
+Precompiled249 : 0xf9,
+Precompiled250 : 0xfa,
+Precompiled251 : 0xfb,
+Precompiled252 : 0xfc,
+Precompiled253 : 0xfd,
+Precompiled254 : 0xfe
+Running initial transformations
+Has CVL checks.
+Checking CVL certora/specs/delayConfiguredRejection.spec for contract RolesHarness
+Unrolling loops 2 times, unwinding condition is asserted
+Checking rule configuredSelectorCannotBeForwarded (1 out of 2)...
+Checking rule envfreeFuncsStaticCheck (2 out of 2)...
+Result for envfreeFuncsStaticCheck: envfreeFuncsStaticCheck: functionScopeConfigForData(uint16,address,bytes): SUCCESS
+multisend(): SUCCESS
+clearanceOf(uint16,address): SUCCESS
+Starting to run on rule configuredSelectorCannotBeForwarded
+Exception in thread "Thread-1" java.io.IOException: Cannot run program "killall": Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at java.base/java.lang.Runtime.exec(Runtime.java:681)
+	at java.base/java.lang.Runtime.exec(Runtime.java:530)
+	at utils.LongProcessKiller.run(LongProcessKiller.kt:44)
+Caused by: java.io.IOException: Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 4 more
+Ping 1m - Processed 1/2 (50%) rules. 4 tasks complete, 1 pending.
+Ping 2m - Processed 1/2 (50%) rules. 4 tasks complete, 1 pending.
+Ping 3m - Processed 1/2 (50%) rules. 4 tasks complete, 1 pending.
+Ping 4m - Processed 1/2 (50%) rules. 4 tasks complete, 1 pending.
+Total time for configuredSelectorCannotBeForwarded: 34 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 29 seconds
+Verified: configuredSelectorCannotBeForwarded
+configuredSelectorCannotBeForwarded: Properties successfully verified on all inputs
+Starting to run on rule configuredSelectorCannotBeForwarded-assertion_not_tautological_20_4
+Starting to run on rule configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4
+Starting to run on rule configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4
+Starting to run on rule configuredSelectorCannotBeForwarded-rule_not_vacuous
+Ping 5m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 6m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 7m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 8m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 9m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 10m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Attempted 10 splits, and proved a total weighing 0.78125% for configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4
+Ping 11m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Ping 12m - Processed 2/2 (100%) rules. 5 tasks complete, 4 pending.
+Total time for configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4: 390 seconds ; Split time: 0 seconds ; Number of problems: 13 ; Solver time : 379 seconds
+Violated: configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4
+configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4: A property is violated
+Ping 13m - Processed 2/2 (100%) rules. 6 tasks complete, 3 pending.
+Attempted 10 splits, and proved a total weighing 0.78125% for configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4
+Ping 14m - Processed 2/2 (100%) rules. 6 tasks complete, 3 pending.
+Total time for configuredSelectorCannotBeForwarded-assertion_not_tautological_20_4: 391 seconds ; Split time: 0 seconds ; Number of problems: 8 ; Solver time : 379 seconds
+Violated: configuredSelectorCannotBeForwarded-assertion_not_tautological_20_4
+configuredSelectorCannotBeForwarded-assertion_not_tautological_20_4: A property is violated
+Ping 15m - Processed 2/2 (100%) rules. 7 tasks complete, 2 pending.
+Total time for configuredSelectorCannotBeForwarded-rule_not_vacuous: 444 seconds ; Split time: 0 seconds ; Number of problems: 8 ; Solver time : 429 seconds
+Violated: configuredSelectorCannotBeForwarded-rule_not_vacuous
+configuredSelectorCannotBeForwarded-rule_not_vacuous: A property is violated
+Total time for configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4: 522 seconds ; Split time: 0 seconds ; Number of problems: 13 ; Solver time : 509 seconds
+Violated: configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4
+configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4: A property is violated
+Starting to run on rule configuredSelectorCannotBeForwarded-require_not_redundant_11_4
+Starting to run on rule configuredSelectorCannotBeForwarded-require_not_redundant_12_4
+Starting to run on rule configuredSelectorCannotBeForwarded-require_not_redundant_10_4
+Ping 16m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 17m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 18m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 19m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 20m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 21m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 22m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Ping 23m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+Total time for configuredSelectorCannotBeForwarded-require_not_redundant_11_4: 308 seconds ; Split time: 0 seconds ; Number of problems: 8 ; Solver time : 297 seconds
+Violated: configuredSelectorCannotBeForwarded-require_not_redundant_11_4
+configuredSelectorCannotBeForwarded-require_not_redundant_11_4: A property is violated
+Ping 24m - Processed 2/2 (100%) rules. 9 tasks complete, 3 pending.
+ERROR: No logs are available. https://prover.certora.com/jobStatus/99679/c7d4d50c184845bcbcfd29ac056aec50?anonymousKey=c7589365c2d2d79faca3a3a4d36400b1251ddd8e
+
+Finished verification request
+[32mNo errors found by Prover![0m

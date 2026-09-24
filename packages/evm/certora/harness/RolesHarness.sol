@@ -21,6 +21,14 @@ contract RolesHarness is Roles {
         return roles[roleId].members[member];
     }
 
+    function selectorForData(bytes memory data) external pure returns (bytes4) {
+        return bytes4(data);
+    }
+
+    function delayVetoSelector() external pure returns (bytes4) {
+        return bytes4(keccak256("setTxNonce(uint256)"));
+    }
+
     /// @dev The raw module linked-list entry. This, not isModuleEnabled, is
     /// what the moduleOnly modifier actually gates on (Modifier.sol:59-62).
     /// The two diverge at SENTINEL_MODULES, which is self-linked by

@@ -1,0 +1,40 @@
+{
+  "collectedAt": "2026-09-24T23:21:07.811459+00:00",
+  "jobId": "f20ce8b4f7d64ea89d049fc17e8cc0c4",
+  "reportUrl": "https://prover.certora.com/output/99679/f20ce8b4f7d64ea89d049fc17e8cc0c4?anonymousKey=047143cf78e6345daa080c403a399b955f02e8ba",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "VIOLATED",
+    "envfreeFuncsStaticCheck": "VERIFIED"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_24_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_25_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_26_4",
+      "status": "VERIFIED"
+    }
+  ],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "directConfiguredRejection",
+      "status": "VIOLATED",
+      "errors": []
+    },
+    {
+      "ruleId": null,
+      "status": "VIOLATED",
+      "errors": []
+    }
+  ],
+  "retainedRuleOutputs": 7,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

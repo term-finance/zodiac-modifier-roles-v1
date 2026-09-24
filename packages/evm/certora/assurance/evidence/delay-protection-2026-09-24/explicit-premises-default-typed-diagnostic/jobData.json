@@ -1,0 +1,28 @@
+{
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:20:14.104000Z",
+  "jobStatus": "SUCCEEDED",
+  "jobSource": "COMMAND",
+  "startTime": "2026-09-24T23:08:30.030000Z",
+  "outputUrl": "https://prover.certora.com/output/99679/ebc904eb5c0b45b7b4f3ea4ff3ccd8d4/",
+  "javaArgs": [],
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/ebc904eb5c0b45b7b4f3ea4ff3ccd8d4/f/outputs",
+  "anonymousKey": "e23b0b0260a955b4fd3fb1d1122048f455dfac91",
+  "contract": "RolesHarness",
+  "jobId": "ebc904eb5c0b45b7b4f3ea4ff3ccd8d4",
+  "postTime": "2026-09-24T23:07:41.995149Z",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "notifyMsg": "Configured boundary proof with explicit sanity premises"
+}

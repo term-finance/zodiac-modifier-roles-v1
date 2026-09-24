@@ -1,0 +1,658 @@
+Compiling certora/harness/RolesHarness.sol...
+Compiling certora/harness/RolesHarness.sol to expose internal function information and local variables...
+Compiling contracts/Permissions.sol...
+Compiling contracts/Permissions.sol to expose internal function information and local variables...
+
+Connecting to server...
+
+[32mJob submitted to server[0m
+
+Manage your jobs at https://prover.certora.com
+Follow your job and see verification results at https://prover.certora.com/output/99679/082ee9fed45347319b98ee00b115674e
+Output:
+processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /[INFO]: prover-container-version: 1.1.4
+[INFO]: Overcommit memory value: 1
+[INFO]: s5cmd: cp s3://certora-prod/uploadFiles/99679/082ee9fed45347319b98ee00b115674e.zip /home/appuser/code/job.zip
+[INFO]: s5cmd: cp s3://tac-optimizer-artifacts/8.19.2/tac_optimizer-8.19.2 /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd: cp s3://prover-artifacts/8.19.2/emv-8.19.2.jar /home/appuser/bin/emv.jar
+[INFO]: inputs download time :: 0.7813 seconds
+[INFO]: tac optimizer ready on PATH at /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd transferred 784 file(s)
+[INFO]: cache download time :: 0.7231 seconds
+[INFO]: Command: java -Xmx31999m -XX:+UseParallelGC -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -XX:G1PeriodicGCInterval=15 -XX:NewRatio=5 -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/home/appuser/code/java_error/java_error%p.log -DoutputUrl=s3://certora-prod/outputs/99679/output_082ee9fed45347319b98ee00b115674e/ -DjobId=082ee9fed45347319b98ee00b115674e -DuserId=99679 -jar /home/appuser/bin/emv.jar -cache b17e79ec8809f6d5eafd5011a2f75c8fe407462694f16276b54e33ae526eb488-optimisticFalse-iter2-None--certora-cli-8.19.2 -b 2 -contract RolesHarness -smt_preciseBitwiseOps -ruleSanityChecks advanced -t 600 -enableStorageSplitting false -userGlobalTimeout 7200 -globalTimeout 7500
+Start Thu Sep 24 23:17:03 GMT 2026
+Start Thu Sep 24 23:17:03 GMT 2026
+Warning: The type `Role` will not be accessible in CVL code
+Reason(s):
+	struct field `members` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `targets` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `functions` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValues` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValuesOneOf` cannot be expressed in CVL: [mapping types are not supported]
+Warning: Warning: Contract RolesHarness has multiple storage slots with the same name - __gap (multiple inheritance could cause this), they will be ignored
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+The scene contains 21 contracts:
+Permissions : 0xce4604a000000000000000000000001d,
+RolesHarness : 0xce4604a000000000000000000000000e,
+ecrecover : 0x1,
+sha256 : 0x2,
+ripemd160 : 0x3,
+identity : 0x4,
+bigmod : 0x5,
+bn256Add : 0x6,
+bn256ScalarMul : 0x7,
+bn256Pairing : 0x8,
+Precompiled244 : 0xf4,
+Precompiled245 : 0xf5,
+Precompiled246 : 0xf6,
+Precompiled247 : 0xf7,
+Precompiled248 : 0xf8,
+Precompiled249 : 0xf9,
+Precompiled250 : 0xfa,
+Precompiled251 : 0xfb,
+Precompiled252 : 0xfc,
+Precompiled253 : 0xfd,
+Precompiled254 : 0xfe
+Running initial transformations
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Memory partitioning failed while analyzing contract Permissions, function check(Role,address,address,uint256,bytes,Enum.Operation).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function getModulesPaginated(address,uint256).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function multisendEntryAt(bytes,uint256). No precise source code information available for the location, range information points to the next enclosing external method that inlined the call. I.e. inspect the highlighted method and any of it's potentially inlined callees. This can lead to longer running times. 
+Exception in thread "Thread-1" java.io.IOException: Cannot run program "killall": Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at java.base/java.lang.Runtime.exec(Runtime.java:681)
+	at java.base/java.lang.Runtime.exec(Runtime.java:530)
+	at utils.LongProcessKiller.run(LongProcessKiller.kt:44)
+Caused by: java.io.IOException: Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 4 more
+Has CVL checks.
+Checking CVL certora/specs/delayConfiguredBoundary.spec for contract RolesHarness
+Unrolling loops 2 times, unwinding condition is asserted
+Checking rule envfreeFuncsStaticCheck (4 out of 4)...
+Checking rule directConfiguredRejection (1 out of 4)...
+Checking rule safeConfiguredRejection (2 out of 4)...
+Checking rule returnDataConfiguredRejection (3 out of 4)...
+Result for envfreeFuncsStaticCheck: envfreeFuncsStaticCheck: functionScopeConfigForData(uint16,address,bytes): SUCCESS
+multisend(): SUCCESS
+clearanceOf(uint16,address): SUCCESS
+Ping 1m - Processed 1/4 (25%) rules. 4 tasks complete, 3 pending.
+Starting to run on rule safeConfiguredRejection
+Starting to run on rule returnDataConfiguredRejection
+Starting to run on rule directConfiguredRejection
+Ping 2m - Processed 1/4 (25%) rules. 4 tasks complete, 3 pending.
+Total time for returnDataConfiguredRejection: 6 seconds ; Split time: 0 seconds ; Number of problems: 1 ; Solver time : 6 seconds
+Verified: returnDataConfiguredRejection
+returnDataConfiguredRejection: Properties successfully verified on all inputs
+Starting to run on rule returnDataConfiguredRejection-assertion_not_tautological_56_4
+Total time for safeConfiguredRejection: 11 seconds ; Split time: 0 seconds ; Number of problems: 1 ; Solver time : 10 seconds
+Starting to run on rule returnDataConfiguredRejection-assertion_not_tautological_57_4
+Verified: safeConfiguredRejection
+safeConfiguredRejection: Properties successfully verified on all inputs
+Starting to run on rule returnDataConfiguredRejection-rule_not_vacuous
+Starting to run on rule safeConfiguredRejection-assertion_not_tautological_45_4
+Starting to run on rule safeConfiguredRejection-assertion_not_tautological_46_4
+Starting to run on rule safeConfiguredRejection-rule_not_vacuous
+Attempted 10 splits, and proved a total weighing 93.75% for directConfiguredRejection
+Attempted 20 splits, and proved a total weighing 99.8046875% for directConfiguredRejection
+Total time for directConfiguredRejection: 29 seconds ; Split time: 0 seconds ; Number of problems: 21 ; Solver time : 19 seconds
+Verified: directConfiguredRejection
+directConfiguredRejection: Properties successfully verified on all inputs
+Starting to run on rule directConfiguredRejection-assertion_not_tautological_34_4
+Starting to run on rule directConfiguredRejection-assertion_not_tautological_35_4
+Starting to run on rule directConfiguredRejection-rule_not_vacuous
+Ping 3m - Processed 4/4 (100%) rules. 7 tasks complete, 9 pending.
+Ping 4m - Processed 4/4 (100%) rules. 7 tasks complete, 9 pending.
+Ping 5m - Processed 4/4 (100%) rules. 7 tasks complete, 9 pending.
+Total time for safeConfiguredRejection-rule_not_vacuous: 108 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 106 seconds
+Violated: safeConfiguredRejection-rule_not_vacuous
+safeConfiguredRejection-rule_not_vacuous: A property is violated
+Total time for returnDataConfiguredRejection-rule_not_vacuous: 130 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 127 seconds
+Violated: returnDataConfiguredRejection-rule_not_vacuous
+returnDataConfiguredRejection-rule_not_vacuous: A property is violated
+Ping 6m - Processed 4/4 (100%) rules. 8 tasks complete, 8 pending.
+Total time for safeConfiguredRejection-assertion_not_tautological_46_4: 145 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 144 seconds
+Violated: safeConfiguredRejection-assertion_not_tautological_46_4
+safeConfiguredRejection-assertion_not_tautological_46_4: A property is violated
+Total time for returnDataConfiguredRejection-assertion_not_tautological_57_4: 151 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 149 seconds
+Violated: returnDataConfiguredRejection-assertion_not_tautological_57_4
+returnDataConfiguredRejection-assertion_not_tautological_57_4: A property is violated
+Total time for safeConfiguredRejection-assertion_not_tautological_45_4: 156 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 154 seconds
+Violated: safeConfiguredRejection-assertion_not_tautological_45_4
+safeConfiguredRejection-assertion_not_tautological_45_4: A property is violated
+Starting to run on rule safeConfiguredRejection-require_not_redundant_39_4
+Starting to run on rule safeConfiguredRejection-require_not_redundant_40_4
+Starting to run on rule safeConfiguredRejection-require_not_redundant_41_4
+Total time for returnDataConfiguredRejection-assertion_not_tautological_56_4: 168 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 166 seconds
+Violated: returnDataConfiguredRejection-assertion_not_tautological_56_4
+returnDataConfiguredRejection-assertion_not_tautological_56_4: A property is violated
+Starting to run on rule returnDataConfiguredRejection-require_not_redundant_50_4
+Starting to run on rule returnDataConfiguredRejection-require_not_redundant_51_4
+Starting to run on rule returnDataConfiguredRejection-require_not_redundant_52_4
+Total time for directConfiguredRejection-assertion_not_tautological_34_4: 168 seconds ; Split time: 0 seconds ; Number of problems: 4 ; Solver time : 165 seconds
+Violated: directConfiguredRejection-assertion_not_tautological_34_4
+directConfiguredRejection-assertion_not_tautological_34_4: A property is violated
+Total time for directConfiguredRejection-assertion_not_tautological_35_4: 168 seconds ; Split time: 0 seconds ; Number of problems: 4 ; Solver time : 165 seconds
+Violated: directConfiguredRejection-assertion_not_tautological_35_4
+directConfiguredRejection-assertion_not_tautological_35_4: A property is violated
+Total time for directConfiguredRejection-rule_not_vacuous: 169 seconds ; Split time: 0 seconds ; Number of problems: 4 ; Solver time : 167 seconds
+Violated: directConfiguredRejection-rule_not_vacuous
+directConfiguredRejection-rule_not_vacuous: A property is violated
+Starting to run on rule directConfiguredRejection-require_not_redundant_28_4
+Starting to run on rule directConfiguredRejection-require_not_redundant_29_4
+Starting to run on rule directConfiguredRejection-require_not_redundant_30_4
+Ping 7m - Processed 4/4 (100%) rules. 16 tasks complete, 9 pending.
+Ping 8m - Processed 4/4 (100%) rules. 16 tasks complete, 9 pending.
+Total time for returnDataConfiguredRejection-require_not_redundant_51_4: 106 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 104 seconds
+Violated: returnDataConfiguredRejection-require_not_redundant_51_4
+returnDataConfiguredRejection-require_not_redundant_51_4: A property is violated
+Ping 9m - Processed 4/4 (100%) rules. 17 tasks complete, 8 pending.
+Total time for safeConfiguredRejection-require_not_redundant_41_4: 143 seconds ; Split time: 0 seconds ; Number of problems: 8 ; Solver time : 140 seconds
+Violated: safeConfiguredRejection-require_not_redundant_41_4
+safeConfiguredRejection-require_not_redundant_41_4: A property is violated
+Ping 10m - Processed 4/4 (100%) rules. 18 tasks complete, 7 pending.
+Total time for safeConfiguredRejection-require_not_redundant_39_4: 130 seconds ; Split time: 0 seconds ; Number of problems: 5 ; Solver time : 126 seconds
+Violated: safeConfiguredRejection-require_not_redundant_39_4
+safeConfiguredRejection-require_not_redundant_39_4: A property is violated
+Total time for directConfiguredRejection-require_not_redundant_28_4: 178 seconds ; Split time: 0 seconds ; Number of problems: 5 ; Solver time : 174 seconds
+Violated: directConfiguredRejection-require_not_redundant_28_4
+directConfiguredRejection-require_not_redundant_28_4: A property is violated
+Total time for directConfiguredRejection-require_not_redundant_30_4: 159 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 157 seconds
+Violated: directConfiguredRejection-require_not_redundant_30_4
+directConfiguredRejection-require_not_redundant_30_4: A property is violated
+Ping 11m - Processed 4/4 (100%) rules. 21 tasks complete, 4 pending.
+Total time for directConfiguredRejection-require_not_redundant_29_4: 178 seconds ; Split time: 0 seconds ; Number of problems: 4 ; Solver time : 175 seconds
+Violated: directConfiguredRejection-require_not_redundant_29_4
+directConfiguredRejection-require_not_redundant_29_4: A property is violated
+Total time for returnDataConfiguredRejection-require_not_redundant_52_4: 186 seconds ; Split time: 0 seconds ; Number of problems: 7 ; Solver time : 182 seconds
+Violated: returnDataConfiguredRejection-require_not_redundant_52_4
+returnDataConfiguredRejection-require_not_redundant_52_4: A property is violated
+Result for directConfiguredRejection: directConfiguredRejection: SUCCESS
+Total time for safeConfiguredRejection-require_not_redundant_40_4: 126 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 124 seconds
+Violated: safeConfiguredRejection-require_not_redundant_40_4
+safeConfiguredRejection-require_not_redundant_40_4: A property is violated
+Result for safeConfiguredRejection: safeConfiguredRejection: SUCCESS
+Total time for returnDataConfiguredRejection-require_not_redundant_50_4: 217 seconds ; Split time: 0 seconds ; Number of problems: 5 ; Solver time : 213 seconds
+Violated: returnDataConfiguredRejection-require_not_redundant_50_4
+returnDataConfiguredRejection-require_not_redundant_50_4: A property is violated
+Result for returnDataConfiguredRejection: returnDataConfiguredRejection: SUCCESS
+Results for envfreeFuncsStaticCheck:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|functionScopeConfigForData(uint16,addres|Not violated |0         |                                                            |no local variables                                |
+|s,bytes)                                |(unsat)      |          |                                                            |                                                  |
+|multisend()                             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|clearanceOf(uint16,address)             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Results for all:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|envfreeFuncsStaticCheck                 |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|returnDataConfiguredRejection           |Not violated |71        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|safeConfiguredRejection                 |Not violated |75        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|directConfiguredRejection               |Not violated |93        |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|rule_not_vacuous                        |Not violated |172       |Assert message: sanity check for rule safeConfiguredReje... |Permissions=120                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=119                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x2000000000000                 |
+|                                        |             |          |                                                            |caller.msg.value=0x4003efde377f3bfcfa7f0b005fffeb0|
+|                                        |             |          |                                                            |fffffffffffffffffffffffffffffffff                 |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=4294967040                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=26401                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x80000000000000                               |
+|                                        |             |          |                                                            |value=MAX_UINT256                                 |
+|rule_not_vacuous                        |Not violated |194       |Assert message: sanity check for rule returnDataConfigur... |Permissions=2                                     |
+|                                        |(sat)        |          |                                                            |RolesHarness=1                                    |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=RolesHarness                    |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |data.length=4                                     |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=10001                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x2711                                         |
+|                                        |             |          |                                                            |value=0                                           |
+|assertion_not_tautological_46_4         |Violated     |208       |Assert message: rejection must precede boundary calls, c... |Permissions=128                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=4                                    |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=4294967280                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|assertion_not_tautological_57_4         |Violated     |216       |Assert message: rejection must precede boundary calls, c... |Permissions=2                                     |
+|                                        |(sat)        |          |                                                            |RolesHarness=1                                    |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=RolesHarness                    |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 31                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.DelegateCall             |
+|                                        |             |          |                                                            |role=10001                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x2711                                         |
+|                                        |             |          |                                                            |value=0                                           |
+|assertion_not_tautological_45_4         |Violated     |220       |Assert message: denied selector must revert                 |Permissions=130                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=4261407744                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|assertion_not_tautological_56_4         |Violated     |232       |Assert message: denied selector must revert                 |Permissions=130                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=4287978656                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|assertion_not_tautological_34_4         |Violated     |231       |Assert message: denied selector must revert                 |Permissions=2^159                                 |
+|                                        |(sat)        |          |                                                            |RolesHarness=2^44                                 |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=Permissions                     |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2685357697                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x4000                                         |
+|                                        |             |          |                                                            |value=0                                           |
+|assertion_not_tautological_35_4         |Violated     |232       |Assert message: rejection must precede boundary calls, c... |Permissions=0x800000000000000000000000000000000000|
+|                                        |(sat)        |          |                                                            |0300                                              |
+|                                        |             |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=3758096129                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=0                                           |
+|rule_not_vacuous                        |Not violated |234       |Assert message: sanity check for rule directConfiguredRe... |Permissions=128                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=130                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=2^255                            |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 24                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x100000000000000000000000000000000            |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_51_4              |Violated     |122       |Assert message: rejection must precede boundary calls, c... |Permissions=2                                     |
+|                                        |(sat)        |          |                                                            |RolesHarness=1                                    |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=RolesHarness                    |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |data.length=4                                     |
+|                                        |             |          |                                                            |operation=Enum.Operation.DelegateCall             |
+|                                        |             |          |                                                            |role=10001                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x2711                                         |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_41_4              |Violated     |158       |Assert message: Unwinding condition in a loop. We recommend |Permissions=255                                   |
+|                                        |(sat)        |          |to run with `--optimistic_loop`, or increase `--loop_iter`  |RolesHarness=511                                  |
+|                                        |             |          |to a value higher than 2. Please consult our documentation  |caller.block.basefee=0                            |
+|                                        |             |          |to be aware of the consequences on soundness when setting   |caller.block.blobbasefee=0                        |
+|                                        |             |          |this flag.                                                  |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x0                             |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^31                                  |
+|                                        |             |          |                                                            |operation=Enum.Operation.DelegateCall             |
+|                                        |             |          |                                                            |role=0                                            |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x0                                            |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_39_4              |Violated     |196       |Assert message: denied selector must revert                 |Permissions=120                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=119                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x6711                          |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |data.length=10                                    |
+|                                        |             |          |                                                            |operation=Enum.Operation.DelegateCall             |
+|                                        |             |          |                                                            |role=26385                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x6711                                         |
+|                                        |             |          |                                                            |value=128                                         |
+|require_not_redundant_28_4              |Violated     |193       |Assert message: denied selector must revert                 |Permissions=56                                    |
+|                                        |(sat)        |          |                                                            |RolesHarness=119                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x6711                          |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |data.length=5                                     |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=26385                                        |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x20000000000                                  |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_30_4              |Violated     |224       |Assert message: Unwinding condition in a loop. We recommend |Permissions=2^159                                 |
+|                                        |(sat)        |          |to run with `--optimistic_loop`, or increase `--loop_iter`  |RolesHarness=128                                  |
+|                                        |             |          |to a value higher than 2. Please consult our documentation  |caller.block.basefee=0                            |
+|                                        |             |          |to be aware of the consequences on soundness when setting   |caller.block.blobbasefee=0                        |
+|                                        |             |          |this flag.                                                  |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0xc00000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |                                                  |
+|                                        |             |          |                                                            |                                                  |
+|                                        |             |          |                                                            |                                                  |
+|                                        |             |          |                                                            |                                                  |
+|                                        |             |          |                                                            |                                                  |
+|                                        |             |          |                                                            |...                                               |
+|                                        |             |          |                                                            |data.length=31329                                 |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0xc000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_29_4              |Violated     |243       |Assert message: denied selector must revert                 |Permissions=130                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 24                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_52_4              |Violated     |252       |Assert message: Unwinding condition in a loop. We recommend |Permissions=130                                   |
+|                                        |(sat)        |          |to run with `--optimistic_loop`, or increase `--loop_iter`  |RolesHarness=128                                  |
+|                                        |             |          |to a value higher than 2. Please consult our documentation  |caller.block.basefee=0                            |
+|                                        |             |          |to be aware of the consequences on soundness when setting   |caller.block.blobbasefee=0                        |
+|                                        |             |          |this flag.                                                  |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 31                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.DelegateCall             |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=0                                           |
+|require_not_redundant_40_4              |Violated     |191       |Assert message: rejection must precede boundary calls, c... |Permissions=130                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=128                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x800000000000000000000000000000|
+|                                        |             |          |                                                            |0000000000                                        |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=2^32 - 24                             |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=false                                |
+|                                        |             |          |                                                            |to=0x8000000000000000000000000000000000000000     |
+|                                        |             |          |                                                            |value=2^255                                       |
+|require_not_redundant_50_4              |Violated     |283       |Assert message: rejection must precede boundary calls, c... |Permissions=122                                   |
+|                                        |(sat)        |          |                                                            |RolesHarness=120                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x6713                          |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=                                             |
+|                                        |             |          |                                                            |data.length=26                                    |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=26385                                        |
+|                                        |             |          |                                                            |shouldRevert=true                                 |
+|                                        |             |          |                                                            |to=0x6711                                         |
+|                                        |             |          |                                                            |value=0                                           |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Failures summary:
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule safeConfiguredReje...
+sanity check (vacuity of rule) for rule safeConfiguredRejection
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule returnDataConfigur...
+sanity check (vacuity of rule) for rule returnDataConfiguredRejection
+Failed on assertion_not_tautological_46_4:
+Assert message: rejection must precede boundary calls, c...
+ sanity check (assert tautology) for rule safeConfiguredRejection
+Failed on assertion_not_tautological_57_4:
+Assert message: rejection must precede boundary calls, c...
+ sanity check (assert tautology) for rule returnDataConfiguredRejection
+Failed on assertion_not_tautological_45_4:
+Assert message: denied selector must revert
+ sanity check (assert tautology) for rule safeConfiguredRejection
+Failed on assertion_not_tautological_56_4:
+Assert message: denied selector must revert
+ sanity check (assert tautology) for rule returnDataConfiguredRejection
+Failed on assertion_not_tautological_34_4:
+Assert message: denied selector must revert
+ sanity check (assert tautology) for rule directConfiguredRejection
+Failed on assertion_not_tautological_35_4:
+Assert message: rejection must precede boundary calls, c...
+ sanity check (assert tautology) for rule directConfiguredRejection
+Failed on rule_not_vacuous:
+Assert message: sanity check for rule directConfiguredRe...
+sanity check (vacuity of rule) for rule directConfiguredRejection
+Failed on require_not_redundant_51_4:
+Assert message: rejection must precede boundary calls, c...
+require redundancy check for require RolesHarness.clearanceOf(role,to) == Clearance.Function
+Failed on require_not_redundant_41_4:
+Assert message: Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 2. Please consult our documentation to be aware of the consequences on soundness when setting this flag.
+require redundancy check for require RolesHarness.functionScopeConfigForData(role,to,data) == 0
+Failed on require_not_redundant_39_4:
+Assert message: denied selector must revert
+require redundancy check for require to != RolesHarness.multisend()
+Failed on require_not_redundant_28_4:
+Assert message: denied selector must revert
+require redundancy check for require to != RolesHarness.multisend()
+Failed on require_not_redundant_30_4:
+Assert message: Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 2. Please consult our documentation to be aware of the consequences on soundness when setting this flag.
+require redundancy check for require RolesHarness.functionScopeConfigForData(role,to,data) == 0
+Failed on require_not_redundant_29_4:
+Assert message: denied selector must revert
+require redundancy check for require RolesHarness.clearanceOf(role,to) == Clearance.Function
+Failed on require_not_redundant_52_4:
+Assert message: Unwinding condition in a loop. We recommend to run with `--optimistic_loop`, or increase `--loop_iter` to a value higher than 2. Please consult our documentation to be aware of the consequences on soundness when setting this flag.
+require redundancy check for require RolesHarness.functionScopeConfigForData(role,to,data) == 0
+Failed on require_not_redundant_40_4:
+Assert message: rejection must precede boundary calls, c...
+require redundancy check for require RolesHarness.clearanceOf(role,to) == Clearance.Function
+Failed on require_not_redundant_50_4:
+Assert message: rejection must precede boundary calls, c...
+require redundancy check for require to != RolesHarness.multisend()
+Ping 12m - Processed 4/4 (100%) rules. 25 tasks complete, 0 pending.
+Done 12m
+Done 12m
+Event reporter: all events were sent without errors
+[INFO]: Live-mirror upload summary: 342 uploads, 114 unique keys, 228 redundant re-uploads, 3.00 uploads/key.
+[INFO]: s5cmd: cp /home/appuser/code/082ee9fed45347319b98ee00b115674e.tar.gz s3://certora-prod/outputs/99679/output_082ee9fed45347319b98ee00b115674e/082ee9fed45347319b98ee00b115674e.tar.gz
+[INFO]: s5cmd transferred 396 file(s)
+[INFO]: Cache upload took 1.0906 seconds
+[INFO]: Timings :: prover=758.0367 seconds, exit_code=0, timed_out=False
+
+Finished verification request
+[32mNo errors found by Prover![0m

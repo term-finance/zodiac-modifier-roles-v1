@@ -1,0 +1,45 @@
+{
+  "collectedAt": "2026-09-24T22:53:21.618882+00:00",
+  "jobId": "c7d4d50c184845bcbcfd29ac056aec50",
+  "reportUrl": "https://prover.certora.com/output/99679/c7d4d50c184845bcbcfd29ac056aec50?anonymousKey=c7589365c2d2d79faca3a3a4d36400b1251ddd8e",
+  "terminal": true,
+  "rootStatuses": {
+    "configuredSelectorCannotBeForwarded": "VERIFIED",
+    "envfreeFuncsStaticCheck": "VERIFIED"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-require_not_redundant_10_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-require_not_redundant_11_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-require_not_redundant_12_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-assertion_not_tautological_16_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-assertion_not_tautological_18_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "configuredSelectorCannotBeForwarded-assertion_not_tautological_20_4",
+      "status": "VERIFIED"
+    }
+  ],
+  "nonVerifiedNodes": [],
+  "retainedRuleOutputs": 11,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

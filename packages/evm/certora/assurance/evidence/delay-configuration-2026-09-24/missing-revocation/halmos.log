@@ -1,0 +1,20 @@
+No files changed, compilation skipped
+
+Running 2 tests for certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/missing-revocation/smt/DelayConfigurationLemma-constructor
+setup: 0.00s (decode: 0.00s, run: 0.00s)
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/missing-revocation/smt/check_configurationClearsDeniedSelector
+[31mCounterexample: 
+    p_denied_bytes4_2375eb0_00 = 0x78c66e3a00000000000000000000000000000000000000000000000000000000
+    p_observedSelector_bytes4_2f6e9de_00 = 0x8804100000000000000000000000000000000000000000000000000000000
+    p_observedTarget_address_628bcc9_00 = 0x00
+    p_permitted_bytes4_fcf0ee1_00 = 0xde6efbff00000000000000000000000000000000000000000000000000000000
+    p_roleId_uint16_9c0bbe7_00 = 0x00
+    p_roleSlot_uint256_54b05c8_00 = 0x00
+    p_target_address_876cc55_00 = 0xffffffffffffffffffffffffffffffffffffffff[0m
+[31m[FAIL][0m check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4) (paths: 14, time: 0.89s (paths: 0.89s, models: 0.00s), bounds: [])
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-configuration-2026-09-24/missing-revocation/smt/check_packedKeyHasExactRepresentation
+[32m[PASS][0m check_packedKeyHasExactRepresentation(address,bytes4) (paths: 3, time: 0.01s (paths: 0.01s, models: 0.00s), bounds: [])
+Symbolic test result: 1 passed; 1 failed; time: 0.91s
+
+[time] total: 1.05s (build: 0.14s, load: 0.01s, tests: 0.91s)

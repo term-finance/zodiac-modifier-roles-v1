@@ -1,0 +1,28 @@
+{
+  "finishTime": "2026-09-22T20:08:24.511000Z",
+  "contract": "RolesHarness",
+  "jobId": "8077cd2558594e04b531d9b8489fcfa2",
+  "javaArgs": [],
+  "notifyMsg": "20260922 veto policy: exact overlapping-write inlining, three complete forwarding rules",
+  "jobSource": "COMMAND",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-ruleSanityChecks",
+    "advanced",
+    "-t",
+    "600",
+    "-exactByteMaps",
+    "true"
+  ],
+  "outputUrl": "https://prover.certora.com/output/99679/8077cd2558594e04b531d9b8489fcfa2/",
+  "postTime": "2026-09-22T20:02:02.481751Z",
+  "anonymousKey": "f7c394764529fec66305670c53881b28355a39c9",
+  "jobStatus": "SUCCEEDED",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --wait_for_results all --msg '20260922 veto policy: exact overlapping-write inlining,three complete forwarding rules'",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/8077cd2558594e04b531d9b8489fcfa2/f/outputs",
+  "startTime": "2026-09-22T20:02:53.410000Z"
+}

@@ -1,0 +1,5 @@
+{
+  "scope": "All three implemented forwarding methods with configured direct non-multisend target; unknown callees havoc all; only linked actual Permissions delegatecall is internal to boundary. Configuration, calldata correspondence, source and deployed binding remain separate obligations.",
+  "previousCounterexample": "The unqualified effects hook observed the real Permissions.check delegatecall. No precondition or input has been narrowed to exclude it.",
+  "semanticClosureCertified": false
+}

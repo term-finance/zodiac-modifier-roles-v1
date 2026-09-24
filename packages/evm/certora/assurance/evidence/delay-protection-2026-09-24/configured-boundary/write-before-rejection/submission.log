@@ -1,0 +1,155 @@
+Compiling certora/harness/RolesHarness.sol...
+Compiling certora/harness/RolesHarness.sol to expose internal function information and local variables...
+Compiling contracts/Permissions.sol...
+Compiling contracts/Permissions.sol to expose internal function information and local variables...
+
+Connecting to server...
+
+[32mJob submitted to server[0m
+
+Manage your jobs at https://prover.certora.com
+Follow your job and see verification results at https://prover.certora.com/output/99679/ce131b19ecb44225af4f96385e0cc1b8
+Output:
+processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /processing -processing \processing |processing /[INFO]: prover-container-version: 1.1.4
+[INFO]: Overcommit memory value: 1
+[INFO]: s5cmd: cp s3://certora-prod/uploadFiles/99679/ce131b19ecb44225af4f96385e0cc1b8.zip /home/appuser/code/job.zip
+[INFO]: s5cmd: cp s3://tac-optimizer-artifacts/8.19.2/tac_optimizer-8.19.2 /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd: cp s3://prover-artifacts/8.19.2/emv-8.19.2.jar /home/appuser/bin/emv.jar
+[INFO]: inputs download time :: 1.0053 seconds
+[INFO]: tac optimizer ready on PATH at /home/appuser/bin/tac_optimizer
+[INFO]: s5cmd transferred 784 file(s)
+[INFO]: cache download time :: 0.7422 seconds
+[INFO]: Command: java -Xmx31999m -XX:+UseParallelGC -XX:MaxHeapFreeRatio=10 -XX:MinHeapFreeRatio=5 -XX:G1PeriodicGCInterval=15 -XX:NewRatio=5 -XX:+CrashOnOutOfMemoryError -XX:ErrorFile=/home/appuser/code/java_error/java_error%p.log -DoutputUrl=s3://certora-prod/outputs/99679/output_ce131b19ecb44225af4f96385e0cc1b8/ -DjobId=ce131b19ecb44225af4f96385e0cc1b8 -DuserId=99679 -jar /home/appuser/bin/emv.jar -cache b17e79ec8809f6d5eafd5011a2f75c8fe407462694f16276b54e33ae526eb488-optimisticFalse-iter2-None--certora-cli-8.19.2 -b 2 -contract RolesHarness -smt_preciseBitwiseOps -rule directConfiguredRejection -ruleSanityChecks none -t 600 -enableStorageSplitting false -userGlobalTimeout 7200 -globalTimeout 7500
+Start Thu Sep 24 23:17:05 GMT 2026
+Start Thu Sep 24 23:17:05 GMT 2026
+Warning: The type `Role` will not be accessible in CVL code
+Reason(s):
+	struct field `members` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `targets` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `functions` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValues` cannot be expressed in CVL: [mapping types are not supported]
+	struct field `compValuesOneOf` cannot be expressed in CVL: [mapping types are not supported]
+Warning: Warning: Contract RolesHarness has multiple storage slots with the same name - __gap (multiple inheritance could cause this), they will be ignored
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for optimization failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+The scene contains 21 contracts:
+Permissions : 0xce4604a000000000000000000000001d,
+RolesHarness : 0xce4604a000000000000000000000000e,
+ecrecover : 0x1,
+sha256 : 0x2,
+ripemd160 : 0x3,
+identity : 0x4,
+bigmod : 0x5,
+bn256Add : 0x6,
+bn256ScalarMul : 0x7,
+bn256Pairing : 0x8,
+Precompiled244 : 0xf4,
+Precompiled245 : 0xf5,
+Precompiled246 : 0xf6,
+Precompiled247 : 0xf7,
+Precompiled248 : 0xf8,
+Precompiled249 : 0xf9,
+Precompiled250 : 0xfa,
+Precompiled251 : 0xfb,
+Precompiled252 : 0xfc,
+Precompiled253 : 0xfd,
+Precompiled254 : 0xfe
+Running initial transformations
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function multisendEntryAt(bytes,uint256).  Error code 1277565207
+Warning: Pointer analysis failed, could pose a linking issue in a caller in contract RolesHarness, function getModulesPaginated(address,uint256).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkMultisendTransaction(Role role, bytes data) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Pointer analysis for correct hashing failed in internal function Permissions.checkTransaction(Role role, address targetAddress, uint256 value, bytes data, Enum.Operation operation) (when called from external function check(Role,address,address,uint256,bytes,Enum.Operation) of contract Permissions).  Error code 1277565207
+Warning: Memory partitioning failed while analyzing contract Permissions, function check(Role,address,address,uint256,bytes,Enum.Operation).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function getModulesPaginated(address,uint256).  This can lead to longer running times. 
+Warning: Memory partitioning failed while analyzing contract RolesHarness, function multisendEntryAt(bytes,uint256). No precise source code information available for the location, range information points to the next enclosing external method that inlined the call. I.e. inspect the highlighted method and any of it's potentially inlined callees. This can lead to longer running times. 
+Exception in thread "Thread-1" java.io.IOException: Cannot run program "killall": Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1170)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1089)
+	at java.base/java.lang.Runtime.exec(Runtime.java:681)
+	at java.base/java.lang.Runtime.exec(Runtime.java:530)
+	at utils.LongProcessKiller.run(LongProcessKiller.kt:44)
+Caused by: java.io.IOException: Exec failed, error: 2 (No such file or directory) 
+	at java.base/java.lang.ProcessImpl.forkAndExec(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:295)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:225)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1126)
+	... 4 more
+Ping 1m - Processed 0/1 (0%) rules. 0 tasks complete, 1 pending.
+Has CVL checks.
+Checking CVL certora/specs/delayConfiguredBoundary.spec for contract RolesHarness
+Unrolling loops 2 times, unwinding condition is asserted
+Checking rule envfreeFuncsStaticCheck (2 out of 2)...
+Checking rule directConfiguredRejection (1 out of 2)...
+Result for envfreeFuncsStaticCheck: envfreeFuncsStaticCheck: functionScopeConfigForData(uint16,address,bytes): SUCCESS
+multisend(): SUCCESS
+clearanceOf(uint16,address): SUCCESS
+Starting to run on rule directConfiguredRejection
+Ping 2m - Processed 0/1 (0%) rules. 4 tasks complete, 1 pending.
+Total time for directConfiguredRejection: 44 seconds ; Split time: 0 seconds ; Number of problems: 3 ; Solver time : 42 seconds
+Violated: directConfiguredRejection
+directConfiguredRejection: A property is violated
+Ping 3m - Processed 0/1 (0%) rules. 4 tasks complete, 1 pending.
+Result for directConfiguredRejection: directConfiguredRejection: FAIL: rejection must precede boundary calls, c...
+Results for envfreeFuncsStaticCheck:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|functionScopeConfigForData(uint16,addres|Not violated |0         |                                                            |no local variables                                |
+|s,bytes)                                |(unsat)      |          |                                                            |                                                  |
+|multisend()                             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|clearanceOf(uint16,address)             |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Results for all:
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+|Rule name                               |Verified     |Time (sec)|Description                                                 |Local vars                                        |
+|----------------------------------------|-------------|----------|------------------------------------------------------------|--------------------------------------------------|
+|envfreeFuncsStaticCheck                 |Not violated |0         |                                                            |no local variables                                |
+|                                        |(unsat)      |          |                                                            |                                                  |
+|directConfiguredRejection               |Violated     |109       |Assert message: rejection must precede boundary calls, c... |Permissions=MAX_UINT160                           |
+|                                        |(sat)        |          |                                                            |RolesHarness=255                                  |
+|                                        |             |          |                                                            |caller.block.basefee=0                            |
+|                                        |             |          |                                                            |caller.block.blobbasefee=0                        |
+|                                        |             |          |                                                            |caller.block.coinbase=0x0                         |
+|                                        |             |          |                                                            |caller.block.difficulty=0                         |
+|                                        |             |          |                                                            |caller.block.gaslimit=0                           |
+|                                        |             |          |                                                            |caller.block.number=0                             |
+|                                        |             |          |                                                            |caller.block.slotnum=0                            |
+|                                        |             |          |                                                            |caller.block.timestamp=0                          |
+|                                        |             |          |                                                            |caller.msg.sender=0x0                             |
+|                                        |             |          |                                                            |caller.msg.value=0                                |
+|                                        |             |          |                                                            |caller.tx.origin=0x0                              |
+|                                        |             |          |                                                            |data=...                                          |
+|                                        |             |          |                                                            |data.length=3917479744                            |
+|                                        |             |          |                                                            |operation=Enum.Operation.Call                     |
+|                                        |             |          |                                                            |role=2^15                                         |
+|                                        |             |          |                                                            |shouldRevert=...                                  |
+|                                        |             |          |                                                            |to=0x0                                            |
+|                                        |             |          |                                                            |value=0                                           |
+*---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*
+Failures summary:
+Failed on directConfiguredRejection:
+Assert message: rejection must precede boundary calls, c...
+Ping 4m - Processed 1/1 (100%) rules. 5 tasks complete, 0 pending.
+Done 4m
+Done 4m
+Event reporter: all events were sent without errors
+[INFO]: Live-mirror upload summary: 67 uploads, 19 unique keys, 48 redundant re-uploads, 3.53 uploads/key.
+[INFO]: s5cmd: cp /home/appuser/code/ce131b19ecb44225af4f96385e0cc1b8.tar.gz s3://certora-prod/outputs/99679/output_ce131b19ecb44225af4f96385e0cc1b8/ce131b19ecb44225af4f96385e0cc1b8.tar.gz
+[INFO]: s5cmd transferred 404 file(s)
+[INFO]: Cache upload took 0.8696 seconds
+[INFO]: Timings :: prover=241.8014 seconds, exit_code=100, timed_out=False
+
+Finished verification request
+ERROR: Prover found violations:
+
+[rule] directConfiguredRejection: FAIL
+report url: https://prover.certora.com/output/99679/ce131b19ecb44225af4f96385e0cc1b8?anonymousKey=1a18a7fdbca525097e2ec579bba3a78f08b7af35
+
+Violations were found
+

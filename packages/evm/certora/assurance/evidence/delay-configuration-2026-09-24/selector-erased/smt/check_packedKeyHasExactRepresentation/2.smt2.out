@@ -1,0 +1,15 @@
+sat
+(
+  (define-fun p_selector_bytes4_ce391c4_00 () (_ BitVec 256)
+    #xffffffff00000000000000000000000000000000000000000000000000000000)
+  (define-fun p_target_address_888938a_00 () (_ BitVec 256)
+    #x0000000000000000000000000000000000000000000000000000000000000000)
+  (define-fun balance_00 () (Array (_ BitVec 160) (_ BitVec 256))
+    ((as const (Array (_ BitVec 160) (_ BitVec 256)))
+  #x0000000000000000000000000000000000000000000000000000000000000000))
+  (define-fun balance_457e8b2_01 () (Array (_ BitVec 160) (_ BitVec 256))
+    (store ((as const (Array (_ BitVec 160) (_ BitVec 256)))
+         #x0000000000000000000000000000000000000000000000000000000000000000)
+       #x7fa9385be102ac3eac297483dd6233d62b3e1496
+       #x0000000000000000000000000000000000000000ffffffffffffffffffffffff))
+)

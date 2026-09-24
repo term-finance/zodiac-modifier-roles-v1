@@ -1,0 +1,24 @@
+{
+  "accepted": true,
+  "semanticClosureCertified": false,
+  "groups": {
+    "original": {
+      "accepted": true,
+      "errors": []
+    },
+    "call-before-revert": {
+      "accepted": true,
+      "errors": []
+    },
+    "write-before-rejection": {
+      "accepted": true,
+      "errors": []
+    }
+  },
+  "sanityWitnessBasis": "Independent native witnesses for feasibility and each premise across all three forwarders. Automatic sanity counterexamples include arithmetic imprecision and loop-unwinding assertions and are not accepted as the independent witnesses.",
+  "errors": [],
+  "scope": "Conditional single-call rejection and boundary observation for three implemented forwarders. No configuration composition, deployment binding or history certificate.",
+  "checkerSha256": "a4e4fc2d595a9b3570a8002b7238fb33bb42b3ea9c983ca5201ba8aad3484b39",
+  "proofJob": "082ee9fed45347319b98ee00b115674e",
+  "damagedEvidenceControlsRejected": 17
+}

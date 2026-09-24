@@ -1,0 +1,109 @@
+{
+  "certificate_lifetime": {
+    "invalidate_on": [
+      "code-or-immutables",
+      "facet-or-proxy-routing",
+      "registry-or-admission",
+      "roles-or-authorities",
+      "initializer-or-unknown-writer",
+      "storage-layout",
+      "external-model",
+      "proof-context-or-toolchain",
+      "incomplete-history-or-reorg"
+    ],
+    "mode": "configuration-bound",
+    "reactivate_on_restored_snapshot": false,
+    "reissue_requires": "independent base, binding and semantic evidence checks",
+    "state": "unissued"
+  },
+  "context": "packages/evm/certora/confs/Roles-delayProtection.conf",
+  "context_revisions": [
+    {
+      "fingerprint": "c239ee33b8a2451827d0abf261a86fa7ac7ce3e252e907b4e6d110a7022fd415",
+      "note": "Before exact byte-memory option for the new functional permission rule; all closure obligations remain unproved."
+    },
+    {
+      "fingerprint": "0c45bdae4d75a2f13f15d4221b924abbe3bade82f2836e3108aa46285517fe9e",
+      "note": "Before pinning CLI 8.19.2 for the new policy rule after CLI 7.31.0 prover error; historical results are not reapproved."
+    },
+    {
+      "fingerprint": "5835a1f99015f63b640bae19d8d665a7dbf9331a2a5edcf660ce9b57f0e07f18",
+      "reason": "Accounting checker now requires sticky configuration-certificate invalidation. Functional inputs and prior diagnostic result bindings are unchanged; no proof is promoted.",
+      "status": "unproved"
+    },
+    {
+      "fingerprint": "96c476aed3eca7ffc0536b9b36229b0baa237ec7d1e4cd610f9ff09478f26f1c",
+      "reason": "Added supporting configuration lemmas, conditional boundary context and retained-evidence CI checks. Historical results are not reapproved.",
+      "status": "unproved"
+    },
+    {
+      "fingerprint": "8318e542170afb2917176da24a161dac1c9fca34e352f6a496c64a078ea88c3f",
+      "reason": "Retained explicit native sanity witnesses and evidence-checker CI for the conditional boundary lemma. All full-context obligations remain open.",
+      "status": "unproved"
+    }
+  ],
+  "diagnostic": {
+    "companion_inputs_match_submission": true,
+    "evidence": "../evidence/delay-protection-2026-09-22/independent-boundary/assessment.json",
+    "functional_context_fingerprint_matches_submission": false,
+    "note": "Terminal current-harness unfiltered diagnostic is violated. The independent companion is unchanged; functional flags changed afterward, so functional-context inclusion is not established.",
+    "passed": false
+  },
+  "fingerprint": "564b0408131dc555445986ef69f18e31c2fd820ba4cd9573b5294b8a2f51c833",
+  "obligations": {
+    "adequacy": {
+      "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
+      "evidence": [],
+      "status": "open"
+    },
+    "bindings": {
+      "claim": "Source/compiler/deployed code and mutable proxy, diamond, registry and role bindings match the claimed deployment scope.",
+      "evidence": [],
+      "status": "open"
+    },
+    "calls": {
+      "claim": "Compiler/bytecode call inventory and per-instance resolution reports cover typed, dynamic, library and delegate calls.",
+      "evidence": [],
+      "status": "open"
+    },
+    "models": {
+      "claim": "Each external summary refines the real environment conservatively, including reentrancy, revert and return-data behavior.",
+      "evidence": [],
+      "status": "open"
+    },
+    "results": {
+      "claim": "Exact rule/method instances, call-resolution evidence, sanity results and tool versions are retained; no timeout or skipped instance passes.",
+      "evidence": [],
+      "status": "open"
+    },
+    "roots": {
+      "claim": "All selectors, fallback/receive, constructors, initialization and upgrade transitions are accounted for.",
+      "evidence": [],
+      "status": "open"
+    },
+    "scope": {
+      "claim": "Each functional rule's explored executions are included in the closure proof; filters, bounds and assumptions are justified.",
+      "evidence": [],
+      "status": "open"
+    },
+    "targets": {
+      "claim": "Every possible receiver/selector/code/storage-context tuple is included or soundly modeled; target invariants are inductive.",
+      "evidence": [],
+      "status": "open"
+    },
+    "writers": {
+      "claim": "Every writer of relevant ordinary, namespaced and transient storage, including other facets and callbacks, is covered.",
+      "evidence": [],
+      "status": "open"
+    }
+  },
+  "schema": 1,
+  "scope_approval": {
+    "approved": "2026-09-22",
+    "binding_predicate_status": "not established",
+    "kind": "configuration-bound with explicit invalidation",
+    "note": "Supporting lemmas are partial; no deployment or complete context certificate is issued.",
+    "semantic_evidence_status": "open"
+  },
+  "status": "unproved"
+}

@@ -1,0 +1,30 @@
+{
+  "anonymousKey": "1a18a7fdbca525097e2ec579bba3a78f08b7af35",
+  "postTime": "2026-09-24T23:15:44.527218Z",
+  "zipOutputUrl": "https://prover.certora.com/v1/domain/jobs/ce131b19ecb44225af4f96385e0cc1b8/f/outputs",
+  "buildArgs": "certora/confs/Roles-delayProtection.conf --solc /Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30 --wait_for_results all",
+  "jobSource": "COMMAND",
+  "outputUrl": "https://prover.certora.com/output/99679/ce131b19ecb44225af4f96385e0cc1b8/",
+  "jarSettings": [
+    "-b",
+    "2",
+    "-contract",
+    "RolesHarness",
+    "-smt_preciseBitwiseOps",
+    "-rule",
+    "directConfiguredRejection",
+    "-ruleSanityChecks",
+    "none",
+    "-t",
+    "600",
+    "-enableStorageSplitting",
+    "false"
+  ],
+  "finishTime": "2026-09-24T23:21:07.647000Z",
+  "startTime": "2026-09-24T23:17:02.337000Z",
+  "contract": "RolesHarness",
+  "javaArgs": [],
+  "notifyMsg": "Conservative boundary negative control havoc-write-mutation",
+  "jobId": "ce131b19ecb44225af4f96385e0cc1b8",
+  "jobStatus": "SUCCEEDED"
+}

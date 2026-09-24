@@ -1,0 +1,13 @@
+{
+  "reportUrl": "https://prover.certora.com/output/99679/67f2a1be659a4f1eacb7b4dfd1507cc1?anonymousKey=ea57dd75f6fa35a569d3e0164e51cfccf79e0d4c",
+  "terminal": true,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeDirectForwarded": "ERROR",
+    "revokedSelectorCannotBeReturnDataForwarded": "ERROR",
+    "revokedSelectorCannotBeSafeForwarded": "ERROR"
+  },
+  "functionalPolicyTheoremAccepted": false,
+  "semanticClosureCertified": false,
+  "reason": "Internal prover error; an errored rule or sanity obligation is not a proof."
+}

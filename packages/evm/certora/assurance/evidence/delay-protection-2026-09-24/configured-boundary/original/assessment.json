@@ -1,0 +1,91 @@
+{
+  "collectedAt": "2026-09-24T23:31:48.318318+00:00",
+  "jobId": "082ee9fed45347319b98ee00b115674e",
+  "reportUrl": "https://prover.certora.com/output/99679/082ee9fed45347319b98ee00b115674e?anonymousKey=81babc97deeeba6fa73f5cd847202b01f318b646",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "VERIFIED",
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "returnDataConfiguredRejection": "VERIFIED",
+    "safeConfiguredRejection": "VERIFIED"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "directConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_28_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_29_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-require_not_redundant_30_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_34_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_35_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-require_not_redundant_50_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-require_not_redundant_51_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-require_not_redundant_52_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-assertion_not_tautological_56_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-assertion_not_tautological_57_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-require_not_redundant_39_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-require_not_redundant_40_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-require_not_redundant_41_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-assertion_not_tautological_45_4",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-assertion_not_tautological_46_4",
+      "status": "VERIFIED"
+    }
+  ],
+  "nonVerifiedNodes": [],
+  "retainedRuleOutputs": 24,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

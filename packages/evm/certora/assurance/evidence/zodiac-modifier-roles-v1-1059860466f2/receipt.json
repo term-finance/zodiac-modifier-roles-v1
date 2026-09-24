@@ -1,0 +1,33 @@
+{
+  "id": "zodiac-modifier-roles-v1-1059860466f2",
+  "repo": "zodiac-modifier-roles-v1",
+  "representative": "Roles-callTargetMultisend.conf",
+  "configurations": [
+    "Roles-callTargetMultisend.conf",
+    "Roles-callTargetParams.conf"
+  ],
+  "context_fingerprints": {
+    "packages/evm/certora/confs/Roles-callTargetMultisend.conf": "091e8e566adaca8036fd0401f8cbdb40762683c69d4ca82312c5394cec017353",
+    "packages/evm/certora/confs/Roles-callTargetParams.conf": "f7d6ba89155e81a754933b7b7583488fc777f5c85c8e06e124b1a4422fd45828"
+  },
+  "diagnostic_group_sha256": "1059860466f2bc85c3e528f7bd453965ec4f8b0296213b03f6b00565e78b7566",
+  "workdir": "/private/tmp/term-fv-closure-roles/runs/Roles-callTargetMultisend",
+  "command": [
+    "/private/tmp/claude-501/-Users-robert-src-term-finance/1cd2afe7-d5c4-417c-a41f-6cc9e8ead5f0/scratchpad/certora-research/venv-7.31.0/bin/certoraRun",
+    "certora/assurance/confs/Roles-callTargetMultisend.conf",
+    "--solc",
+    "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30",
+    "--smt_timeout",
+    "300",
+    "--wait_for_results",
+    "none",
+    "--msg",
+    "Dependency closure boundary audit zodiac-modifier-roles-v1-1059860466f2"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 3.52,
+  "report_urls": [
+    "https://prover.certora.com/output/99679/90609e9b0c9f4f7088108e95ca8f9eb1?anonymousKey=fbd102a1d9449ad05b565706ae62c34e33cf655a"
+  ],
+  "solver_result": "not-fetched"
+}

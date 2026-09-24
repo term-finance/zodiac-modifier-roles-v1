@@ -1,0 +1,124 @@
+{
+  "certificate_lifetime": {
+    "invalidate_on": [
+      "code-or-immutables",
+      "facet-or-proxy-routing",
+      "registry-or-admission",
+      "roles-or-authorities",
+      "initializer-or-unknown-writer",
+      "storage-layout",
+      "external-model",
+      "proof-context-or-toolchain",
+      "incomplete-history-or-reorg"
+    ],
+    "mode": "configuration-bound",
+    "reactivate_on_restored_snapshot": false,
+    "reissue_requires": "independent base, binding and semantic evidence checks",
+    "state": "unissued"
+  },
+  "context": "packages/evm/certora/confs/Roles-callTargetPermissions.conf",
+  "context_revisions": [
+    {
+      "fingerprint": "80973cfdee63642af1e435ffb0255d5962a5d6d5f1dc468584578c1fea9d4380",
+      "note": "Historical diagnostic context, before two read-only selector getters, the veto-only spec and its CI configuration."
+    },
+    {
+      "fingerprint": "aeaffbd1f74915faa13f8bb5d2b19b86dd04788e2d826c38919e8be37d923597",
+      "note": "Before exact byte-memory option for the new functional permission rule; all closure obligations remain unproved."
+    },
+    {
+      "fingerprint": "bcaacec9ee2488f8185472ddab87a7b4f27008ac35ad0b34ba1e51232e25141d",
+      "note": "Before pinning CLI 8.19.2 for the new policy rule after CLI 7.31.0 prover error; historical results are not reapproved."
+    },
+    {
+      "fingerprint": "0cebfe4e30c12a3a53b2dbcfa785dc9e84f467304ac611305db38b3a594c78c0",
+      "reason": "Accounting checker now requires sticky configuration-certificate invalidation. Functional inputs and prior diagnostic result bindings are unchanged; no proof is promoted.",
+      "status": "unproved"
+    },
+    {
+      "fingerprint": "4a31b4b869457a6bd6a1cc26e9689391a20cf7568ce47f082c12483a5491bac5",
+      "reason": "Added supporting configuration lemmas, conditional boundary context and retained-evidence CI checks. Historical results are not reapproved.",
+      "status": "unproved"
+    },
+    {
+      "fingerprint": "47041f6a924efd68e68ae8029a3d1bbb541ff9f8e4cb19d27800819dee1e31d3",
+      "reason": "Retained explicit native sanity witnesses and evidence-checker CI for the conditional boundary lemma. All full-context obligations remain open.",
+      "status": "unproved"
+    }
+  ],
+  "diagnostic": {
+    "evidence": "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json",
+    "functional_context_fingerprint_matches_submission": false,
+    "group": "zodiac-modifier-roles-v1-2bc152f14e59",
+    "job_status": "SUCCEEDED",
+    "note": "Historical diagnostic only. Harness selector getters and CI/context changed; evidence is not a proof of this current context. All closure obligations remain open.",
+    "passed": false
+  },
+  "fingerprint": "09bed5500f923a2e9ce4e14bd250faea0f1a43e2d963cc8ca4e293eea65a0197",
+  "obligations": {
+    "adequacy": {
+      "claim": "Requirements entailment, input partitions, frame conditions, witnesses and mutation results address specification strength separately.",
+      "evidence": [],
+      "status": "open"
+    },
+    "bindings": {
+      "claim": "Source/compiler/deployed code and mutable proxy, diamond, registry and role bindings match the claimed deployment scope.",
+      "evidence": [],
+      "status": "open"
+    },
+    "calls": {
+      "claim": "Compiler/bytecode call inventory and per-instance resolution reports cover typed, dynamic, library and delegate calls.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json"
+      ],
+      "status": "open"
+    },
+    "models": {
+      "claim": "Each external summary refines the real environment conservatively, including reentrancy, revert and return-data behavior.",
+      "evidence": [],
+      "status": "open"
+    },
+    "results": {
+      "claim": "Exact rule/method instances, call-resolution evidence, sanity results and tool versions are retained; no timeout or skipped instance passes.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json"
+      ],
+      "status": "open"
+    },
+    "roots": {
+      "claim": "All selectors, fallback/receive, constructors, initialization and upgrade transitions are accounted for.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json"
+      ],
+      "status": "open"
+    },
+    "scope": {
+      "claim": "Each functional rule's explored executions are included in the closure proof; filters, bounds and assumptions are justified.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json"
+      ],
+      "status": "open"
+    },
+    "targets": {
+      "claim": "Every possible receiver/selector/code/storage-context tuple is included or soundly modeled; target invariants are inductive.",
+      "evidence": [
+        "../evidence/zodiac-modifier-roles-v1-2bc152f14e59/manifest.json"
+      ],
+      "status": "open"
+    },
+    "writers": {
+      "claim": "Every writer of relevant ordinary, namespaced and transient storage, including other facets and callbacks, is covered.",
+      "evidence": [],
+      "status": "open"
+    }
+  },
+  "schema": 1,
+  "scope_approval": {
+    "approved": "2026-09-22",
+    "binding_predicate_status": "not established",
+    "kind": "configuration-bound with explicit invalidation",
+    "note": "Supporting lemmas are partial; no deployment or complete context certificate is issued.",
+    "semantic_evidence_status": "open"
+  },
+  "status": "unproved"
+}

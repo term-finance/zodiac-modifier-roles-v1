@@ -1,0 +1,41 @@
+{
+    "exitcode": 0,
+    "test_results": {
+        "certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma": [
+            {
+                "name": "check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4)",
+                "exitcode": 0,
+                "num_models": 0,
+                "models": [],
+                "num_paths": [
+                    13,
+                    7,
+                    0
+                ],
+                "time": [
+                    0.8306585839018226,
+                    0.8306405832991004,
+                    1.4540739357471466e-05
+                ],
+                "num_bounded_loops": 0
+            },
+            {
+                "name": "check_packedKeyHasExactRepresentation(address,bytes4)",
+                "exitcode": 0,
+                "num_models": 0,
+                "models": [],
+                "num_paths": [
+                    3,
+                    1,
+                    0
+                ],
+                "time": [
+                    0.0036330828443169594,
+                    0.003625708632171154,
+                    5.9586018323898315e-06
+                ],
+                "num_bounded_loops": 0
+            }
+        ]
+    }
+}

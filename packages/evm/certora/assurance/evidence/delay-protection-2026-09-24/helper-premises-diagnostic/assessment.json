@@ -1,0 +1,89 @@
+{
+  "collectedAt": "2026-09-24T23:06:29.028396+00:00",
+  "jobId": "f4ad89a7308144bc9e52a255411a05e6",
+  "reportUrl": "https://prover.certora.com/output/99679/f4ad89a7308144bc9e52a255411a05e6?anonymousKey=9ba4a3321bfb62e275167019e9c15526b7b63444",
+  "terminal": true,
+  "rootStatuses": {
+    "directConfiguredRejection": "SANITY_FAILED",
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "returnDataConfiguredRejection": "SANITY_FAILED",
+    "safeConfiguredRejection": "SANITY_FAILED"
+  },
+  "sanityStatuses": [
+    {
+      "ruleId": "directConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_34_4",
+      "status": "SANITY_FAILED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-assertion_not_tautological_52_4",
+      "status": "SANITY_FAILED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-rule_not_vacuous",
+      "status": "VERIFIED"
+    },
+    {
+      "ruleId": "safeConfiguredRejection-assertion_not_tautological_43_4",
+      "status": "SANITY_FAILED"
+    }
+  ],
+  "nonVerifiedNodes": [
+    {
+      "ruleId": "directConfiguredRejection",
+      "status": "SANITY_FAILED",
+      "errors": []
+    },
+    {
+      "ruleId": "directConfiguredRejection-assertion_not_tautological_34_4",
+      "status": "SANITY_FAILED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "The assert tautology sanity check failed. The respective assert is a tautology, i.e. is always true. See https://docs.certora.com/en/latest/docs/prover/checking/sanity.html#assert-tautology-checks"
+        }
+      ]
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection",
+      "status": "SANITY_FAILED",
+      "errors": []
+    },
+    {
+      "ruleId": "returnDataConfiguredRejection-assertion_not_tautological_52_4",
+      "status": "SANITY_FAILED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "The assert tautology sanity check failed. The respective assert is a tautology, i.e. is always true. See https://docs.certora.com/en/latest/docs/prover/checking/sanity.html#assert-tautology-checks"
+        }
+      ]
+    },
+    {
+      "ruleId": "safeConfiguredRejection",
+      "status": "SANITY_FAILED",
+      "errors": []
+    },
+    {
+      "ruleId": "safeConfiguredRejection-assertion_not_tautological_43_4",
+      "status": "SANITY_FAILED",
+      "errors": [
+        {
+          "severity": "warning",
+          "message": "The assert tautology sanity check failed. The respective assert is a tautology, i.e. is always true. See https://docs.certora.com/en/latest/docs/prover/checking/sanity.html#assert-tautology-checks"
+        }
+      ]
+    }
+  ],
+  "retainedRuleOutputs": 12,
+  "semanticClosureCertified": false,
+  "accepted": false,
+  "acceptanceReason": "Diagnostic collection only; exact context and independent evidence acceptance remain required."
+}

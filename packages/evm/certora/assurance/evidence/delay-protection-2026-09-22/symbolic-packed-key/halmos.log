@@ -1,0 +1,12 @@
+Compiling 3 files with Solc 0.8.30
+Solc 0.8.30 finished in 126.40ms
+Compiler run successful!
+
+Running 1 tests for test/PackedKeyLemma.t.sol:PackedKeyLemma
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-protection-2026-09-22/symbolic-packed-key/smt/PackedKeyLemma-constructor
+setup: 0.01s (decode: 0.01s, run: 0.00s)
+Generating SMT queries in /Users/robert/src/term-finance-simulator/.worktrees/roles-cvl-closure/packages/evm/certora/assurance/evidence/delay-protection-2026-09-22/symbolic-packed-key/smt/check_packedKeyInjective
+[32m[PASS][0m check_packedKeyInjective(address,address,bytes4,bytes4) (paths: 6, time: 0.01s (paths: 0.01s, models: 0.00s), bounds: [])
+Symbolic test result: 1 passed; 0 failed; time: 0.02s
+
+[time] total: 0.20s (build: 0.18s, load: 0.00s, tests: 0.02s)

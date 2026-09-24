@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-09-24T23:15:05.863332+00:00",
+  "command": [
+    "/private/tmp/term-certora-819-20260922/bin/certoraRun",
+    "certora/confs/Roles-delayProtection.conf",
+    "--solc",
+    "/Users/robert/.solc-select/artifacts/solc-0.8.30/solc-0.8.30",
+    "--wait_for_results",
+    "all"
+  ],
+  "credentialNames": [
+    "CERTORAKEY"
+  ],
+  "productionCredentialsLoaded": false,
+  "runnerSha256": "aadef5cde3ca4b71b3d31e38087ca65412c38420d902a2993a4beea24e9ececb",
+  "completedAt": "2026-09-24T23:30:29.394121+00:00",
+  "exitCode": 0
+}

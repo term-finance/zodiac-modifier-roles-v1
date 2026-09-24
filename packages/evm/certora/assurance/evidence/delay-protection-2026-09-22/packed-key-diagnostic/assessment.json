@@ -1,0 +1,50 @@
+{
+  "availableOutputCount": 11,
+  "functionalPolicyTheoremAccepted": false,
+  "inputComparison": {
+    "certora/confs/Roles-delayProtection.conf": {
+      "matchesCurrent": false,
+      "submittedSha256": "ae70c164c5bb83bc08094533c1e71436d19ceb217269460447c19f98f46e7188"
+    },
+    "certora/harness/RolesHarness.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "e0b22d28ab997b37a10cda53a1aa92d612ab373be6701d74733c517f68d0f2b7"
+    },
+    "certora/specs/Roles/delayProtection.spec": {
+      "matchesCurrent": false,
+      "submittedSha256": "e4aa27ea4943a49730fb38ec3089b9a86d50450b012f0f20a901aad5381b1d1c"
+    },
+    "contracts/Permissions.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "29952bcebecfa8d7cdf15c8c9c7871c7540e17cab2dab7f7024fdd7bd512e11b"
+    },
+    "contracts/Roles.sol": {
+      "matchesCurrent": true,
+      "submittedSha256": "d2721bf908bf48411a0471570f1460c4328074e26783d57fd3e9f5c3b99c73c6"
+    }
+  },
+  "jobStatus": "SUCCEEDED",
+  "reportUrl": "https://prover.certora.com/output/99679/01814fa38aaa402d88720154b0ac0d58?anonymousKey=860013bd6a075b4acb20146dd269ee83b94f9a89",
+  "retainedOutputCount": 11,
+  "rootStatuses": {
+    "envfreeFuncsStaticCheck": "VERIFIED",
+    "revokedSelectorCannotBeForwarded": "VIOLATED"
+  },
+  "sanityInstanceCount": 4,
+  "scope": "Single permission-configuration transition with explicit multisend and veto exclusions; no deployment or arbitrary-history closure.",
+  "semanticClosureCertified": false,
+  "terminal": true,
+  "uncompressedOutputSha256": {
+    "rule_output_1.json": "e4fe697bcbfad24d5456a8dae86f1f825c7814aae0a1993f790f222599e95297",
+    "rule_output_10.json": "6d401c77180d70cd6e00a5d82961c5f6ed23fdb4b6293a52c1489edab824f621",
+    "rule_output_11.json": "66addfaaeb786430896721dfcc4e546dadba1bd5f58b5c7f22aa49abb490c8d4",
+    "rule_output_2.json": "619c49d49a9be49f8a89b6cb85862572b2b0f96ff6e55732f8aa7566e147a250",
+    "rule_output_3.json": "6f8675b636a39209212091bee30af2fa2f7ed3c67f48ad8e65cd0258815148d5",
+    "rule_output_4.json": "3d2a24d1b8d77e489da444cfc17f63b7195bb59326e6fa824c8140c13f9cae3b",
+    "rule_output_5.json": "78e50ca66138268dd9fc2b84aae745c63c830a0aeb534493fe2148e83df06193",
+    "rule_output_6.json": "7b0bd003792c48c54aa1895327fb1e21892fd0f0d8e199634f9253732810f522",
+    "rule_output_7.json": "13f270021cc05efde41afc5cd04889c6788ae1f556430a9f14491690d5aaf307",
+    "rule_output_8.json": "4e7a7786c7b58fe3ed42b915cab9cb0669c309cfc274a62da724f13fbd626bf3",
+    "rule_output_9.json": "1cb40e20330be26319408444650a2234a0eb0efad9aeb08c2c9e326f4fdece0b"
+  }
+}

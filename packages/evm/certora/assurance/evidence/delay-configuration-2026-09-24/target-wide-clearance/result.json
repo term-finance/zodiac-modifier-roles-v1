@@ -1,0 +1,103 @@
+{
+    "exitcode": 1,
+    "test_results": {
+        "certora/lemmas/DelayConfiguration.t.sol:DelayConfigurationLemma": [
+            {
+                "name": "check_configurationClearsDeniedSelector(uint256,uint16,address,bytes4,bytes4,address,bytes4)",
+                "exitcode": 1,
+                "num_models": 1,
+                "models": [
+                    {
+                        "model": {
+                            "p_permitted_bytes4_ad01276_00": {
+                                "full_name": "p_permitted_bytes4_ad01276_00",
+                                "variable_name": "permitted",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 10126078323535378913034322225681122664481771370130302107053770431208011857920
+                            },
+                            "p_target_address_64279a0_00": {
+                                "full_name": "p_target_address_64279a0_00",
+                                "variable_name": "target",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 356811923176489970264571492362373784095686656
+                            },
+                            "p_observedSelector_bytes4_0dea2c4_00": {
+                                "full_name": "p_observedSelector_bytes4_0dea2c4_00",
+                                "variable_name": "observedSelector",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 77828027662064387921867290745901277910701118383270381071648566982517534490624
+                            },
+                            "p_denied_bytes4_10496b0_00": {
+                                "full_name": "p_denied_bytes4_10496b0_00",
+                                "variable_name": "denied",
+                                "solidity_type": "bytes4",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 10126078323535378913034322225681122664481771370130302107053770431208011857920
+                            },
+                            "p_observedTarget_address_10d02e0_00": {
+                                "full_name": "p_observedTarget_address_10d02e0_00",
+                                "variable_name": "observedTarget",
+                                "solidity_type": "address",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 1039349883099137912360217537865425953368462843728
+                            },
+                            "p_roleId_uint16_936d4d3_00": {
+                                "full_name": "p_roleId_uint16_936d4d3_00",
+                                "variable_name": "roleId",
+                                "solidity_type": "uint16",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            },
+                            "p_roleSlot_uint256_111b339_00": {
+                                "full_name": "p_roleSlot_uint256_111b339_00",
+                                "variable_name": "roleSlot",
+                                "solidity_type": "uint256",
+                                "smt_type": "BitVec 256",
+                                "size_bits": 256,
+                                "value": 0
+                            }
+                        },
+                        "is_valid": true
+                    }
+                ],
+                "num_paths": [
+                    7,
+                    0,
+                    0
+                ],
+                "time": [
+                    0.2002520002424717,
+                    0.1582767078652978,
+                    0.04197324998676777
+                ],
+                "num_bounded_loops": 0
+            },
+            {
+                "name": "check_packedKeyHasExactRepresentation(address,bytes4)",
+                "exitcode": 0,
+                "num_models": 0,
+                "models": [],
+                "num_paths": [
+                    3,
+                    1,
+                    0
+                ],
+                "time": [
+                    0.036360083147883415,
+                    0.03634633403271437,
+                    9.750016033649445e-06
+                ],
+                "num_bounded_loops": 0
+            }
+        ]
+    }
+}
