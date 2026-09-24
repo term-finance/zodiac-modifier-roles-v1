@@ -16,7 +16,7 @@ Pause controls
   PauseSafe (2/9) --pause-->               PauseGuard
   Admin Safe     --unpause / setPauser-->  PauseGuard
 ```
-The summation of all of the conclusions drawn from FV proofs should prove the following generalization: 
+The summation of all of the conclusions drawn from FV proofs should prove the following generalizations: 
 
 *  Every write function on every contract in the governance system above executes successfully ONLY when called by the intended address.
 
