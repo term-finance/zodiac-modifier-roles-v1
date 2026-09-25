@@ -95,6 +95,17 @@
  *                                         entry stored at the current txNonce
  *                                         and advanced txNonce by exactly one
  *
+ *   end to end: a queued entry executes, on time and only on time
+ *     queuedTransactionExecutesAfterCooldown
+ *                                         a module queues a transaction; once
+ *                                         the cooldown has passed, before it
+ *                                         expires and while not paused,
+ *                                         anyone's executeNextTx runs it and
+ *                                         it reaches the target
+ *     executeNextTxRevertsDuringCooldown  before the cooldown has passed the
+ *                                         head entry cannot run
+ *     executeNextTxRevertsAfterExpiration after it has expired it cannot run
+ *
  * Non-vacuity witness: withoutPauseGuardExecuteNextTxForwardsUnchecked (with
  * no guard installed executeNextTx forwards without any check, so the guard is
  * what does the work in the rules above).
@@ -148,6 +159,10 @@ methods {
     function guard() external returns (address) envfree;
     function target() external returns (address) envfree;
     function owner() external returns (address) envfree;
+    function isModuleEnabled(address) external returns (bool) envfree;
+    function txCooldown() external returns (uint256) envfree;
+    function txExpiration() external returns (uint256) envfree;
+    function txCreatedAt(uint256) external returns (uint256) envfree;
 
     function pauseGuardContract.paused() external returns (bool) envfree;
     function pauseGuardContract.pauser() external returns (address) envfree;
@@ -896,4 +911,100 @@ rule executeNextTxConsumesOnlyTheEntryAtTxNonce(
         "executeNextTx ran a transaction other than the entry stored at txNonce";
     assert to_mathint(txNonce()) == nonceBefore + 1,
         "executeNextTx did not advance txNonce by exactly one";
+}
+
+/* ------------------------------------------------------------------------
+ * 8. End to end: a queued entry executes, on time and only on time
+ * --------------------------------------------------------------------- */
+
+/*
+ * The functional half of the design, stated end to end on the real Delay with
+ * the real PauseGuard installed: an enabled module (the Proposer Safe) queues
+ * a transaction, time passes, and once the cooldown is over — before the
+ * entry expires, and while the guard is not paused — anyone's executeNextTx
+ * runs it and it reaches the Delay's target (the Ownerless Safe).
+ *
+ * This is an assert, not a satisfy: it holds for every such transaction, not
+ * just one the Prover picks. The queue starts empty so the new entry is the
+ * one at the head; an entry behind others runs once those ahead of it have
+ * run or been skipped, which 4.22 covers.
+ *
+ * Assumptions:
+ *   - The target accepts the call. `target` is DummyAvatar, summarized to
+ *     succeed. On chain the target is the Ownerless Safe, which returns the
+ *     inner call's success, so a transaction that itself reverts on the
+ *     Ownerless Safe makes executeNextTx revert. This rule is about the
+ *     governance path, not about whether the proposal's own call succeeds.
+ *   - Creation time + cooldown + expiration fits in a uint256. Delay adds
+ *     them under checked arithmetic, so an overflow reverts; real
+ *     timestamps and settings are nowhere near that bound.
+ *   - `data` is at most 971 bytes (hashing_length_bound, see the header).
+ */
+rule queuedTransactionExecutesAfterCooldown(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env eQueue;
+    env eExec;
+    require guard() == pauseGuardContract;
+    require target() == delayTargetContract;
+    require !pauseGuardContract.paused();
+    require !forwardedToTarget;
+    require isModuleEnabled(eQueue.msg.sender);
+    require eQueue.msg.value == 0;
+    require eExec.msg.value == 0;
+
+    require txNonce() == queueNonce();
+    require queueNonce() < max_uint256;
+
+    execTransactionFromModule(eQueue, to, value, data, operation);
+
+    uint256 createdAt = txCreatedAt(txNonce());
+    require eExec.block.timestamp >= createdAt;
+    require eExec.block.timestamp - createdAt >= txCooldown();
+    require createdAt + txCooldown() + txExpiration() <= max_uint256;
+    require txExpiration() == 0 ||
+        createdAt + txCooldown() + txExpiration() >= to_mathint(eExec.block.timestamp);
+
+    uint256 nonceBefore = txNonce();
+
+    executeNextTx@withrevert(eExec, to, value, data, operation);
+
+    assert !lastReverted,
+        "a queued transaction past its cooldown, not expired and not paused could not be executed";
+    assert forwardedToTarget,
+        "executeNextTx returned without handing the transaction to the target";
+    assert to_mathint(txNonce()) == nonceBefore + 1,
+        "executeNextTx did not advance the queue past the executed entry";
+}
+
+/*
+ * The two timing conditions are real: outside them the head entry cannot run.
+ * The pause condition is 4.15.
+ */
+rule executeNextTxRevertsDuringCooldown(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e;
+    require txNonce() < queueNonce();
+    require to_mathint(e.block.timestamp) < txCreatedAt(txNonce()) + txCooldown();
+
+    executeNextTx@withrevert(e, to, value, data, operation);
+
+    assert lastReverted,
+        "the head entry executed before its cooldown had passed";
+}
+
+rule executeNextTxRevertsAfterExpiration(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e;
+    require txNonce() < queueNonce();
+    require txExpiration() != 0;
+    require to_mathint(e.block.timestamp) >
+        txCreatedAt(txNonce()) + txCooldown() + txExpiration();
+
+    executeNextTx@withrevert(e, to, value, data, operation);
+
+    assert lastReverted,
+        "the head entry executed after it had expired";
 }

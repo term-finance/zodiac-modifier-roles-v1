@@ -61,6 +61,9 @@
  *   the ring's gatekeeper and the guard over execution
  *     ownerOnlyChangesThroughOwnableTransfer
  *     guardOnlyChangesThroughOwnerSetGuard
+ *     atMostOneCallerPassesOnlyOwner      from the same state, every
+ *                                         onlyOwner entry point admits at
+ *                                         most one caller, and it is owner()
  *
  *   an execution is not a module grant
  *     executeNextTxCannotEnableModuleThroughTheAvatar
@@ -69,6 +72,13 @@
  *                                         the hostile avatar really is
  *                                         reached and really does try, so the
  *                                         rule above is not vacuous (witness)
+ *
+ *   execution and skipping are open to anyone
+ *     anyoneCanExecuteNextTx              a caller that is neither owner nor
+ *                                         module can execute a queue entry
+ *                                         (witness)
+ *     anyoneCanSkipExpired                and can skip an expired one
+ *                                         (witness)
  *
  * Composition with the Roles specs. This file proves only that `owner` is the
  * sole route into the ring. What stops the Governor from BEING that route is
@@ -412,6 +422,59 @@ rule guardOnlyChangesThroughOwnerSetGuard(method f, calldataarg args)
         "a caller other than the owner changed the guard";
 }
 
+/*
+ * One owner at a time. From the same state, every onlyOwner entry point
+ * admits at most one caller, and the caller it admits is owner(). So there is
+ * never a second address that can act as the Delay's owner alongside the
+ * first — the authority behind every rule above is a single address, not a
+ * set.
+ *
+ * Both calls run from the same snapshot, with the same arguments, so the only
+ * thing that differs between them is msg.sender. The first assertion is the
+ * substance; the second is its consequence, stated so the claim reads as
+ * written. ownerCanEnableModule is the witness that the admitted caller
+ * really does get through, so "at most one" is not "none".
+ *
+ * The onlyOwner surface: setTxCooldown, setTxExpiration, setTxNonce
+ * (Delay.sol:117-142), setAvatar, setTarget (zodiac core/Module.sol:23, :31),
+ * enableModule, disableModule (core/Modifier.sol), setGuard
+ * (guard/Guardable.sol:17), transferOwnership, renounceOwnership
+ * (OwnableUpgradeable.sol:59, :67).
+ */
+definition isOnlyOwner(method f) returns bool =
+    f.selector == sig:DelayHarness.setTxCooldown(uint256).selector ||
+    f.selector == sig:DelayHarness.setTxExpiration(uint256).selector ||
+    f.selector == sig:DelayHarness.setTxNonce(uint256).selector ||
+    f.selector == sig:DelayHarness.setAvatar(address).selector ||
+    f.selector == sig:DelayHarness.setTarget(address).selector ||
+    f.selector == sig:DelayHarness.enableModule(address).selector ||
+    f.selector == sig:DelayHarness.disableModule(address,address).selector ||
+    f.selector == sig:DelayHarness.setGuard(address).selector ||
+    f.selector == sig:DelayHarness.transferOwnership(address).selector ||
+    f.selector == sig:DelayHarness.renounceOwnership().selector;
+
+rule atMostOneCallerPassesOnlyOwner(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env ea;
+    env eb;
+    require ea.msg.sender != eb.msg.sender;
+
+    address ownerBefore = owner();
+    storage init = lastStorage;
+
+    f@withrevert(ea, args);
+    bool aPassed = !lastReverted;
+
+    f@withrevert(eb, args) at init;
+    bool bPassed = !lastReverted;
+
+    assert aPassed => ea.msg.sender == ownerBefore,
+        "an onlyOwner entry point admitted a caller other than owner()";
+    assert !(aPassed && bPassed),
+        "two distinct callers both passed the same onlyOwner entry point from the same state";
+}
+
 /* ------------------------------------------------------------------------
  * 5. An execution is not a module grant
  * --------------------------------------------------------------------- */
@@ -478,4 +541,53 @@ rule avatarEnableModuleAttemptIsReachable(
 
     satisfy hostileAvatar.attempts() > attemptsBefore,
         "no queue entry reaches the avatar at all, so the claim-4 rule is vacuous";
+}
+
+/* ------------------------------------------------------------------------
+ * 6. Execution and skipping are open to anyone
+ * --------------------------------------------------------------------- */
+
+/*
+ * executeNextTx and skipExpired carry no access modifier (Delay.sol:200,
+ * :227). Everything else on the Delay is owner-only (5.7), module-only (5.3)
+ * or spent (5.1). These two witnesses show the exceptions really are open: a
+ * caller that is neither the owner nor an enabled module gets through, and
+ * the call does its job rather than returning as a no-op.
+ *
+ * Both are satisfy rules. They show the path exists, not that every such call
+ * succeeds; when executeNextTx must succeed is a separate claim.
+ */
+rule anyoneCanExecuteNextTx(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e;
+    require moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES();
+    require e.msg.value == 0;
+    require e.msg.sender != owner();
+    require moduleEntry(e.msg.sender) == 0;
+    require target() == hostileAvatar;
+    require hostileAvatar.delay() == currentContract;
+    require guard() == 0;
+
+    uint256 nonceBefore = txNonce();
+
+    executeNextTx@withrevert(e, to, value, data, operation);
+
+    satisfy !lastReverted && to_mathint(txNonce()) == nonceBefore + 1,
+        "a caller that is neither the owner nor a module cannot execute a queue entry";
+}
+
+rule anyoneCanSkipExpired() {
+    env e;
+    require moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES();
+    require e.msg.value == 0;
+    require e.msg.sender != owner();
+    require moduleEntry(e.msg.sender) == 0;
+
+    uint256 nonceBefore = txNonce();
+
+    skipExpired@withrevert(e);
+
+    satisfy !lastReverted && txNonce() > nonceBefore,
+        "a caller that is neither the owner nor a module cannot skip an expired entry";
 }

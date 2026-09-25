@@ -24,6 +24,7 @@ jobs:
           - "Delay-moduleIntegrity.conf"
           - "MultiSend-shortBatch.conf"
           - "MultiSend-noStorageWrite.conf"
+          - "Safe-executionPaths.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
