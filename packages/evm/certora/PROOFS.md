@@ -30,84 +30,181 @@ Only Term multisig holders can execute DEVOPS_ROLE methods subject to TERM token
 
 #### Generalization 1 — Only the proposer safe and ownerless safe may execute DEVOPS_ROLE methods, holding the governance settings constant.
 
-##### Delay Modifier
-
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G1.1 | ProposerSafe is the only module on the Delay Mod | — |
-| G1.2 | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | **FV — owner-only settings:** 5.7 `atMostOneCallerPassesOnlyOwner` ✅ passes. Only the owner can call the Delay's ten settings functions. There can only be one owner at a time. <br><br>**FV — module-only queueing:** 5.3 `queueOnlyGrowsThroughEnabledModules` ✅ passes. Only an enabled module can add a transaction to the queue.<br><br>**FV — setup is closed:** 5.1 `setUpAlwaysRevertsAfterDeployment` ✅ passes. Nobody can re-run the Delay's setup after deployment.<br><br>**FV — the two exceptions are open:** 5.8 `anyoneCanExecuteNextTx`, `anyoneCanSkipExpired` ✅ pass. An address that is neither the owner nor a module can execute a queued transaction and skip an expired one. |
-| G1.3 | A transaction queued by the Proposer Safe executes on the Ownerless Safe once the cooldown has passed, if it hasn't expired and the system isn't paused. | **FV — it executes:** 4.23 `queuedTransactionExecutesAfterCooldown` ✅ passes. Once a module has queued a transaction, and the cooldown has passed, it hasn't expired and the system isn't paused, anyone can execute it and it reaches the Ownerless Safe. Holds for every transaction, assuming the Ownerless Safe accepts the call.<br><br>**FV — not too early or too late:** 4.24 `executeNextTxRevertsDuringCooldown`, `executeNextTxRevertsAfterExpiration` ✅ pass. It cannot run before the cooldown has passed or after it has expired.<br><br>**FV — not while paused:** 4.15 `pausedBlocksExecuteNextTx` ✅ passes. It cannot run while PauseGuard is paused.<br><br>**FV — the right transaction runs:** 4.22 `executeNextTxConsumesOnlyTheEntryAtTxNonce` ✅ passes. What executes is exactly the transaction that was queued. |
-
-##### Proposer Safe
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G1.4 | ProposerSafe transactions (including ProposerSafe configuration changes) must go thru 5/11 approval. | — |
-| G1.5 | ProposerSafe has no modules. | **On-chain:** ✅ `getModulesPaginated` on the Proposer Safe (`0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28`) returns an empty list at block 26050570. |
-
-##### Ownerless Safe
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G1.6 | Ownerless Safe only has one module, the Delay Modifier. | **On-chain:** ⏳ pending migration. `getModulesPaginated` on the Ownerless Safe must return only `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` (Delay). At block 26050472 it returns `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles) and `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` (Delay). |
-| G1.7 | Only Ownerless Safe modules or 9/9 multisig approval can execute transactions using the Ownerless Safe. | — |
+| G1.1 | Only the Ownerless Safe holds the DEVOPS_ROLE required for protocol changes. | — |
+| G1.2 | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | **FV — module-only entry points can make the Safe execute to any destination:** `execTransactionFromModule`, `execTransactionFromModuleReturnData`.<br>• SE-3 `onlyEnabledModulesCanCallModuleExec` ✅ passes: only an enabled module can successfully call `execTransactionFromModule` or `execTransactionFromModuleReturnData`.<br>• SE-4 `enabledModuleCanMakeTheSafeAct` ✅ passes: an enabled module can call `execTransactionFromModule` and `execTransactionFromModuleReturnData` directly, with no owner signatures, and the Safe makes an outgoing call or delegatecall.<br><br><br>**FV — owner-only entry points can make the Safe execute to any destination:** `execTransaction`, `approveHash`.<br>• SE-6 `ownersCanMakeTheSafeAct` ✅ passes: once the threshold is passed, `execTransaction` succeeds and the Safe acts, for any threshold and any number of owners.<br>• SE-5 `execTransactionRunsOnlyAfterTheSignatureCheck` ✅ passes: `execTransaction` only runs once the signature check has passed for that exact transaction.<br>• SE-12 `eachSignatureAcceptsANewApprovingOwner` ✅ passes: every signature the check accepts is a different owner who approved it. With SE-5, the Safe acts through `execTransaction` only when as many different owners as the threshold have approved.<br>• SE-8 `onlyOwnersCanApproveHashes` ✅ passes: `approveHash` only records an owner's own approval, which then counts as that owner's signature in `execTransaction`.<br><br>**FV — settings functions are only reached through the module-only or owner-only points:**<br><br>• SE-7 `settingsOnlyChangeWhenTheSafeCallsItself` ✅ passes: these only change a setting when the caller is the Safe itself.<br>• SC-4 `settingsOnlyChangeThroughAModuleOrOwners` ✅ passes: over every write function, `fallback` included, a setting only changes through an enabled module's `execTransactionFromModule` or `execTransactionFromModuleReturnData`, or through `execTransaction`. A fallback handler is checked as if it were the Safe itself, so it cannot reach these functions even then.<br>• SC-1 `moduleCanChangeSettings`, SC-2 `moduleCanChangeSettingsWithReturnData` ✅ pass: for each function above, a module's `execTransactionFromModule`, and likewise its `execTransactionFromModuleReturnData`, addressed to the Safe with a call to that function, succeeds and changes a setting.<br>• SC-3 `ownersCanChangeSettings` ✅ passes: the same through `execTransaction`, once the threshold is passed.<br><br>**FV — Any address can call any unsupported Safe function to initiate `fallback`, which can only make the Safe execute to Fallback Handler address if set to nonzero address:** <br>• SE-14 `fallbackOnlyCallsItsHandler` ✅ passes: with a handler set, `fallback` only makes a plain call, with no ETH, to the handler. It never delegatecalls, so the handler's code runs as its own contract, not as the Safe, and cannot write the Safe's storage. Assumes the handler is not the Safe itself: v1.3.0 allows that (v1.4.0 forbids it, GS400), and then `fallback` calls back into the Safe as the Safe. That case is covered by SE-16.<br>• SE-16 `selfHandlerFallbackChangesNothing` ✅ passes: with the Safe set as its own handler, `fallback` leaves the Safe's storage exactly as it was, and when it succeeds the Safe called nothing but itself, sent no ETH and made no delegatecall. Why: with 4+ bytes of calldata the inner call selects the same unmatched function and lands in `fallback` again, looping until it runs out and reverts; with 1–3 bytes the caller's appended address completes a new selector, but the inner call has only 21–23 bytes of calldata, so any function taking an argument fails ABI decoding and every function taking none is a view (`getThreshold`, `getOwners`, `getChainId`, `domainSeparator`, `nonce`, `VERSION`). So `fallback` either reverts or returns a view's answer. Only the Safe can set its handler (SE-7), and the Proposer Safe has none.<br>• SE-13 `fallbackMakesNoCallWithoutAHandler` ✅ passes: with no handler set (the zero address), `fallback` makes no call or delegatecall at all.<br>• SE-15 `fallbackHandlerCallsComeFromTheHandler` ✅ passes: once `fallback` calls its handler, every call the handler makes has the handler, not the Safe, as `msg.sender`. Checked with a real handler contract in the Safe's handler slot that makes a call onward, recording who it came from. The handler therefore cannot execute as the Safe to any address. Assumes the handler is not the Safe itself; that case is SE-16.<br>• A handler can only be set by the Safe itself (SE-7), and the Proposer Safe's handler slot is empty on-chain (block 26056133), so on the Proposer Safe `fallback` does nothing (SE-13).<br><br>**FV — anyone can trigger `receive` by sending Eth without calldata and it does nothing but  emits `SafeReceived`:**<br>• SE-17 `receiveOnlyEmitsSafeReceived` ✅ passes: whenever `receive` runs, it does nothing beyond the event. It emits exactly one log, `SafeReceived`, naming the caller as sender. It makes no call of any kind (call, delegatecall, staticcall or callcode) and writes no storage.<br>• SE-18 `receiveCanRun` ✅ passes: some call to the Safe succeeds and emits `SafeReceived`, so SE-17 is not vacuous.<br><br>**FV — setup is consumed:** SE-9 `setupAlwaysRevertsAfterSetup` ✅ passes. Once the Safe is set up, `setup` always reverts, so nobody can re-run it to replace the owners, threshold, modules or handler.<br><br>**FV — `requiredTxGas` and `simulateAndRevert` always revert:** SE-10 `requiredTxGasAlwaysReverts`, SE-11 `simulateAndRevertAlwaysReverts` ✅ pass. Anyone can call them, and they do execute a call (`requiredTxGas`) or delegatecall (`simulateAndRevert`), but they always revert afterwards, so nothing they do stands.<br><br>**FV — every entry point is covered:** SE-1 `safeEntryPointsAreAllAccountedFor` ✅ passes. Safe v1.3.0 has no write functions besides these sixteen entry points, and any other call lands in `fallback`. Grouped by who can call each one:<br><br>*Module entry points:*<br>• `execTransactionFromModule` — enabled modules only (SE-3 `onlyEnabledModulesCanCallModuleExec`)<br>• `execTransactionFromModuleReturnData` — enabled modules only (SE-3)<br><br>*Owner entry points:*<br>• `execTransaction` — owners only: needs as many different owners as the threshold to approve that exact transaction (SE-5 `execTransactionRunsOnlyAfterTheSignatureCheck`, SE-12 `eachSignatureAcceptsANewApprovingOwner`)<br>• `approveHash` — owners only, and only their own approval, which then counts as that owner's signature in `execTransaction` (SE-8 `onlyOwnersCanApproveHashes`)<br><br>*Self calls — only modules and owners can reach these:*<br>• `enableModule`, `disableModule`, `addOwnerWithThreshold`, `removeOwner`, `swapOwner`, `changeThreshold`, `setGuard`, `setFallbackHandler` — only the Safe itself can call these (SE-7 `settingsOnlyChangeWhenTheSafeCallsItself`), and a setting only changes through a module entry point or `execTransaction` (SC-4 `settingsOnlyChangeThroughAModuleOrOwners`).<br><br>*Neither path — nobody can use these to make the Safe act:*<br>• `setup` — nobody after setup: it always reverts once the Safe is set up (SE-9 `setupAlwaysRevertsAfterSetup`)<br>• `requiredTxGas` — anyone can call, but it always reverts, so the call it makes never stands (SE-10 `requiredTxGasAlwaysReverts`)<br>• `simulateAndRevert` — anyone can call, but it always reverts, so the delegatecall it makes never stands (SE-11 `simulateAndRevertAlwaysReverts`)<br>• `fallback` / `receive` — anyone can call, but at most the Safe calls its fallback handler, with no ETH, and never any other address (SE-14), and nothing with no handler set (SE-13). A handler can only be set by the Safe itself (SE-7), and the Proposer Safe has none (on-chain above)<br>|
+| G1.3 | OwnerlessSafe fallback handler is `address(0)`. | — |
+| G1.4 | Delay Module is the only enabled module on OwnerlessSafe. | — |
+| G1.5 | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | **FV — owner-only settings:** DM-8 `atMostOneCallerPassesOnlyOwner` ✅ passes. Only the owner can call the Delay's ten settings functions. There can only be one owner at a time. <br><br>**FV — module-only queueing:** DM-4 `queueOnlyGrowsThroughEnabledModules` ✅ passes. Only an enabled module can add a transaction to the queue.<br><br>**FV — setup is closed:** DM-1 `setUpAlwaysRevertsAfterDeployment` ✅ passes. Nobody can re-run the Delay's setup after deployment.<br><br>**FV — the two exceptions are open:** DM-11 `anyoneCanExecuteNextTx`, DM-12 `anyoneCanSkipExpired` ✅ pass. An address that is neither the owner nor a module can execute a queued transaction and skip an expired one.<br><br>**FV — every other function, checked all at once:** DM-14 `onlyModulesOrOwnerCanCallDelay` ✅ passes. For every write function except `executeNextTx`, `skipExpired` and `setUp`, a call that succeeds came from the owner or an enabled module. It does not rely on a list of names, so it also covers any function added later.<br><br>**FV — the list is complete:** DM-13 `delayWriteFunctionsAreTheKnownFifteen` ✅ passes. The Delay has no fallback and exactly fifteen write functions, each covered above:<br>• `setTxCooldown` — owner only (DM-8)<br>• `setTxExpiration` — owner only (DM-8)<br>• `setTxNonce` — owner only (DM-8)<br>• `setAvatar` — owner only (DM-8)<br>• `setTarget` — owner only (DM-8)<br>• `enableModule` — owner only (DM-8)<br>• `disableModule` — owner only (DM-8)<br>• `setGuard` — owner only (DM-8)<br>• `transferOwnership` — owner only (DM-8)<br>• `renounceOwnership` — owner only (DM-8)<br>• `execTransactionFromModule` — modules only (DM-4)<br>• `execTransactionFromModuleReturnData` — modules only (DM-4)<br>• `executeNextTx` — anyone (DM-11)<br>• `skipExpired` — anyone (DM-12)<br>• `setUp` — nobody after deployment (DM-1) |
+| G1.6 | ProposerSafe is the only module on the Delay Mod | — |
+| G1.7 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2: the Proposer Safe runs the same GnosisSafe v1.3.0 code as the Ownerless Safe. |
+| G1.8 | ProposerSafe has no fallback handler. | **On-chain:** ✅ the fallback handler slot (`0x6c9a6c4a39284e37ed1cf53d337577d14212a4870fb976a4366c693b939918d5`, `FallbackManager.sol:12`) on the Proposer Safe (`0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28`) is zero at block 26056133. |
+| G1.9 | ProposerSafe has no modules. | **On-chain:** ✅ `getModulesPaginated` on the Proposer Safe (`0xd5E12854A3Dba99deF295A7635D3Ba16427d2A28`) returns an empty list at block 26050570. |
+| G1.10 | A transaction queued by the Proposer Safe executes on the Ownerless Safe once the cooldown has passed, if it hasn't expired, the system isn't paused, and it hasn't been vetoed. | **FV — transaction executes:** DP-29 `queuedTransactionExecutesAfterCooldown` ✅ passes. Once a module has queued a transaction, and the cooldown has passed, it hasn't expired and the system isn't paused, anyone can execute it and it reaches the Ownerless Safe. Holds for every transaction, assuming the Ownerless Safe accepts the call.<br><br>**FV — transaction cannot execute too early or too late:** DP-30 `executeNextTxRevertsDuringCooldown`, DP-31 `executeNextTxRevertsAfterExpiration` ✅ pass. It cannot run before the cooldown has passed or after it has expired.<br><br>**FV — transaction cannot be executed while paused:** DP-18 `pausedBlocksExecuteNextTx` ✅ passes. It cannot run while PauseGuard is paused.<br><br>**FV — Only the transaction at the current txNonce executes:** DP-28 `executeNextTxConsumesOnlyTheEntryAtTxNonce` ✅ passes. What executes is exactly the transaction that was queued.<br><br>**FV — transaction cannot be executed once vetoed:** DP-32 `vetoedTransactionCannotExecute`, DP-33 `entryPassedByTxNonceNeverExecutes` ✅ pass. Once `txNonce` has moved past a proposal's nonce, it can never be executed. A proposal is vetoed by moving `txNonce` past it with `setTxNonce`. |
 
 #### Generalization 2 — Only TERM token holders and Term multisig holders may veto Delay modifier transactions, holding the governance settings constant
 
-##### Delay Modifier
-
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G2.1 | DelayMod only has one owner, which is the DelayOwnerSafe | **FV — one owner:** 5.7 `atMostOneCallerPassesOnlyOwner` ✅ passes. The Delay has only one owner: at any moment, only one address can change the Delay's settings, and it is the address recorded as the owner. No second address can ever do it alongside it.<br><br>**On-chain — owner is DelayOwnerSafe:** ⏳ pending migration. `owner()` on the Delay must return `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3`. At block 26049693 it returns `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles). |
-
-##### DelayOwnerSafe
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G2.2 | DelayOwnerSafe only has one module, the Roles Modifier | — |
-
-##### Governor
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G2.3 | Governor module successfully executes `Delay.setTxNonce(uint256)` through Roles Modifier. | — |
-| G2.4 | A Governor proposal to call `Delay.setTxNonce(uint256)` through the Roles Modifier can be successfully proposed and, once it passes vote, successfully executed. | — |
+| G2.1 | Veto power (`setTxNonce(uint256)`) is held exclusively by the owner of the DelayMod. | — |
+| G2.2 | DelayMod only has one owner, which is the DelayOwnerSafe. | **FV — one owner:** DM-8 `atMostOneCallerPassesOnlyOwner` ✅ passes. The Delay has only one owner: at any moment, only one address can change the Delay's settings, and it is the address recorded as the owner. No second address can ever do it alongside it.<br><br>**On-chain — owner is DelayOwnerSafe:** ⏳ pending migration. `owner()` on the Delay must return `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3`. At block 26049693 it returns `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` (old Roles). |
+| G2.3 | Only Modules or Owners can interact with DelayOwnerSafe. | — |
+| G2.4 | DelayOwnerSafe fallback handler is `address(0)`. | — |
+| G2.5 | DelayOwnerSafe only has one module, the Roles Modifier | — |
+| G2.6 | Only Modules with assignedRoles or Owners can interact with Roles Modifier. | — |
+| G2.7 | The Governor  is the only module of the Roles Modifier with an assignedRole. | — |
+| G2.8 | The Governor  is assigned only role 1, its defaultRole. | — |
+| G2.9 | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetos. | — |
+| G2.10 | TERM Token holders can create a Governor proposal to veto, and once it passes vote, successfully execute. | — |
 
 #### Generalization 3 — Governance settings cannot be changed other than by the ownerless safe, proposer safe, or DelayModOwner safe
 
-##### Delay Modifier
+##### Ownerless Safe
+
+Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
+
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `addOwnerWithThreshold(address,uint256)`
+- `removeOwner(address,address,uint256)`
+- `swapOwner(address,address,address)`
+- `changeThreshold(uint256)`
+- `setGuard(address)`
+- `setFallbackHandler(address)`
+- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.1 | Delay Modifier `setTxCooldown(uint256)`, which sets the cooldown a queued transaction must wait before it can execute, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.2 | Delay Modifier `setTxExpiration(uint256)`, which sets how long a queued transaction stays executable after its cooldown, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.3 | Delay Modifier `setAvatar(address)`, which sets the Delay's avatar, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.4 | Delay Modifier `setTarget(address)`, which sets the Safe that queued transactions execute on, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.5 | Delay Modifier `enableModule(address)`, which adds a module that can queue transactions, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.6 | Delay Modifier `disableModule(address,address)`, which removes a module that can queue transactions, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.7 | Delay Modifier `setGuard(address)`, which sets the guard checked on every execution (PauseGuard), can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.8 | Delay Modifier `transferOwnership(address)`, which hands ownership of the Delay to a new address, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
-| G3.9 | Delay Modifier `renounceOwnership()`, which sets the Delay's owner to the zero address, can only be called by the DelayOwnerSafe. A DelayOwnerSafe call requires either (1) 5/11 DelayOwnerSafe signer approval, or (2) execution from the Roles Modifier, its only module. The Roles Modifier can only do this after SetTxNonceGuard is removed **and** the Roles scope is changed, which requires (a) 9/9 Ownerless Safe approval or (b) a 5/11 Proposer Safe proposal through the Delay Modifier. | — |
+| G3.OwnerlessSafe.1 | Only Modules or Owners can succesfully execute  OwnerlessSafe settings functions. | 
+| G3.OwnerlessSafe.2 | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
+| G3.OwnerlessSafe.3 | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
+| G3.OwnerlessSafe.4 | DelayMod only has one owner, which is the DelayOwnerSafe. | Same as G2.2. |
+| G3.OwnerlessSafe.5 | ProposerSafe is the only module on the Delay Mod | Same as G1.6. |
+| G3.OwnerlessSafe.6 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
+| G3.OwnerlessSafe.7 | ProposerSafe has no fallback handler. | Same as G1.8. |
+| G3.OwnerlessSafe.8 | ProposerSafe has no modules. | Same as G1.9. |
+| G3.OwnerlessSafe.9 | The Proposer Safe, or any module the DelayOwnerSafe enables on the Delay Modifier, can propose a transaction that modifies the Ownerless Safe. It executes on the Ownerless Safe once the cooldown has passed, if it hasn't expired, the system isn't paused, and it hasn't been vetoed. | — |
+
+##### Delay Modifier
+
+Settings functions (zodiac-modifier-delay v1.0.1; `onlyOwner`):
+
+- `setTxCooldown(uint256)`
+- `setTxExpiration(uint256)`
+- `setAvatar(address)`
+- `setTarget(address)`
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `setGuard(address)`
+- `transferOwnership(address)`
+- `renounceOwnership()`
+- `setUp(bytes)`, one-time initializer: always reverts after deployment
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.DelayModifier.1 | Only Owner can sucessfully execute Delay Modifier settings functions. |  |
+| G3.DelayModifier.2 | DelayMod only has one owner, which is the DelayOwnerSafe. | Same as G2.2. |
+| G3.DelayModifier.3 | Only Modules or Owners can interact with DelayOwnerSafe. | Same as G2.3. |
+| G3.DelayModifier.4 | DelayOwnerSafe fallback handler is `address(0)`. | Same as G2.4. |
+| G3.DelayModifier.5 | DelayOwnerSafe only has one module, the Roles Modifier | Same as G2.5. |
+| G3.DelayModifier.6 | Only Modules with assignedRoles or Owners can interact with Roles Modifier. | Same as G2.6. |
+| G3.DelayModifier.7 | The Governor  is the only module of the Roles Modifier with an assignedRole. | Same as G2.7. |
+| G3.DelayModifier.8 | The Governor  is assigned only role 1, its defaultRole. | Same as G2.8. |
+| G3.DelayModifier.9 | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetos. | Same as G2.9. |
+| G3.DelayModifier.10 | Roles Modifier settings changes trace back to the Ownerless Safe and Proposer Safe. | Same as G3.RolesModifier. |
+
+##### Proposer Safe
+
+Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
+
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `addOwnerWithThreshold(address,uint256)`
+- `removeOwner(address,address,uint256)`
+- `swapOwner(address,address,address)`
+- `changeThreshold(uint256)`
+- `setGuard(address)`
+- `setFallbackHandler(address)`
+- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.ProposerSafe.1 | Only Modules or Owners can successfully execute ProposerSafe settings fucntions. | Same as G1.7. |
+| G3.ProposerSafe.2 | ProposerSafe has no fallback handler. | Same as G1.8. |
+| G3.ProposerSafe.3 | ProposerSafe has no modules. | Same as G1.9. |
 
 ##### DelayOwnerSafe
 
+Settings functions (Safe v1.4.1; only the Safe itself can call them):
+
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `addOwnerWithThreshold(address,uint256)`
+- `removeOwner(address,address,uint256)`
+- `swapOwner(address,address,address)`
+- `changeThreshold(uint256)`
+- `setGuard(address)`
+- `setFallbackHandler(address)`
+- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
+
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.10 | DelayOwnerSafe can only be changed by signers or modules | — |
-| G3.11 | Besides `Delay.setTxNonce`, DelayOwnerSafe transactions (including DelayOwnerSafe configurations), can either go thru 5/11 approval (DelayOwnerSafe signers) or be executed from the Roles mod iff SetTxNonceGuard is removed and Roles scope changed. Roles mod configuration changes must go thru 9/9 approval on ownerless safe or be proposed by 5/11 proposer safe to Delay Modifier. | — |
+| G3.DelayOwnerSafe.1 | Only modules or owners can successfully execute DelayOwnerSafe settings functions.| — |
+| G3.DelayOwnerSafe.2 | DelayOwnerSafe only has one module, the Roles Modifier | Same as G2.5. |
+| G3.DelayOwnerSafe.3 | Only Modules with assignedRoles or Owners can interact with Roles Modifier. | Same as G2.6. |
+| G3.DelayOwnerSafe.4 | The Governor  is the only module of the Roles Modifier with an assignedRole. | Same as G2.7. |
+| G3.DelayOwnerSafe.5 | The Governor  is assigned only role 1, its defaultRole. | Same as G2.8. |
+| G3.DelayOwnerSafe.6 | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetos. | Same as G2.9. |
+| G3.DelayOwnerSafe.7 | Roles Modifier settings changes trace back to the Ownerless Safe and Proposer Safe. | Same as G3.RolesModifier. |
 
 ##### Roles Modifier
 
+Settings functions (Roles v1.0.0; `onlyOwner`):
+
+- `setMultisend(address)`
+- `allowTarget(uint16,address,ExecutionOptions)`
+- `revokeTarget(uint16,address)`
+- `scopeTarget(uint16,address)`
+- `scopeAllowFunction(uint16,address,bytes4,ExecutionOptions)`
+- `scopeRevokeFunction(uint16,address,bytes4)`
+- `scopeFunction(uint16,address,bytes4,bool[],ParameterType[],Comparison[],bytes[],ExecutionOptions)`
+- `scopeFunctionExecutionOptions(uint16,address,bytes4,ExecutionOptions)`
+- `scopeParameter(uint16,address,bytes4,uint256,ParameterType,Comparison,bytes)`
+- `scopeParameterAsOneOf(uint16,address,bytes4,uint256,ParameterType,bytes[])`
+- `unscopeParameter(uint16,address,bytes4,uint8)`
+- `assignRoles(address,uint16[],bool[])`
+- `setDefaultRole(address,uint16)`
+- `setAvatar(address)`
+- `setTarget(address)`
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `setGuard(address)`
+- `transferOwnership(address)`
+- `renounceOwnership()`
+- `setUp(bytes)`, one-time initializer: reverts once initialized
+
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.12 | To change roles modifier settings requires a proposal from the 5/11 proposer safe or 9/9 approval ownerless safe or 5/11 delayowner safe enabling a module on delay modifier, which requires 5/11 signers on delayOwnerSafe or any enabled module (there is only one module Roles modifier which can only call Delay.setTxNonce). | — |
-| G3.13 | Roles Modifier configuration changes can either go thru 9/9 Ownerless Safe approval or be proposed by the 5/11 proposer multisig safe to the Delay modifier. | — |
+| G3.RolesModifier.1 | Only Owner can successfully execute Roles Modifier settings functions. | Same as Premise 13. |
+| G3.RolesModifier.2 | Roles Modifier only has one owner, which is the Ownerless Safe. | — |
+| G3.RolesModifier.3 | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
+| G3.RolesModifier.4 | OwnerlessSafe fallback handler is `address(0)`. | Same as G1.3. |
+| G3.RolesModifier.5 | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
+| G3.RolesModifier.6 | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
+| G3.RolesModifier.7 | DelayMod only has one owner, which is the DelayOwnerSafe. | Same as G2.2. |
+| G3.RolesModifier.8 | ProposerSafe is the only module on the Delay Mod | Same as G1.6. |
+| G3.RolesModifier.9 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
+| G3.RolesModifier.10 | ProposerSafe has no fallback handler. | Same as G1.8. |
+| G3.RolesModifier.11 | ProposerSafe has no modules. | Same as G1.9. |
 
 ##### Governor
 
+Settings functions: none. TermFinanceGovernor (OpenZeppelin Governor v5.0.2, `GovernorVotes` + `GovernorCountingSimple`) is non-upgradeable. `votingDelay`, `votingPeriod`, `proposalThreshold` and the quorum fraction are constants compiled into its bytecode, and the token is immutable. `GovernorSettings`, `GovernorVotesQuorumFraction` and `GovernorTimelockControl` are not inherited, so there is no setter.
+
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.14 | Governor configuration changes are not possible. | — |
+| G3.Governor.1 | Governor configuration changes are not possible. | — |
 
 Following conclusions must be covered by the premises proved:
 
@@ -342,7 +439,7 @@ Not proved here: that Roles is the DelayOwnerSafe's **only** enabled module (a d
 
 ### What the evidence looks like
 
-- **87 rules, 63 lemmas, 10 confs.** The Delay and Roles scenes use the real mastercopies, not
+- **103 rules, 71 lemmas, 11 confs.** The Delay and Roles scenes use the real mastercopies, not
   models. The two harnesses ([`DelayHarness`](harness/DelayHarness.sol),
   [`RolesHarness`](harness/RolesHarness.sol)) add view getters over internal storage and no logic.
 - **The bounding lemmas are stated four times each**, once per execution entry point.
@@ -429,13 +526,131 @@ Sources:
 | [`confs/Roles-setTxNonceLands.conf`](confs/Roles-setTxNonceLands.conf) | [`specs/Roles/setTxNonceLands.spec`](specs/Roles/setTxNonceLands.spec) | Roles + SetTxNonceGuard + Roles Scope Config, `target` linked to `ForwardingAvatar`, Delay in scene | 3 | 1.4–1.6 |
 | [`confs/Roles-setTxNonceGuardSufficient.conf`](confs/Roles-setTxNonceGuardSufficient.conf) | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) | Roles + SetTxNonceGuard, Roles configuration left unconstrained | 7 | 2.1–2.4 |
 | [`confs/Roles-setTxNonceRoleConfigSufficient.conf`](confs/Roles-setTxNonceRoleConfigSufficient.conf) | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) | Roles + setTxNonce Roles configuration, no guard installed | 15 (5 not yet run) | 3.1–3.7 |
-| [`confs/Delay-pauseGuardSufficient.conf`](confs/Delay-pauseGuardSufficient.conf) | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) | Delay + PauseGuard installed via `Guardable.setGuard` | 31 | 4.1–4.24 |
-| [`confs/Delay-moduleIntegrity.conf`](confs/Delay-moduleIntegrity.conf) | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) | Delay via `DelayHarness`, `target` linked to `ReenteringAvatar` | 12 | 5.1–5.8 |
+| [`confs/Delay-pauseGuardSufficient.conf`](confs/Delay-pauseGuardSufficient.conf) | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) | Delay + PauseGuard installed via `Guardable.setGuard` | 33 | 4.1–4.25 |
+| [`confs/Delay-moduleIntegrity.conf`](confs/Delay-moduleIntegrity.conf) | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) | Delay via `DelayHarness`, `target` linked to `ReenteringAvatar` | 14 | 5.1–5.9 |
 | [`confs/Roles-configIntegrity.conf`](confs/Roles-configIntegrity.conf) | [`specs/Roles/configIntegrity.spec`](specs/Roles/configIntegrity.spec) | Roles + SetTxNonceGuard, configuration left unconstrained | 4 | 6.1–6.3 |
 | [`confs/MultiSend-shortBatch.conf`](confs/MultiSend-shortBatch.conf) | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) | MultiSendCallOnly alone, vendored verbatim from `@gnosis.pm/safe-contracts` | 5 (1 not yet run) | 7.1–7.5 |
 | [`confs/MultiSend-noStorageWrite.conf`](confs/MultiSend-noStorageWrite.conf) | [`specs/MultiSend/shortBatchWritesNoStorage.spec`](specs/MultiSend/shortBatchWritesNoStorage.spec) | MultiSendCallOnly, storage splitting disabled | 1 (not yet run) | 7.6 |
-| [`confs/Safe-executionPaths.conf`](confs/Safe-executionPaths.conf) | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) | GnosisSafe v1.3.0 via `GnosisSafeHarness` | 3 (3 not yet run) | 8.1–8.3 |
-| | | **total** | **87** | **63** |
+| [`confs/Safe-executionPaths.conf`](confs/Safe-executionPaths.conf) | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) | GnosisSafe v1.3.0 via `GnosisSafeHarness`, solc 0.7.6 | 14 (3 not yet run) | 8.1–8.8 |
+| [`confs/Safe-selfCalls.conf`](confs/Safe-selfCalls.conf) | [`specs/Safe/selfCalls.spec`](specs/Safe/selfCalls.spec) | GnosisSafe v1.3.0 via `GnosisSafeHarness`, solc 0.7.6, the Safe's call to itself dispatched to its settings functions | 4 | 8.9 |
+| | | **total** | **104** | **71** |
+
+### Rule IDs
+
+The evidence in section 1 cites rules by ID: the conf's code, then the rule's position in its spec. `RG` = `Roles-setTxNonceGuardAndRoleConfig`, `RL` = `Roles-setTxNonceLands`, `RS` = `Roles-setTxNonceGuardSufficient`, `RC` = `Roles-setTxNonceRoleConfigSufficient`, `RI` = `Roles-configIntegrity`, `DP` = `Delay-pauseGuardSufficient`, `DM` = `Delay-moduleIntegrity`, `MS` = `MultiSend-shortBatch`, `MN` = `MultiSend-noStorageWrite`, `SE` = `Safe-executionPaths`, `SC` = `Safe-selfCalls`.
+
+| ID | Rule | Spec |
+| --- | --- | --- |
+| RG-1 | `governorSucceedsOnlyThroughRolesExecEntryPoints` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RG-2 | `governorExecTransactionWithRoleLimitedToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RG-3 | `governorExecTransactionFromModuleLimitedToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RG-4 | `governorExecTransactionWithRoleReturnDataLimitedToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RG-5 | `governorExecTransactionFromModuleReturnDataLimitedToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RG-6 | `governorCanStillCallDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardAndRoleConfig.spec`](specs/Roles/setTxNonceGuardAndRoleConfig.spec) |
+| RL-1 | `governorSetTxNonceLandsWhenDelayAccepts` | [`specs/Roles/setTxNonceLands.spec`](specs/Roles/setTxNonceLands.spec) |
+| RL-2 | `governorSetTxNonceOutsideDelayBoundsDoesNotLand` | [`specs/Roles/setTxNonceLands.spec`](specs/Roles/setTxNonceLands.spec) |
+| RL-3 | `setTxNonceDoesNotLandUnlessTargetOwnsDelay` | [`specs/Roles/setTxNonceLands.spec`](specs/Roles/setTxNonceLands.spec) |
+| RS-1 | `setTxNonceGuardLimitsExecTransactionWithRoleToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-2 | `setTxNonceGuardLimitsExecTransactionFromModuleToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-3 | `setTxNonceGuardLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-4 | `setTxNonceGuardLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-5 | `setTxNonceGuardLimitsToDelaySetTxNonceUnderMaximallyPermissiveRoles` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-6 | `setTxNonceGuardRejectsMultisendTarget` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RS-7 | `withoutSetTxNonceGuardPermissiveRolesAllowNonDelayCall` | [`specs/Roles/setTxNonceGuardSufficient.spec`](specs/Roles/setTxNonceGuardSufficient.spec) |
+| RC-1 | `roleConfigLimitsExecTransactionWithRoleToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-2 | `roleConfigLimitsExecTransactionFromModuleToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-3 | `roleConfigLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-4 | `roleConfigLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-5 | `nonMemberExecTransactionWithRoleAlwaysReverts` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-6 | `roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-7 | `withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-8 | `roleConfigLimitsTwoEntryMultisendToDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-9 | `shortMultisendBlobSkipsEveryEntryCheck` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-10 | `checkTransactionAdmitsOnlyDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-11 | `checkTransactionStillAdmitsDelaySetTxNonce` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-12 | `roleConfigDoesNotStopValueLeavingOnMultisendBranch` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-13 | `optionsSendLetsValueThrough` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-14 | `optionsDelegateCallLetsDelegateCallThrough` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RC-15 | `optionsBothLetsValueAndDelegateCallThrough` | [`specs/Roles/setTxNonceRoleConfigSufficient.spec`](specs/Roles/setTxNonceRoleConfigSufficient.spec) |
+| RI-1 | `setUpAlwaysRevertsAfterDeployment` | [`specs/Roles/configIntegrity.spec`](specs/Roles/configIntegrity.spec) |
+| RI-2 | `rolesConfigOnlyChangesThroughOwner` | [`specs/Roles/configIntegrity.spec`](specs/Roles/configIntegrity.spec) |
+| RI-3 | `ownerOnlyChangesThroughOwnableTransfer` | [`specs/Roles/configIntegrity.spec`](specs/Roles/configIntegrity.spec) |
+| RI-4 | `ownerCanStillReconfigure` | [`specs/Roles/configIntegrity.spec`](specs/Roles/configIntegrity.spec) |
+| DP-1 | `setGuardInstallsPauseGuard` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-2 | `pauseGuardAnswersIGuardInterfaceId` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-3 | `pauseRevertsForAnyoneButThePauser` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-4 | `adminAloneCannotPause` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-5 | `pauseSucceedsForThePauser` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-6 | `unpauseRevertsWithoutAdminRole` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-7 | `pauserAloneCannotUnpause` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-8 | `unpauseSucceedsForAdminRole` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-9 | `pausedOnlyChangesThroughPauseOrUnpause` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-10 | `setPauserRevertsWithoutAdminRole` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-11 | `setPauserSetsThePauser` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-12 | `renounceRoleAlwaysReverts` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-13 | `inheritedGrantAndRevokeAlwaysRevert` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-14 | `pauserOnlyChangesThroughSetPauser` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-15 | `adminRoleNeverChanges` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-16 | `defaultAdminRoleNeverGranted` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-17 | `roleAdminWiringNeverChanges` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-18 | `pausedBlocksExecuteNextTx` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-19 | `checkTransactionRevertsWhilePaused` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-20 | `unpauseReopensExecuteNextTx` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-21 | `checkTransactionAcceptsWhileNotPaused` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-22 | `ownerCanSetTxNonceWhilePaused` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-23 | `pausedBlocksExecuteNextTxWhileOwnerCanStillSetTxNonce` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-24 | `executeNextTxStillBlockedAfterSetTxNonceDuringPause` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-25 | `executeNextTxAfterSetTxNonceReopensOnUnpause` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-26 | `withoutPauseGuardExecuteNextTxForwardsUnchecked` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-27 | `txNonceNeverDecreases` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-28 | `executeNextTxConsumesOnlyTheEntryAtTxNonce` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-29 | `queuedTransactionExecutesAfterCooldown` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-30 | `executeNextTxRevertsDuringCooldown` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-31 | `executeNextTxRevertsAfterExpiration` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-32 | `vetoedTransactionCannotExecute` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DP-33 | `entryPassedByTxNonceNeverExecutes` | [`specs/Delay/pauseGuardSufficient.spec`](specs/Delay/pauseGuardSufficient.spec) |
+| DM-1 | `setUpAlwaysRevertsAfterDeployment` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-2 | `modulesOnlyChangeThroughOwnerEnableOrDisable` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-3 | `ownerCanEnableModule` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-4 | `queueOnlyGrowsThroughEnabledModules` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-5 | `enabledModuleCanQueue` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-6 | `ownerOnlyChangesThroughOwnableTransfer` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-7 | `guardOnlyChangesThroughOwnerSetGuard` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-8 | `atMostOneCallerPassesOnlyOwner` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-9 | `executeNextTxCannotEnableModuleThroughTheAvatar` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-10 | `avatarEnableModuleAttemptIsReachable` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-11 | `anyoneCanExecuteNextTx` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-12 | `anyoneCanSkipExpired` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-13 | `delayWriteFunctionsAreTheKnownFifteen` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| DM-14 | `onlyModulesOrOwnerCanCallDelay` | [`specs/Delay/moduleIntegrity.spec`](specs/Delay/moduleIntegrity.spec) |
+| MS-1 | `shortBatchExecutesNothing` | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) |
+| MS-2 | `shortBatchCompletesAsNoOp` | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) |
+| MS-3 | `longerBatchCanExecute` | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) |
+| MS-4 | `oneByteAboveTheHoleExecutes` | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) |
+| MS-5 | `multiSendIsTheOnlyEntryPoint` | [`specs/MultiSend/shortBatchExecutesNothing.spec`](specs/MultiSend/shortBatchExecutesNothing.spec) |
+| MN-1 | `noEntryPointWritesStorage` | [`specs/MultiSend/shortBatchWritesNoStorage.spec`](specs/MultiSend/shortBatchWritesNoStorage.spec) |
+| SE-1 | `safeEntryPointsAreAllAccountedFor` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-2 | `safeActsOnlyThroughItsThreeEntryPaths` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-3 | `onlyEnabledModulesCanCallModuleExec` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-4 | `enabledModuleCanMakeTheSafeAct` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-5 | `execTransactionRunsOnlyAfterTheSignatureCheck` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-6 | `ownersCanMakeTheSafeAct` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-7 | `settingsOnlyChangeWhenTheSafeCallsItself` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-8 | `onlyOwnersCanApproveHashes` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-9 | `setupAlwaysRevertsAfterSetup` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-10 | `requiredTxGasAlwaysReverts` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-11 | `simulateAndRevertAlwaysReverts` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-12 | `eachSignatureAcceptsANewApprovingOwner` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-13 | `fallbackMakesNoCallWithoutAHandler` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-14 | `fallbackOnlyCallsItsHandler` | [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec) |
+| SE-15 | `fallbackHandlerCallsComeFromTheHandler` | [`specs/Safe/fallbackHandler.spec`](specs/Safe/fallbackHandler.spec) |
+| SE-16 | `selfHandlerFallbackChangesNothing` | [`specs/Safe/selfHandler.spec`](specs/Safe/selfHandler.spec) |
+| SE-17 | `receiveOnlyEmitsSafeReceived` | [`specs/Safe/receive.spec`](specs/Safe/receive.spec) |
+| SE-18 | `receiveCanRun` | [`specs/Safe/receive.spec`](specs/Safe/receive.spec) |
+| SC-1 | `moduleCanChangeSettings` | [`specs/Safe/selfCalls.spec`](specs/Safe/selfCalls.spec) |
+| SC-2 | `moduleCanChangeSettingsWithReturnData` | [`specs/Safe/selfCalls.spec`](specs/Safe/selfCalls.spec) |
+| SC-3 | `ownersCanChangeSettings` | [`specs/Safe/selfCalls.spec`](specs/Safe/selfCalls.spec) |
+| SC-4 | `settingsOnlyChangeThroughAModuleOrOwners` | [`specs/Safe/selfCalls.spec`](specs/Safe/selfCalls.spec) |
 
 ---
 
@@ -667,6 +882,7 @@ The functional half of the design, end to end on the real Delay with PauseGuard 
 | --- | --- | --- |
 | 4.23 | **A queued transaction executes.** An enabled module queues a transaction. Once the cooldown has passed, before the entry expires and while PauseGuard is not paused, **anyone's** `executeNextTx` succeeds, the transaction is handed to the Delay's target, and the queue moves on. Stated for every transaction, not one example. Assumes the target accepts the call (the Ownerless Safe returns the inner call's success, so a proposal whose own call reverts is outside this), creation time + cooldown + expiration fits in a `uint256`, and the queue was empty so the entry is at the head (entries behind it are covered by 4.22). | `queuedTransactionExecutesAfterCooldown` |
 | 4.24 | **The timing conditions are real.** The entry at the head of the queue cannot run before its cooldown has passed, or after it has expired. The pause condition is 4.15. | `executeNextTxRevertsDuringCooldown`, `executeNextTxRevertsAfterExpiration` |
+| 4.25 | **A vetoed transaction cannot execute.** End to end: a module queues a transaction, the Delay's owner moves `txNonce` past it with `setTxNonce`, and `executeNextTx` with that transaction then reverts, whatever the time or pause state. From any state: once `txNonce` has passed an entry, that entry's transaction cannot execute, unless the identical transaction was queued again as a new entry and is now at the head. That is a new proposal, not the vetoed one returning; with `txNonceNeverDecreases` (4.22), `txNonce` never goes back. | `vetoedTransactionCannotExecute`, `entryPassedByTxNonceNeverExecutes` |
 
 ---
 
@@ -704,6 +920,7 @@ indistinguishable from a legitimate one.
 | 5.6 | An execution is not a module grant. With an avatar that answers every forwarded queue entry by calling `enableModule` straight back on the Delay, `executeNextTx` completes and the attacker is still not in the list, because the return path's `msg.sender` is the avatar, not the owner. | `executeNextTxCannotEnableModuleThroughTheAvatar`, `avatarEnableModuleAttemptIsReachable` (witness) |
 | 5.7 | **One owner at a time.** From the same state and with the same arguments, every `onlyOwner` entry point — `setTxCooldown`, `setTxExpiration`, `setTxNonce`, `setAvatar`, `setTarget`, `enableModule`, `disableModule`, `setGuard`, `transferOwnership`, `renounceOwnership` — admits at most one caller, and the caller it admits is `owner()`. There is never a second address able to act as the Delay's owner. `ownerCanEnableModule` (5.2) is the witness that the admitted caller really does get through. | `atMostOneCallerPassesOnlyOwner` (parametric over the `onlyOwner` surface) |
 | 5.8 | **Execution and skipping are open to anyone.** A caller that is neither the owner nor an enabled module can successfully call `executeNextTx` (and the queue advances) and `skipExpired` (and an expired entry is skipped). These are the two Delay functions with no access check. | `anyoneCanExecuteNextTx`, `anyoneCanSkipExpired` (witnesses) |
+| 5.9 | **Every entry point is accounted for.** The Delay's write functions are exactly fifteen, with no fallback: the ten `onlyOwner` functions (5.7), the two queueing functions (5.3), `executeNextTx` and `skipExpired` (5.8), and `setUp` (5.1). And over every write function except those last three, a call that succeeds came from the owner or an enabled module. If a function is ever added, the first rule fails. | `delayWriteFunctionsAreTheKnownFifteen` (parametric), `onlyModulesOrOwnerCanCallDelay` (parametric) |
 
 > **On 5.6's scene, and why it is not `DummyAvatar`.** `DummyAvatar.execTransactionFromModule`
 > returns `true` and calls nothing ([`DummyAvatar.sol:19`](../certora/helpers/DummyAvatar.sol#L19)).
@@ -831,19 +1048,25 @@ does not inherit a bound from it.
 
 ---
 
-### Property 8 — GnosisSafe v1.3.0: execTransaction is the only way in
+### Property 8 — GnosisSafe v1.3.0: every way in is accounted for, and execTransaction needs its owners
 
-Spec: [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec). The scene is GnosisSafe v1.3.0, the version of the Proposer Safe and the Ownerless Safe, inherited unmodified by [`harness/GnosisSafeHarness.sol`](harness/GnosisSafeHarness.sol), which adds view getters and no logic.
+Spec: [`specs/Safe/executionPaths.spec`](specs/Safe/executionPaths.spec). The scene is GnosisSafe v1.3.0, the version of the Proposer Safe and the Ownerless Safe, inherited unmodified by [`harness/GnosisSafeHarness.sol`](harness/GnosisSafeHarness.sol), which adds view getters and no logic. It is compiled with **solc 0.7.6**, pinned in the harness `pragma`, because the package's build is byte-identical to the mainnet singleton `0xd9Db270c1B5E3Bd161E8c8503c55cEABeE709552` and 0.8 would produce different bytecode.
 
-A Safe has three ways to act: `execTransaction` (owner signatures up to the threshold), `execTransactionFromModule` (an enabled module), and `fallback()` (forwards to the fallback handler). This property shows that with no modules and no fallback handler, only the first is left.
+No assumption about modules or a fallback handler. The rules show the Safe can only act through `execTransaction`, an enabled module, or a set fallback handler; that its settings, including which modules and handler it has, only change when it calls itself; and that `execTransaction` needs `threshold` distinct owners. So every module and handler traces back to an owner-approved transaction, or to `setup`.
 
 | # | Lemma proved | Rule(s) |
 | --- | --- | --- |
-| 8.1 *(not yet run)* | **Only `execTransaction` makes the Safe act.** Over every function except `execTransaction`: a call that succeeds, from anyone who is not an enabled module, with no fallback handler set, makes the Safe perform no `CALL` or `DELEGATECALL`. | `onlyExecTransactionMakesTheSafeAct` (parametric) |
-| 8.2 *(not yet run)* | **Only `execTransaction` changes the Safe's settings.** Under the same conditions, no other function changes the owners, threshold, modules, guard or fallback handler. | `onlyExecTransactionChangesSettings` (parametric) |
-| 8.3 *(not yet run)* | **The module path is real.** An enabled module can make the Safe act, so the call hook in 8.1 is live and the "no modules" condition is what closes that path. | `enabledModuleCanMakeTheSafeAct` (witness) |
+| 8.1 | **Three ways to act, no others.** Over every write function except `execTransaction`: a call that makes the Safe perform a `CALL` or `DELEGATECALL` is `execTransactionFromModule(ReturnData)` from an enabled module, or `fallback()` with a handler set. Only an enabled module can successfully call either module function at all. The witness shows an enabled module really can act, through each of the two module functions. | `safeActsOnlyThroughItsThreeEntryPaths` (parametric), `onlyEnabledModulesCanCallModuleExec` (parametric), `enabledModuleCanMakeTheSafeAct` (witness) |
+| 8.2 | **Settings only change when the Safe calls itself.** Owners, threshold, modules, guard and fallback handler only change in a call whose sender is the Safe. Covers every write function except the three ways to act; a settings change reached through their outgoing call is itself such a call. | `settingsOnlyChangeWhenTheSafeCallsItself` (parametric) |
+| 8.3 | **Approved hashes are owners' own.** An approval for `a` is only ever recorded by `a` itself, while `a` is in the owner list. (The list's sentinel `0x1` also passes that check, but nobody can send from `0x1` and the signature check rejects it as a signer, so its approvals never count.) | `onlyOwnersCanApproveHashes` (parametric) |
+| 8.4 | **Every entry point is accounted for.** The Safe's write functions are exactly: `execTransaction`, `execTransactionFromModule`, `execTransactionFromModuleReturnData`, `receive`/`fallback`, `enableModule`, `disableModule`, `addOwnerWithThreshold`, `removeOwner`, `swapOwner`, `changeThreshold`, `setGuard`, `setFallbackHandler`, `approveHash`, `setup`, `requiredTxGas`, `simulateAndRevert`. | `safeEntryPointsAreAllAccountedFor` (parametric) |
+| 8.5 | **The rest are closed.** `setup` cannot run again once the Safe is set up; `requiredTxGas` and `simulateAndRevert` always revert, so what they execute never stands. | `setupAlwaysRevertsAfterSetup`, `requiredTxGasAlwaysReverts`, `simulateAndRevertAlwaysReverts` |
+| 8.6 ✅ | **`execTransaction` only runs once the signature check has passed.** It succeeds only after the signature check has run on its own transaction hash at the current nonce, and the Safe makes no outgoing call before that check. For any threshold. The signature check is replaced by a stand-in that records it ran; `execTransaction` calls it with no `try`, so on chain a failing check reverts the whole transaction. | `execTransactionRunsOnlyAfterTheSignatureCheck` |
+| 8.7 ✅ | **Each signature accepted is a new, approving owner.** Proved on one pass of the signature loop, for any pass and any previous signer, so it covers every pass and any threshold: the accepted signer is above the previous one (no repeats), is in the owner list, is not `0x1`, and for an approved-hash signature was the sender or used `approveHash`. The pass is `checkNSignaturesLoopBody` in the harness, a verbatim copy of GnosisSafe.sol lines 256–301 (checked line for line); the real loop runs that body once per required signature. | `eachSignatureAcceptsANewApprovingOwner` |
+| 8.8 ✅ | **Owners can act once the threshold is passed.** With the signature check passed, `execTransaction` succeeds and the Safe acts, for any threshold and any number of owners. The signature check is replaced by a stand-in that may pass; `execTransaction` reads the threshold and owners nowhere else, so nothing in the rule depends on them. That `t` owners' signatures pass the real check for any `t` is the check's own loop, read off source (GnosisSafe.sol:240-310). No guard and `gasPrice == 0`, so the transaction is the only outgoing call. | `ownersCanMakeTheSafeAct` (witness) |
+| 8.9 | **Settings can be changed through `execTransaction` and `execTransactionFromModule`, and nothing else.** For each of `enableModule`, `disableModule`, `addOwnerWithThreshold`, `removeOwner`, `swapOwner`, `changeThreshold`, `setGuard` and `setFallbackHandler`: an owner transaction, once the threshold is passed, and a module's `execTransactionFromModule` or `execTransactionFromModuleReturnData` can each make the Safe call that function on itself and change a setting. There is no other way in: settings only change when the Safe calls itself (8.2), and apart from these two the Safe only calls out through a set fallback handler (8.1), which the Proposer Safe does not have. | `ownersCanChangeSettings`, `moduleCanChangeSettings`, `moduleCanChangeSettingsWithReturnData` (witnesses) |
 
-Assumptions: the Safe has been set up (threshold > 0), the caller is not the Safe itself, and the conditions "no modules" and "no fallback handler" hold — those are checked on chain, not proved. Not claimed: that `execTransaction` checks signatures correctly; that is Safe's own audited `checkNSignatures`, and this property shows only that there is no way around it.
+Assumptions: the Safe has been set up (threshold > 0). No rule depends on the threshold or the number of owners, and no rule runs the signature loop. Not claimed: anything about owners' private keys, or contract-owner (EIP-1271) signatures — the deployed owners are EOAs, checked on chain. What the three ways to act write in their own code is read off source: only `nonce`, which is not a setting.
 
 ---
 

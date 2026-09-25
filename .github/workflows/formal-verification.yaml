@@ -25,6 +25,10 @@ jobs:
           - "MultiSend-shortBatch.conf"
           - "MultiSend-noStorageWrite.conf"
           - "Safe-executionPaths.conf"
+          - "Safe-selfCalls.conf"
+          - "Safe-receive.conf"
+          - "Safe-fallbackHandler.conf"
+          - "Safe-selfHandler.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -45,10 +49,10 @@ jobs:
         working-directory: ./packages/evm
       - run: pip3 install -r requirements.txt
         working-directory: ./packages/evm
-      - run: solc-select install ${SOLC_VERSION}
+      # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
+      # scenes, matching the deployed GnosisSafe v1.3.0 singleton.
+      - run: solc-select install 0.8.6 && solc-select install 0.7.6
         working-directory: ./packages/evm
-        env:
-          SOLC_VERSION: "0.8.6"
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \
             --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \
@@ -57,4 +61,4 @@ jobs:
         working-directory: ./packages/evm
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-          SOLC_VERSION: "0.8.6"
+          SOLC_VERSION: ${{ startsWith(matrix.ruleset, 'Safe-') && '0.7.6' || '0.8.6' }}

@@ -80,6 +80,16 @@
  *     anyoneCanSkipExpired                and can skip an expired one
  *                                         (witness)
  *
+ *   every entry point is accounted for
+ *     delayWriteFunctionsAreTheKnownFifteen
+ *                                         the Delay's write functions are
+ *                                         exactly the fifteen listed, with
+ *                                         no fallback
+ *     onlyModulesOrOwnerCanCallDelay      over every write function except
+ *                                         executeNextTx, skipExpired and
+ *                                         setUp: a call that succeeds came
+ *                                         from the owner or an enabled module
+ *
  * Composition with the Roles specs. This file proves only that `owner` is the
  * sole route into the ring. What stops the Governor from BEING that route is
  * Property 1: with SetTxNonceGuard and the role configuration in place, the
@@ -590,4 +600,59 @@ rule anyoneCanSkipExpired() {
 
     satisfy !lastReverted && txNonce() > nonceBefore,
         "a caller that is neither the owner nor a module cannot skip an expired entry";
+}
+
+/* ------------------------------------------------------------------------
+ * 7. Every entry point is accounted for
+ * --------------------------------------------------------------------- */
+
+/*
+ * 5.7, 5.3, 5.1 and 5.8 each cover a list of functions. These two rules show
+ * the lists are complete.
+ *
+ * The first is a claim about shape: the Delay's write functions are exactly
+ * the fifteen below, and it has no fallback. If a function is ever added,
+ * this rule fails, and the new function needs its own access rule.
+ *
+ * The second covers every write function at once, rather than by name: apart
+ * from the three with their own rules, any call that succeeds came from the
+ * owner or an enabled module. It holds for a function added later too.
+ */
+definition isQueueing(method f) returns bool =
+    f.selector == sig:DelayHarness.execTransactionFromModule(address,uint256,bytes,Enum.Operation).selector ||
+    f.selector == sig:DelayHarness.execTransactionFromModuleReturnData(address,uint256,bytes,Enum.Operation).selector;
+
+definition isOpenToAnyone(method f) returns bool =
+    f.selector == sig:DelayHarness.executeNextTx(address,uint256,bytes,Enum.Operation).selector ||
+    f.selector == sig:DelayHarness.skipExpired().selector;
+
+definition isSetUp(method f) returns bool =
+    f.selector == sig:DelayHarness.setUp(bytes).selector;
+
+rule delayWriteFunctionsAreTheKnownFifteen(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+
+    f(e, args);
+
+    assert !f.isFallback,
+        "the Delay has a fallback, which no access rule covers";
+    assert isOnlyOwner(f) || isQueueing(f) || isOpenToAnyone(f) || isSetUp(f),
+        "the Delay has a write function that no access rule covers";
+}
+
+rule onlyModulesOrOwnerCanCallDelay(method f, calldataarg args)
+    filtered {
+        f -> !f.isView && !f.isPure && !isOpenToAnyone(f) && !isSetUp(f)
+    }
+{
+    env e;
+    address ownerBefore = owner();
+    bool wasModule = moduleEntry(e.msg.sender) != 0;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => (e.msg.sender == ownerBefore || wasModule),
+        "a caller that is neither the owner nor an enabled module successfully called the Delay";
 }

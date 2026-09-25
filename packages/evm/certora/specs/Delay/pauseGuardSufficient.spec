@@ -106,6 +106,17 @@
  *                                         head entry cannot run
  *     executeNextTxRevertsAfterExpiration after it has expired it cannot run
  *
+ *   a vetoed entry cannot execute
+ *     vetoedTransactionCannotExecute      end to end: a module queues, the
+ *                                         owner moves txNonce past it, and
+ *                                         executeNextTx with that transaction
+ *                                         reverts
+ *     entryPassedByTxNonceNeverExecutes
+ *                                         from any state: once txNonce is past
+ *                                         an entry, that entry's transaction
+ *                                         cannot execute unless it was queued
+ *                                         again as a new entry
+ *
  * Non-vacuity witness: withoutPauseGuardExecuteNextTxForwardsUnchecked (with
  * no guard installed executeNextTx forwards without any check, so the guard is
  * what does the work in the rules above).
@@ -1007,4 +1018,61 @@ rule executeNextTxRevertsAfterExpiration(
 
     assert lastReverted,
         "the head entry executed after it had expired";
+}
+
+/* ------------------------------------------------------------------------
+ * 9. A vetoed entry cannot execute
+ * --------------------------------------------------------------------- */
+
+/*
+ * The veto, end to end. A module queues a transaction; the Delay's owner (the
+ * DelayOwnerSafe, on its own or driven by the Governor through Roles) calls
+ * setTxNonce to move txNonce past it; after that, executeNextTx with that
+ * transaction reverts. No assumption about the guard, the pause or the time:
+ * it cannot run however long anyone waits.
+ */
+rule vetoedTransactionCannotExecute(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env eQueue;
+    env eVeto;
+    env eExec;
+    require isModuleEnabled(eQueue.msg.sender);
+    require eQueue.msg.value == 0;
+    require eVeto.msg.sender == owner();
+    require eVeto.msg.value == 0;
+
+    require txNonce() == queueNonce();
+    require queueNonce() < max_uint256;
+
+    execTransactionFromModule(eQueue, to, value, data, operation);
+
+    setTxNonce(eVeto, queueNonce());
+
+    executeNextTx@withrevert(eExec, to, value, data, operation);
+
+    assert lastReverted,
+        "a transaction executed after the owner had moved txNonce past it";
+}
+
+/*
+ * The same from any state. Once txNonce has passed entry k, executeNextTx
+ * only runs the entry at txNonce (4.22), so entry k's transaction reverts —
+ * unless the identical transaction was queued again and now sits at the head.
+ * That is a new proposal, which goes through the queue, cooldown, veto and
+ * pause on its own; it is not the vetoed entry coming back. With
+ * txNonceNeverDecreases (4.22), txNonce never returns to k.
+ */
+rule entryPassedByTxNonceNeverExecutes(
+    uint256 k, address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e;
+    require txNonce() > k;
+    require txHash(k) == getTransactionHash(to, value, data, operation);
+    require txHash(txNonce()) != txHash(k);
+
+    executeNextTx@withrevert(e, to, value, data, operation);
+
+    assert lastReverted,
+        "txNonce had already passed this entry, yet its transaction executed without being queued again";
 }
