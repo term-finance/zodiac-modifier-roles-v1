@@ -58,7 +58,7 @@ NEWROLES=${NEWROLES:-}
 # point-in-time values, override if the chain has moved on
 START_NONCE=${START_NONCE:-203}
 OWNERLESS_NONCE=${OWNERLESS_NONCE:-16}
-BATCH_TXHASH=${BATCH_TXHASH:-0xee765529f6ab1401d438c2fe407ce5909ed6b1394619bb2ec525071c99cb180d}
+BATCH_TXHASH=${BATCH_TXHASH:-0xb0ae0a2f2f777c3da8e4a22979038c7ab8e5a714a93479deffdb02434c91cb09}
 BATCH_CALLDATA=${BATCH_CALLDATA:-}   # multiSend calldata, if you want the hash recomputed
 
 # storage slots (key-derived, from the plan)
