@@ -29,6 +29,12 @@ jobs:
           - "Safe-receive.conf"
           - "Safe-fallbackHandler.conf"
           - "Safe-selfHandler.conf"
+          - "Safe-v141-executionPaths.conf"
+          - "Safe-v141-selfCalls.conf"
+          - "Safe-v141-receive.conf"
+          - "Safe-v141-fallbackHandler.conf"
+          - "Safe-v141-selfHandler.conf"
+          - "Governor-veto.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -50,8 +56,17 @@ jobs:
       - run: pip3 install -r requirements.txt
         working-directory: ./packages/evm
       # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
-      # scenes, matching the deployed GnosisSafe v1.3.0 singleton.
-      - run: solc-select install 0.8.6 && solc-select install 0.7.6
+      # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
+      # singletons. Governor-veto mixes compilers through its `solc_map`,
+      # which names solc8.20 (the deployed Governor and TERM), solc8.6 and
+      # solc7.6, so those names are put on PATH too.
+      - run: |
+          solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20
+          mkdir -p "$HOME/solc-bin"
+          for v in 0.8.20 0.8.6 0.7.6; do
+            ln -sf "$HOME/.solc-select/artifacts/solc-$v/solc-$v" "$HOME/solc-bin/solc${v#0.}"
+          done
+          echo "$HOME/solc-bin" >> "$GITHUB_PATH"
         working-directory: ./packages/evm
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \

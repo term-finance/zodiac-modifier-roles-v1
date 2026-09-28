@@ -39,6 +39,40 @@
  *                                         two entry points
  *     ownerCanStillReconfigure            the owner still can (witness)
  *
+ *   who can call each entry point
+ *     onlyOwnerCanCallRolesSettings       each of the twenty settings
+ *                                         functions succeeds only for the owner
+ *     ownerCanCallEachRolesSetting        and the owner can call each (witness)
+ *     onlyEnabledModulesCanExec           each of the four execution functions
+ *                                         succeeds only for an address in the
+ *                                         module list
+ *     moduleWithoutDefaultRoleCannotExecFromModule
+ *                                         an enabled module that is not a
+ *                                         member of its default role cannot
+ *                                         call the two FromModule ones
+ *     moduleWithoutRoleCannotExecTransactionWithRole
+ *     moduleWithoutRoleCannotExecTransactionWithRoleReturnData
+ *                                         nor the two WithRole ones without
+ *                                         membership of the role the call
+ *                                         names; a module with no assigned
+ *                                         role can call none of the four
+ *     roleMemberModuleCanExecFromModule
+ *     roleMemberModuleCanExecTransactionWithRole
+ *     roleMemberModuleCanExecTransactionWithRoleReturnData
+ *                                         an enabled module holding the role
+ *                                         the call runs under can call each
+ *                                         (witnesses)
+ *
+ *   every entry point is accounted for
+ *     rolesWriteFunctionsAreTheKnownTwentyFive
+ *                                         no fallback, and the write functions
+ *                                         are exactly the twenty-five above
+ *     onlyModulesOrOwnerCanCallRoles      over every write function but setUp,
+ *                                         by behaviour rather than by name: a
+ *                                         call that succeeds came from the
+ *                                         owner or an address in the module
+ *                                         list
+ *
  * Deliberately NOT claimed here:
  *   - That the configuration is correct. What the owner has configured is
  *     Property 3's subject; this file says only that nobody else can move it.
@@ -226,4 +260,271 @@ rule ownerCanStillReconfigure(address module, uint16 roleId) {
         "the Roles owner could not set a default role";
     assert defaultRoles(module) == roleId,
         "setDefaultRole returned without recording the new default role";
+}
+
+/* ------------------------------------------------------------------------
+ * 3. Who can call each entry point
+ * --------------------------------------------------------------------- */
+
+/*
+ * The twenty settings functions: Roles' own thirteen (Roles.sol:73-313),
+ * setAvatar and setTarget (zodiac core/Module.sol:23, :31), disableModule and
+ * enableModule (core/Modifier.sol:68, :85), setGuard (guard/Guardable.sol:17),
+ * renounceOwnership and transferOwnership (OwnableUpgradeable.sol:59, :67).
+ * Every one carries `onlyOwner`.
+ */
+definition isOnlyOwner(method f) returns bool =
+    f.selector == sig:setMultisend(address).selector ||
+    f.selector == sig:allowTarget(uint16, address, RolesHarness.ExecutionOptions).selector ||
+    f.selector == sig:revokeTarget(uint16, address).selector ||
+    f.selector == sig:scopeTarget(uint16, address).selector ||
+    f.selector == sig:scopeAllowFunction(uint16, address, bytes4, RolesHarness.ExecutionOptions).selector ||
+    f.selector == sig:scopeRevokeFunction(uint16, address, bytes4).selector ||
+    f.selector == sig:scopeFunction(
+        uint16, address, bytes4, bool[], RolesHarness.ParameterType[],
+        RolesHarness.Comparison[], bytes[], RolesHarness.ExecutionOptions
+    ).selector ||
+    f.selector == sig:scopeFunctionExecutionOptions(uint16, address, bytes4, RolesHarness.ExecutionOptions).selector ||
+    f.selector == sig:scopeParameter(
+        uint16, address, bytes4, uint256, RolesHarness.ParameterType, RolesHarness.Comparison, bytes
+    ).selector ||
+    f.selector == sig:scopeParameterAsOneOf(
+        uint16, address, bytes4, uint256, RolesHarness.ParameterType, bytes[]
+    ).selector ||
+    f.selector == sig:unscopeParameter(uint16, address, bytes4, uint8).selector ||
+    f.selector == sig:assignRoles(address, uint16[], bool[]).selector ||
+    f.selector == sig:setDefaultRole(address, uint16).selector ||
+    f.selector == sig:setAvatar(address).selector ||
+    f.selector == sig:setTarget(address).selector ||
+    f.selector == sig:enableModule(address).selector ||
+    f.selector == sig:disableModule(address, address).selector ||
+    f.selector == sig:setGuard(address).selector ||
+    f.selector == sig:transferOwnership(address).selector ||
+    f.selector == sig:renounceOwnership().selector;
+
+/// The two execution functions that run under the caller's default role
+/// (Roles.sol:321, :344).
+definition isExecFromModule(method f) returns bool =
+    f.selector == sig:execTransactionFromModule(address, uint256, bytes, Enum.Operation).selector ||
+    f.selector == sig:execTransactionFromModuleReturnData(address, uint256, bytes, Enum.Operation).selector;
+
+/// The two execution functions that run under a role the caller names
+/// (Roles.sol:369, :392).
+definition isExecWithRole(method f) returns bool =
+    f.selector == sig:execTransactionWithRole(address, uint256, bytes, Enum.Operation, uint16, bool).selector ||
+    f.selector == sig:execTransactionWithRoleReturnData(address, uint256, bytes, Enum.Operation, uint16, bool).selector;
+
+definition isExec(method f) returns bool =
+    isExecFromModule(f) || isExecWithRole(f);
+
+definition isSetUp(method f) returns bool =
+    f.selector == sig:setUp(bytes).selector;
+
+/*
+ * Only the owner gets through any of the twenty settings functions. Unlike
+ * rolesConfigOnlyChangesThroughOwner, this is about the call succeeding, not
+ * about which storage moved, so it also covers the function and parameter
+ * scoping that rule does not track. Checked once per function.
+ */
+rule onlyOwnerCanCallRolesSettings(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env e;
+    address ownerBefore = owner();
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => e.msg.sender == ownerBefore,
+        "a settings function succeeded for a caller other than the owner";
+}
+
+/*
+ * The bound above is not achieved by nothing working: for each of the twenty
+ * settings functions, some call from the owner succeeds.
+ */
+rule ownerCanCallEachRolesSetting(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env e;
+    require e.msg.sender == owner();
+
+    f@withrevert(e, args);
+
+    satisfy !lastReverted,
+        "the owner cannot successfully call this settings function";
+}
+
+/*
+ * Each of the four execution functions only succeeds for an address in the
+ * module list: moduleOnly (Modifier.sol:59-62) checks `modules[msg.sender]`
+ * before anything else. The list head 0x1 also has an entry, but 0x1 is the
+ * ecrecover precompile and never sends a transaction. Checked once per
+ * function.
+ */
+rule onlyEnabledModulesCanExec(method f, calldataarg args)
+    filtered { f -> isExec(f) }
+{
+    env e;
+    bool senderWasModule = moduleEntry(e.msg.sender) != 0;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => senderWasModule,
+        "an address not in the module list successfully called an execution function";
+}
+
+/*
+ * A module without an assigned role cannot execute. Stated per call: an
+ * enabled module that is not a member of the role a call runs under always
+ * reverts, whatever it sends, because Permissions.check first reverts unless
+ * the caller is a member of that role (Permissions.sol:184-186). A module
+ * with no assigned role at all is a member of no role, so all four execution
+ * functions revert for it.
+ *
+ * execTransactionFromModule and execTransactionFromModuleReturnData run under
+ * the caller's default role. Checked once per function.
+ */
+rule moduleWithoutDefaultRoleCannotExecFromModule(method f, calldataarg args)
+    filtered { f -> isExecFromModule(f) }
+{
+    env e;
+    require moduleEntry(e.msg.sender) != 0;
+    require !memberOf(defaultRoles(e.msg.sender), e.msg.sender);
+
+    f@withrevert(e, args);
+
+    assert lastReverted,
+        "an enabled module that is not a member of its default role executed through a FromModule function";
+}
+
+/*
+ * execTransactionWithRole runs under the role the call names. Unlike
+ * nonMemberExecTransactionWithRoleAlwaysReverts in
+ * setTxNonceRoleConfigSufficient.spec, nothing is assumed about the guard,
+ * the target or the value sent.
+ */
+rule moduleWithoutRoleCannotExecTransactionWithRole(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require moduleEntry(e.msg.sender) != 0;
+    require !memberOf(role, e.msg.sender);
+
+    execTransactionWithRole@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    assert lastReverted,
+        "an enabled module that is not a member of the role it named executed through execTransactionWithRole";
+}
+
+/* The same for execTransactionWithRoleReturnData. */
+rule moduleWithoutRoleCannotExecTransactionWithRoleReturnData(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require moduleEntry(e.msg.sender) != 0;
+    require !memberOf(role, e.msg.sender);
+
+    execTransactionWithRoleReturnData@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    assert lastReverted,
+        "an enabled module that is not a member of the role it named executed through execTransactionWithRoleReturnData";
+}
+
+/*
+ * The bounds above are not achieved by nothing working: an enabled module
+ * that is a member of the role the call runs under can successfully call each
+ * of the four execution functions. The two FromModule ones run under the
+ * caller's default role, checked once per function here; the two WithRole
+ * ones under the role the call names, one rule each below.
+ */
+rule roleMemberModuleCanExecFromModule(method f, calldataarg args)
+    filtered { f -> isExecFromModule(f) }
+{
+    env e;
+    require e.msg.sender != SENTINEL_MODULES();
+    require moduleEntry(e.msg.sender) != 0;
+    require memberOf(defaultRoles(e.msg.sender), e.msg.sender);
+
+    f@withrevert(e, args);
+
+    satisfy !lastReverted,
+        "an enabled module holding its default role cannot successfully call this execution function";
+}
+
+rule roleMemberModuleCanExecTransactionWithRole(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require e.msg.sender != SENTINEL_MODULES();
+    require moduleEntry(e.msg.sender) != 0;
+    require memberOf(role, e.msg.sender);
+
+    execTransactionWithRole@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    satisfy !lastReverted,
+        "an enabled module holding the role it names cannot successfully call execTransactionWithRole";
+}
+
+rule roleMemberModuleCanExecTransactionWithRoleReturnData(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require e.msg.sender != SENTINEL_MODULES();
+    require moduleEntry(e.msg.sender) != 0;
+    require memberOf(role, e.msg.sender);
+
+    execTransactionWithRoleReturnData@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    satisfy !lastReverted,
+        "an enabled module holding the role it names cannot successfully call execTransactionWithRoleReturnData";
+}
+
+/* ------------------------------------------------------------------------
+ * 4. Every entry point is accounted for
+ * --------------------------------------------------------------------- */
+
+/*
+ * The rules in section 3 each cover a list of functions. These two show the
+ * lists are complete, as delayWriteFunctionsAreTheKnownFifteen and
+ * onlyModulesOrOwnerCanCallDelay do for the Delay.
+ *
+ * The first is a claim about shape: Roles has no fallback, and its write
+ * functions are exactly the twenty settings functions, the four execution
+ * functions and setUp. If a function is ever added, this rule fails, and the
+ * new function needs its own access rule. @withrevert keeps functions that
+ * revert in the chosen state reachable.
+ *
+ * The second covers every write function but setUp at once, by behaviour
+ * rather than by name: any call that succeeds came from the owner or an
+ * address in the module list. It holds for a function added later too. setUp
+ * is setUpAlwaysRevertsAfterDeployment's.
+ */
+rule rolesWriteFunctionsAreTheKnownTwentyFive(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+
+    f@withrevert(e, args);
+
+    assert !f.isFallback,
+        "Roles has a fallback, which no access rule covers";
+    assert isOnlyOwner(f) || isExec(f) || isSetUp(f),
+        "Roles has a write function that no access rule covers";
+}
+
+rule onlyModulesOrOwnerCanCallRoles(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure && !isSetUp(f) }
+{
+    env e;
+    address ownerBefore = owner();
+    bool senderWasModule = moduleEntry(e.msg.sender) != 0;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => (e.msg.sender == ownerBefore || senderWasModule),
+        "a caller that is neither the owner nor in the module list successfully called Roles";
 }
