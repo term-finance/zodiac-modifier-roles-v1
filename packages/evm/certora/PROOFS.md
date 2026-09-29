@@ -83,7 +83,7 @@ Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.OwnerlessSafe.1 | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the OwnerlessSafe can only be executed by Owners or enabled modules. | Same as G1.2. |
+| G3.OwnerlessSafe.1 | Only Modules or Owners (Signers) can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the OwnerlessSafe can only be executed by Owners or enabled modules. | Same as G1.2. |
 | G3.OwnerlessSafe.2 | OwnerlessSafe fallback handler is `address(0)`. | Same as G1.3. |
 | G3.OwnerlessSafe.3 | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
 | G3.OwnerlessSafe.4 | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
@@ -96,7 +96,7 @@ After G3.OwnerlessSafe.4 the branch splits in two at the Ownerless Safe's only e
 | # | Statement | Evidence |
 | --- | --- | --- |
 | G3.OwnerlessSafe.5a | ProposerSafe is the only enabled module on the Delay Mod | Same as G1.6. |
-| G3.OwnerlessSafe.6a | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
+| G3.OwnerlessSafe.6a | Only Modules or Owners (Signers) can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
 | G3.OwnerlessSafe.7a | ProposerSafe fallback handler is address(0). | Same as G1.8. |
 | G3.OwnerlessSafe.8a | ProposerSafe has no enabled modules. | Same as G1.9. |
 | G3.OwnerlessSafe.9a | ProposerSafe can propose a transaction to Delay Modifier that is executed on the Ownerless Safe once the cooldown has passed, if it hasn't expired, the system isn't paused, and it hasn't been vetoed. | Same as G1.10. |
@@ -107,7 +107,7 @@ After G3.OwnerlessSafe.4 the branch splits in two at the Ownerless Safe's only e
 | # | Statement | Evidence |
 | --- | --- | --- |
 | G3.OwnerlessSafe.5b | DelayMod only has one owner, which is the DelayOwnerSafe. | Same as G2.3. |
-| G3.OwnerlessSafe.6b | Only Modules or Owners can interact with DelayOwnerSafe, except fallback and receive, which anyone can call. | Same as G2.4. |
+| G3.OwnerlessSafe.6b | Only Modules or Owners (Signers) can interact with DelayOwnerSafe, except fallback and receive, which anyone can call. | Same as G2.4. |
 | G3.OwnerlessSafe.7b | DelayOwnerSafe fallback handler is `address(0)`. | Same as G2.5. |
 | G3.OwnerlessSafe.8b | DelayOwnerSafe only has one enabled module, the Roles Modifier | Same as G2.6. |
 | G3.OwnerlessSafe.9b | Only Modules with assignedRoles or Owners can interact with Roles Modifier. | Same as G2.7. |
@@ -164,12 +164,12 @@ After G3.DelayModifier.6 the branch splits in two at the DelayOwnerSafe's only e
 | # | Statement | Evidence |
 | --- | --- | --- |
 | G3.DelayModifier.7b | Roles Modifier only has one owner, which is the Ownerless Safe. | Same as G3.RolesModifier.2b. |
-| G3.DelayModifier.8b | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
+| G3.DelayModifier.8b | Only Modules or Owners (Signers) can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
 | G3.DelayModifier.9b | OwnerlessSafe fallback handler is `address(0)`. | Same as G1.3. |
 | G3.DelayModifier.10b | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
 | G3.DelayModifier.11b | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
 | G3.DelayModifier.12b | ProposerSafe is the only module on the Delay Mod | Same as G1.6. |
-| G3.DelayModifier.13b | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
+| G3.DelayModifier.13b | Only Modules or Owners (Signers) can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
 | G3.DelayModifier.14b | ProposerSafe fallback handler is set to address(0). | Same as G1.8. |
 | G3.DelayModifier.15b | ProposerSafe has no enabled modules. | Same as G1.9. |
 
@@ -196,7 +196,7 @@ Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.ProposerSafe.1 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the ProposerSafe can only be executed by Owners or enabled modules. | Same as G1.7. |
+| G3.ProposerSafe.1 | Only Modules or Owners (Signers) can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the ProposerSafe can only be executed by Owners or enabled modules. | Same as G1.7. |
 | G3.ProposerSafe.2 | ProposerSafe fallback handler is address(0). | Same as G1.8. |
 | G3.ProposerSafe.3 | ProposerSafe has no enabled modules. | Same as G1.9. |
 
@@ -222,7 +222,7 @@ Settings functions (Safe v1.4.1; only the Safe itself can call them):
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.DelayOwnerSafe.1 | Only Modules or Owners can interact with DelayOwnerSafe, except fallback and receive, which anyone can call. The settings functions of the DelayOwnerSafe can only be executed by Owners or enabled modules. | Same as G2.4. |
+| G3.DelayOwnerSafe.1 | Only Modules or Owners (Signers) can interact with DelayOwnerSafe, except fallback and receive, which anyone can call. The settings functions of the DelayOwnerSafe can only be executed by Owners or enabled modules. | Same as G2.4. |
 | G3.DelayOwnerSafe.2 | DelayOwnerSafe fallback handler is `address(0)`. | Same as G2.5. |
 | G3.DelayOwnerSafe.3 | DelayOwnerSafe only has one enabled module, the Roles Modifier | Same as G2.6. |
 | G3.DelayOwnerSafe.4 | Only Modules with assignedRoles or Owners can interact with Roles Modifier. | Same as G2.7. |
@@ -245,13 +245,13 @@ After G3.DelayOwnerSafe.4 the branch splits in two at the DelayOwnerSafe's only 
 | # | Statement | Evidence |
 | --- | --- | --- |
 | G3.DelayOwnerSafe.5b | Roles Modifier only has one owner, which is the Ownerless Safe. | Same as G3.RolesModifier.2b. |
-| G3.DelayOwnerSafe.6b | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
+| G3.DelayOwnerSafe.6b | Only Modules or Owners (Signers) can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
 | G3.DelayOwnerSafe.7b | OwnerlessSafe fallback handler is `address(0)`. | Same as G1.3. |
 | G3.DelayOwnerSafe.8b | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
 | G3.DelayOwnerSafe.9b | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
 | G3.DelayOwnerSafe.10b | DelayMod only has one owner, which is the DelayOwnerSafe. | Same as G2.3. |
 | G3.DelayOwnerSafe.11b | ProposerSafe is the only enabled module on the Delay Mod | Same as G1.6. |
-| G3.DelayOwnerSafe.12b | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
+| G3.DelayOwnerSafe.12b | Only Modules or Owners (Signers) can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.7. |
 | G3.DelayOwnerSafe.13b | ProposerSafe fallback handler is set to zero address. | Same as G1.8. |
 | G3.DelayOwnerSafe.14b | ProposerSafe has no enabled modules. | Same as G1.9. |
 
@@ -310,7 +310,7 @@ After G3.RolesModifier.1 the branch splits in two: the Roles Modifier's modules,
 | # | Statement | Evidence |
 | --- | --- | --- |
 | G3.RolesModifier.2b | Roles Modifier only has one owner, which is the Ownerless Safe. | **FV — one owner:** RI-3 `ownerOnlyChangesThroughOwnableTransfer` ✅ passes. The Roles Modifier's owner is one address, and it only changes through `transferOwnership` or `renounceOwnership`, called by the current owner. RI-5 `onlyOwnerCanCallRolesSettings` ✅ passes: only that address can call the twenty settings functions (G2.7).<br><br>**On-chain — owner is the Ownerless Safe:** ✅ at block 26083996, `owner()` on the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) returns the Ownerless Safe (`0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03`). Read directly from storage, `_owner` (slot 51, `OwnableUpgradeable`) holds the same address.<br><br>**On-chain — ownership has only ever moved to the Ownerless Safe:** ✅ the Roles Modifier's complete `OwnershipTransferred` history, from its creation at block 26042039 to block 26083996, is three events:<br>• block 26042039, tx `0xcd565c28bc3c771d4b5af1f0ba9bd55bf3245aadc8148b24e4041f3dd71b8a7e`: `0x0` → Zodiac `ModuleProxyFactory` (`0x000000000000aDdB49795b0f9bA5BC298cDda236`), then → deployer (`0xdace6985e42ec10f492d0919493964922b833b5b`), both inside the proxy's creation and `setUp`<br>• block 26042084, tx `0xda81af7fb8ba6d91e9148c349324a7c06146bf5a21703ebea8f561ab7fec4c7a`: deployer → Ownerless Safe, the deployer's `transferOwnership(0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03)`<br>There is no later transfer and no renounce. |
-| G3.RolesModifier.3b | Only Modules or Owners can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
+| G3.RolesModifier.3b | Only Modules or Owners (Signers) can interact with OwnerlessSafe, except `fallback` and `receive`, which anyone can call. | Same as G1.2. |
 | G3.RolesModifier.4b | OwnerlessSafe fallback handler is `address(0)`. | Same as G1.3. |
 | G3.RolesModifier.5b | Delay Module is the only enabled module on OwnerlessSafe. | Same as G1.4. |
 | G3.RolesModifier.6b | Only Modules or Owner can interact with Delay Modifier, except `executeNextTx` and `skipExpired`, which anyone can call. | Same as G1.5. |
