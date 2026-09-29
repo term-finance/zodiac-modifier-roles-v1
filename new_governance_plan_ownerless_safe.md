@@ -343,3 +343,61 @@ Safe v1.3.0, 5-of-11. Remains the Delay's sole enabled module. One slot changes:
 Fallback handler slot: `0x6c9a6c4a39284e37ed1cf53d337577d14212a4870fb976a4366c693b939918d5`.
 
 **Task.** The Proposer Safe executes a transaction to itself calling `setFallbackHandler(0x0000000000000000000000000000000000000000)` (5 of 11 signatures). It emits `ChangedFallbackHandler(0x0000000000000000000000000000000000000000)`.
+
+---
+
+## 10. ProposerSafeGuard — `0xd9fA1D4ee16CBc1178609B50150ab562bac737DD` — DEPLOYED
+
+Deployed at block 26080773 (tx `0xffb53358bde140ba304d264f67e269e2841742bae1d529ea36da13d0ae9cd818`) by `0xdace6985e42ec10f492d0919493964922b833b5b`. Source verified on Etherscan (solc v0.8.6+commit.11564f7e, optimizer off). The on-chain bytecode matches the package build artifact exactly, metadata hash included. To be installed on the **Proposer Safe** as its transaction guard.
+
+| Item | Value |
+|---|---|
+| Storage | **none** — the contract declares no state variables. It takes the Safe from `msg.sender`, so it pins no address |
+| Constructor arguments | none |
+| `supportsInterface(0xe6d7a83a)` | `true` |
+| `supportsInterface(0x01ffc9a7)` | `true` |
+
+| Function | Callable by | Effect |
+|---|---|---|
+| `checkTransaction(…)` | the Proposer Safe, from `execTransaction` | reverts on any delegate call (`UnexpectedOperation`), on the Safe calling its own `setGuard` (`GuardLocked`) and on the Safe calling its own `enableModule` (`ModulesLocked`). Everything else passes, including queueing into the Delay and owner and threshold management |
+| `checkAfterExecution(…)` | the Proposer Safe, from `execTransaction` | no-op |
+
+**Target state on the Proposer Safe (section 9).**
+
+| Slot | Variable | Value |
+|---|---|---|
+| **`keccak256("guard_manager.guard.address")`** | **guard** | **`ProposerSafeGuard (0xd9fA1D4ee16CBc1178609B50150ab562bac737DD)`** ← was `0x0` |
+
+Guard slot: `0x4a204f620c8c5ccdca3fd54d003badd85ba500436a431f0cbda4f558c93c34c8`. At block 26080790 it is still `0x0`.
+
+**Task.** The Proposer Safe executes a transaction to itself calling `setGuard(0xd9fA1D4ee16CBc1178609B50150ab562bac737DD)` (5 of 11 signatures). It emits `ChangedGuard(0xd9fA1D4ee16CBc1178609B50150ab562bac737DD)`. This is one-way: once set, the Safe cannot remove or replace the guard, enable a module or delegate call. The Proposer Safe must therefore have no modules when it is installed, as it has today (slot 1, section 9). The FV proofs are in [`packages/evm/certora/PROPOSERSAFEGUARD_PROOFS.md`](packages/evm/certora/PROPOSERSAFEGUARD_PROOFS.md).
+
+---
+
+## 11. DelayOwnerGuard — `0x6Ede0489a7A4Eb88c2bC487aeeaD20303E155bDa` — DEPLOYED
+
+Deployed at block 26080778 (tx `0xf3074c454ac5dc585dd4f0354e8c503b58a9261aab0d05fee6df9ba803bdf907`) by `0xdace6985e42ec10f492d0919493964922b833b5b`, with constructor argument `delay` = `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf`, the Delay in section 1. Source **not yet verified on Etherscan**. The on-chain bytecode matches `packages/evm/contracts/helpers/DelayOwnerGuard.sol` compiled with solc v0.8.6+commit.11564f7e, optimizer off, byte for byte in both creation and runtime code, apart from the trailing metadata hash. To be installed on the **DelayOwnerSafe** as its transaction guard.
+
+| Item | Value |
+|---|---|
+| Storage | **none** — the contract declares no state variables. It takes the Safe from `msg.sender` |
+| `delay` | `0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf` — `immutable`, held in bytecode, not storage |
+| `supportsInterface(0xe6d7a83a)` | `true` — required by the Safe's `setGuard` |
+| `supportsInterface(0x01ffc9a7)` | `true` |
+
+| Function | Callable by | Effect |
+|---|---|---|
+| `checkTransaction(…)` | the DelayOwnerSafe, from `execTransaction` | reverts on any delegate call (`UnexpectedOperation`); on the Safe calling its own `setGuard` (`GuardLocked`), `enableModule` (`ModulesLocked`) or `setFallbackHandler` (`FallbackHandlerLocked`); and on calls to the Delay of `transferOwnership` or `renounceOwnership` (`DelayOwnershipLocked`), `enableModule` (`DelayModulesLocked`), `setGuard` (`DelayGuardLocked`), `setAvatar` or `setTarget` (`DelayAvatarLocked`). Everything else passes, including `setTxNonce`, `setTxCooldown`, `setTxExpiration`, `disableModule` and owner and threshold management |
+| `checkAfterExecution(…)` | the DelayOwnerSafe, from `execTransaction` | no-op |
+
+The guard sees only what the signers sign. The Roles Modifier's calls through `execTransactionFromModule` never reach it, and are bounded by Role 1 and SetTxNonceGuard (sections 2 and 3).
+
+**Target state on the DelayOwnerSafe (section 4).**
+
+| Slot | Variable | Value |
+|---|---|---|
+| **`keccak256("guard_manager.guard.address")`** | **guard** | **`DelayOwnerGuard (0x6Ede0489a7A4Eb88c2bC487aeeaD20303E155bDa)`** ← was `0x0` |
+
+Guard slot: `0x4a204f620c8c5ccdca3fd54d003badd85ba500436a431f0cbda4f558c93c34c8`. At block 26080809 it is still `0x0`. The DelayOwnerSafe's only module is NewRoles and its fallback handler is `0x0`, both of which the guard then keeps as they are.
+
+**Task.** The DelayOwnerSafe executes a transaction to itself calling `setGuard(0x6Ede0489a7A4Eb88c2bC487aeeaD20303E155bDa)` (5 of 11 signatures). It emits `ChangedGuard(0x6Ede0489a7A4Eb88c2bC487aeeaD20303E155bDa)`. This is one-way: once set, the DelayOwnerSafe cannot remove or replace the guard, enable a module, change its fallback handler or delegate call. It also cannot transfer or renounce the Delay, or change the Delay's modules, guard, avatar or target. So install it only after the Delay is in its target state (section 1): owned by the DelayOwnerSafe, with PauseGuard as its guard and the Proposer Safe as its only module. At block 26080809 the Delay's owner is still the old Roles `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`. The FV proofs are in [`packages/evm/certora/DELAYOWNERGUARD_PROOFS.md`](packages/evm/certora/DELAYOWNERGUARD_PROOFS.md).
