@@ -67,6 +67,11 @@
  *     pausedBlocksExecuteNextTx           end to end: executeNextTx reverts
  *                                         and nothing reaches the target
  *     checkTransactionRevertsWhilePaused  guard half, called directly
+ *     onlyExecuteNextTxReachesTheTarget   over every entry point of both
+ *                                         contracts, executeNextTx is the only
+ *                                         one that hands a transaction to the
+ *                                         target, so it is the only one the
+ *                                         guard needs to stop
  *
  *   unpause unblocks executeNextTx
  *     unpauseReopensExecuteNextTx         end to end: after the admin
@@ -1075,4 +1080,31 @@ rule entryPassedByTxNonceNeverExecutes(
 
     assert lastReverted,
         "txNonce had already passed this entry, yet its transaction executed without being queued again";
+}
+
+/* ------------------------------------------------------------------------
+ * 10. executeNextTx is the only way out
+ * --------------------------------------------------------------------- */
+
+/*
+ * Over every state-changing entry point of the Delay and of the guard: if a
+ * transaction reached the Delay's target, the entry point was executeNextTx.
+ * With pausedBlocksExecuteNextTx, that means a pause stops every transaction
+ * the Delay can send, not just the ones sent through executeNextTx. Queueing
+ * (execTransactionFromModule, execTransactionFromModuleReturnData), the
+ * owner's settings functions, skipExpired and the guard's own functions never
+ * forward anything.
+ */
+rule onlyExecuteNextTxReachesTheTarget(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+    require target() == delayTargetContract;
+    require !forwardedToTarget;
+
+    f(e, args);
+
+    assert forwardedToTarget =>
+        f.selector == sig:executeNextTx(address, uint256, bytes, Enum.Operation).selector,
+        "an entry point other than executeNextTx handed a transaction to the Delay's target";
 }
