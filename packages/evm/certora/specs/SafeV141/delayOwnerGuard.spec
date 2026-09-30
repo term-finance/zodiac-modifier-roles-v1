@@ -1,36 +1,41 @@
 /*
- * Property: once the DelayOwnerSafe (Safe v1.4.1) installs DelayOwnerGuard
+ * Property: once the DelayOwnerSafe (Safe v1.4.1) installs ConfigLockGuard
  * with its own setGuard, the Safe cannot remove or replace the guard, cannot
- * enable a module, cannot change its fallback handler, and cannot delegate
- * call. The guard, called directly, rejects exactly those calls and the six
- * locked calls to the Delay, and lets everything else through. The module
- * path never reaches the guard.
+ * enable or disable a module, cannot change its fallback handler, and cannot
+ * delegate call. The guard, called directly, rejects exactly those calls and
+ * the seven locked calls to its lockedModifier (the Delay on chain), and lets
+ * everything else through. The module path never reaches the guard.
  *
- * "The guard" in this file always means DelayOwnerGuard, installed as the
+ * "The guard" in this file always means ConfigLockGuard, installed as the
  * Safe's transaction guard. PauseGuard and SetTxNonceGuard are not in this
  * scene. What the guard does to calls into the Delay, end to end, is
  * specs/Delay/delayOwnerGuard.spec.
  *
  * The scene is the real v1.4.1 code through SafeV141Harness (solc 0.7.6) and
- * the real DelayOwnerGuard (solc 0.8.6). The guard's `delay` is left
- * unconstrained, so the rules hold for whatever Delay it was built with.
+ * the real ConfigLockGuard (solc 0.8.6). The guard's `lockedModifier` is left
+ * unconstrained, so the rules hold for whatever modifier it was built with,
+ * address(0) included. With address(0) the seven modifier selectors are
+ * rejected on calls to address(0), which has no code, so nothing real is
+ * locked outside the Safe.
  *
  * Why these locks are enough on the Safe. Safe v1.4.1 calls checkTransaction
  * from execTransaction only (Safe.sol:177), never from
  * execTransactionFromModule, so:
  *   - a module would bypass the guard (moduleCallBypassesTheGuard), hence
  *     enableModule is blocked;
- *   - a delegate call could write the guard or module slots directly, hence
- *     delegate calls are blocked;
+ *   - a delegate call could write the guard, module or handler slots
+ *     directly, hence delegate calls are blocked;
  *   - setGuard is the only function that moves the guard slot, and
  *     setFallbackHandler the only one that moves the handler slot, hence both
  *     are blocked.
+ * disableModule is blocked too, so the Roles Modifier, and with it the
+ * Governor's veto, cannot be taken off the Safe.
  * The Safe's settings only change when the Safe calls itself (SE141-7), and it
  * calls itself only through execTransaction, a module, or fallback's call to
  * its handler, which comes from the handler, not the Safe (SE141-15). So once
  * the handler is locked at zero and no module can be added, the owners'
  * execTransaction calls to the Safe itself are what the rules below cover.
- * The Roles Modifier, already a module, is bounded by G2.10 in PROOFS.md.
+ * The Roles Modifier, already a module, is bounded by G2.12 in PROOFS.md.
  *
  * Rules, by property:
  *
@@ -38,20 +43,24 @@
  *     checkTransactionRejectsDelegateCall            any delegate call reverts
  *     checkTransactionRejectsSelfSetGuard            the Safe's own setGuard
  *     checkTransactionRejectsSelfEnableModule        the Safe's own enableModule
+ *     checkTransactionRejectsSelfDisableModule       the Safe's own disableModule
  *     checkTransactionRejectsSelfSetFallbackHandler  the Safe's own
  *                                                    setFallbackHandler
- *     checkTransactionRejectsDelayOwnershipChange    transferOwnership and
+ *     checkTransactionRejectsModifierOwnershipChange transferOwnership and
  *                                                    renounceOwnership on the
- *                                                    Delay
- *     checkTransactionRejectsDelayEnableModule       enableModule on the Delay
- *     checkTransactionRejectsDelaySetGuard           setGuard on the Delay
- *     checkTransactionRejectsDelaySetAvatarOrTarget  setAvatar and setTarget on
- *                                                    the Delay
+ *                                                    modifier
+ *     checkTransactionRejectsModifierModuleChange    enableModule and
+ *                                                    disableModule on the
+ *                                                    modifier
+ *     checkTransactionRejectsModifierSetGuard        setGuard on the modifier
+ *     checkTransactionRejectsModifierSetAvatarOrTarget
+ *                                                    setAvatar and setTarget on
+ *                                                    the modifier
  *     checkTransactionAcceptsEverythingElse          every other plain call
  *                                                    passes
  *
  *   installing it
- *     ownersCanInstallDelayOwnerGuard                the owners' execTransaction
+ *     ownersCanInstallConfigLockGuard                the owners' execTransaction
  *                                                    of setGuard(guard) on the
  *                                                    Safe succeeds, ERC-165 probe
  *                                                    included, and the slot
@@ -60,18 +69,19 @@
  *   once installed, end to end through execTransaction
  *     guardedSafeCannotCallSetGuard
  *     guardedSafeCannotCallEnableModule
+ *     guardedSafeCannotCallDisableModule
  *     guardedSafeCannotCallSetFallbackHandler
  *     guardedSafeCannotDelegateCall
  *     guardedSelfCallNeverChangesGuard               for any calldata, a call to
  *                                                    itself leaves the guard slot
- *     guardedSelfCallNeverEnablesAModule             ... enables no module
+ *     guardedSelfCallNeverChangesModules             ... leaves the module list
  *     guardedSelfCallNeverChangesFallbackHandler     ... leaves the handler slot
  *
  *   once installed, the Safe still works
  *     guardedOwnersCanStillCallOut                   a plain call to an address
  *                                                    other than the Safe and the
- *                                                    Delay succeeds
- *     guardedOwnersCanStillChangeOtherSettings       each of the five unblocked
+ *                                                    modifier succeeds
+ *     guardedOwnersCanStillChangeOtherSettings       each of the four unblocked
  *                                                    settings functions works
  *
  *   the module path
@@ -80,10 +90,10 @@
  *                                                    move the guard slot, so the
  *                                                    guard never sees it
  *
- *   once installed, the Safe's half of the Delay lock
- *     guardedSafeCannotCallLockedDelayFunctions      an execTransaction to the
- *                                                    Delay carrying any of the
- *                                                    six locked selectors
+ *   once installed, the Safe's half of the modifier lock
+ *     guardedSafeCannotCallLockedModifierFunctions   an execTransaction to the
+ *                                                    modifier carrying any of the
+ *                                                    seven locked selectors
  *                                                    reverts, before the Safe
  *                                                    makes any call. The Delay's
  *                                                    half, that every other call
@@ -97,7 +107,7 @@
  *     signature check itself is SE141-5 and SE141-12.
  *   - checkTransaction, checkAfterExecution and supportsInterface are
  *     DISPATCHER(true), so inside execTransaction and setGuard the real
- *     DelayOwnerGuard code runs: it is the only contract in the scene that
+ *     ConfigLockGuard code runs: it is the only contract in the scene that
  *     implements them.
  *   - The Safe's low-level call to `to` has a symbolic target. As in
  *     selfCalls.spec, it is DISPATCHed to the Safe's eight settings functions.
@@ -110,7 +120,7 @@
  *     execTransaction again; the nested call goes through the same guard.
  */
 
-using DelayOwnerGuard as delayOwnerGuard;
+using ConfigLockGuard as configLockGuard;
 
 methods {
     function guardAddress() external returns (address) envfree;
@@ -120,13 +130,13 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function delayOwnerGuard.delay() external returns (address) envfree;
+    function configLockGuard.lockedModifier() external returns (address) envfree;
 
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
 
     // execTransaction's guard hooks, and setGuard's ERC-165 probe of the new
-    // guard. DelayOwnerGuard is the only implementation in the scene.
+    // guard. ConfigLockGuard is the only implementation in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -154,32 +164,35 @@ definition SENTINEL() returns address = 0x1;
 // Locked on the Safe itself.
 definition SET_GUARD() returns uint32 = sig:setGuard(address).selector;
 definition ENABLE_MODULE() returns uint32 = sig:enableModule(address).selector;
+definition DISABLE_MODULE() returns uint32 = sig:disableModule(address, address).selector;
 definition SET_FALLBACK_HANDLER() returns uint32 = sig:setFallbackHandler(address).selector;
 
-// Locked on the Delay. setGuard(address) and enableModule(address) share the
-// Safe's selectors; the other four are Ownable's and Module's.
+// Locked on the modifier. setGuard(address), enableModule(address) and
+// disableModule(address,address) share the Safe's selectors; the other four
+// are Ownable's and Module's.
 definition TRANSFER_OWNERSHIP() returns uint32 = 0xf2fde38b;
 definition RENOUNCE_OWNERSHIP() returns uint32 = 0x715018a6;
 definition SET_AVATAR() returns uint32 = 0x086cfca8;
 definition SET_TARGET() returns uint32 = 0x776d1a01;
 
 definition isLockedSelfSelector(uint32 sel) returns bool =
-    sel == SET_GUARD() || sel == ENABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
+    sel == SET_GUARD() || sel == ENABLE_MODULE() ||
+    sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
 
-definition isLockedDelaySelector(uint32 sel) returns bool =
+definition isLockedModifierSelector(uint32 sel) returns bool =
     sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP() ||
-    sel == ENABLE_MODULE() || sel == SET_GUARD() ||
+    sel == ENABLE_MODULE() || sel == DISABLE_MODULE() || sel == SET_GUARD() ||
     sel == SET_AVATAR() || sel == SET_TARGET();
 
 /// What the guard is meant to reject from `safe`, for a plain call. The Safe
-/// branch is tested first, as in checkTransaction.
-definition isLockedCall(address to, address safe, address d, uint32 sel) returns bool =
+/// branch is tested first, as in checkTransaction. A zero modifier is not
+/// special-cased: calls to address(0) with a modifier selector are rejected.
+definition isLockedCall(address to, address safe, address m, uint32 sel) returns bool =
     (to == safe && isLockedSelfSelector(sel)) ||
-    (to != safe && to == d && isLockedDelaySelector(sel));
+    (to != safe && to == m && isLockedModifierSelector(sel));
 
 /// The settings functions the guard leaves open on the Safe.
 definition isUnblockedSetting(method f) returns bool =
-    f.selector == sig:disableModule(address, address).selector ||
     f.selector == sig:addOwnerWithThreshold(address, uint256).selector ||
     f.selector == sig:removeOwner(address, address, uint256).selector ||
     f.selector == sig:swapOwner(address, address, address).selector ||
@@ -202,13 +215,13 @@ rule checkTransactionRejectsDelegateCall(
 ) {
     env e;
 
-    delayOwnerGuard.checkTransaction@withrevert(
+    configLockGuard.checkTransaction@withrevert(
         e, to, value, data, Enum.Operation.DelegateCall,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard accepted a delegate call";
+        "ConfigLockGuard accepted a delegate call";
 }
 
 /*
@@ -223,13 +236,13 @@ rule checkTransactionRejectsSelfSetGuard(
     env e;
     require selectorOf(data) == SET_GUARD();
 
-    delayOwnerGuard.checkTransaction@withrevert(
+    configLockGuard.checkTransaction@withrevert(
         e, e.msg.sender, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe call its own setGuard";
+        "ConfigLockGuard let the Safe call its own setGuard";
 }
 
 /*
@@ -243,13 +256,33 @@ rule checkTransactionRejectsSelfEnableModule(
     env e;
     require selectorOf(data) == ENABLE_MODULE();
 
-    delayOwnerGuard.checkTransaction@withrevert(
+    configLockGuard.checkTransaction@withrevert(
         e, e.msg.sender, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe call its own enableModule";
+        "ConfigLockGuard let the Safe call its own enableModule";
+}
+
+/*
+ * The Safe calling its own disableModule is rejected, whatever the module.
+ */
+rule checkTransactionRejectsSelfDisableModule(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures, address msgSender
+) {
+    env e;
+    require selectorOf(data) == DISABLE_MODULE();
+
+    configLockGuard.checkTransaction@withrevert(
+        e, e.msg.sender, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
+    );
+
+    assert lastReverted,
+        "ConfigLockGuard let the Safe call its own disableModule";
 }
 
 /*
@@ -264,113 +297,117 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
     env e;
     require selectorOf(data) == SET_FALLBACK_HANDLER();
 
-    delayOwnerGuard.checkTransaction@withrevert(
+    configLockGuard.checkTransaction@withrevert(
         e, e.msg.sender, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe call its own setFallbackHandler";
+        "ConfigLockGuard let the Safe call its own setFallbackHandler";
 }
 
 /*
- * transferOwnership and renounceOwnership on the Delay are rejected, whatever
- * the new owner.
+ * transferOwnership and renounceOwnership on the modifier are rejected,
+ * whatever the new owner.
  */
-rule checkTransactionRejectsDelayOwnershipChange(
+rule checkTransactionRejectsModifierOwnershipChange(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address d = delayOwnerGuard.delay();
-    require d != e.msg.sender;
+    address m = configLockGuard.lockedModifier();
+    require m != e.msg.sender;
     uint32 sel = selectorOf(data);
     require sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP();
 
-    delayOwnerGuard.checkTransaction@withrevert(
-        e, d, value, data, operation,
+    configLockGuard.checkTransaction@withrevert(
+        e, m, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe transfer or renounce the Delay";
+        "ConfigLockGuard let the Safe transfer or renounce the modifier";
 }
 
 /*
- * enableModule on the Delay is rejected, whatever the module.
+ * enableModule and disableModule on the modifier are rejected, whatever the
+ * module.
  */
-rule checkTransactionRejectsDelayEnableModule(
+rule checkTransactionRejectsModifierModuleChange(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address d = delayOwnerGuard.delay();
-    require d != e.msg.sender;
-    require selectorOf(data) == ENABLE_MODULE();
+    address m = configLockGuard.lockedModifier();
+    require m != e.msg.sender;
+    uint32 sel = selectorOf(data);
+    require sel == ENABLE_MODULE() || sel == DISABLE_MODULE();
 
-    delayOwnerGuard.checkTransaction@withrevert(
-        e, d, value, data, operation,
+    configLockGuard.checkTransaction@withrevert(
+        e, m, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe enable a module on the Delay";
+        "ConfigLockGuard let the Safe enable or disable a module on the modifier";
 }
 
 /*
- * setGuard on the Delay is rejected, whatever the new guard, so PauseGuard
- * cannot be taken off.
+ * setGuard on the modifier is rejected, whatever the new guard, so PauseGuard
+ * cannot be taken off the Delay.
  */
-rule checkTransactionRejectsDelaySetGuard(
+rule checkTransactionRejectsModifierSetGuard(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address d = delayOwnerGuard.delay();
-    require d != e.msg.sender;
+    address m = configLockGuard.lockedModifier();
+    require m != e.msg.sender;
     require selectorOf(data) == SET_GUARD();
 
-    delayOwnerGuard.checkTransaction@withrevert(
-        e, d, value, data, operation,
+    configLockGuard.checkTransaction@withrevert(
+        e, m, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe change the Delay's guard";
+        "ConfigLockGuard let the Safe change the modifier's guard";
 }
 
 /*
- * setAvatar and setTarget on the Delay are rejected, whatever the address.
+ * setAvatar and setTarget on the modifier are rejected, whatever the address.
  */
-rule checkTransactionRejectsDelaySetAvatarOrTarget(
+rule checkTransactionRejectsModifierSetAvatarOrTarget(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address d = delayOwnerGuard.delay();
-    require d != e.msg.sender;
+    address m = configLockGuard.lockedModifier();
+    require m != e.msg.sender;
     uint32 sel = selectorOf(data);
     require sel == SET_AVATAR() || sel == SET_TARGET();
 
-    delayOwnerGuard.checkTransaction@withrevert(
-        e, d, value, data, operation,
+    configLockGuard.checkTransaction@withrevert(
+        e, m, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert lastReverted,
-        "DelayOwnerGuard let the Safe change the Delay's avatar or target";
+        "ConfigLockGuard let the Safe change the modifier's avatar or target";
 }
 
 /*
  * Nothing else is rejected: a plain call that is not one of the locked calls
  * above always passes, whatever the destination, value and calldata. So the
- * eight rules above are exactly what the guard blocks. This covers
+ * nine rules above are exactly what the guard blocks. This covers
  * Delay.setTxNonce, every other Delay and Safe function, and any call with
- * less than four bytes of calldata.
+ * less than four bytes of calldata. When lockedModifier is address(0), it is
+ * every call to any address other than the Safe, except the seven modifier
+ * selectors sent to address(0).
  */
 rule checkTransactionAcceptsEverythingElse(
     address to, uint256 value, bytes data,
@@ -379,15 +416,15 @@ rule checkTransactionAcceptsEverythingElse(
 ) {
     env e;
     require e.msg.value == 0;
-    require !isLockedCall(to, e.msg.sender, delayOwnerGuard.delay(), selectorOf(data));
+    require !isLockedCall(to, e.msg.sender, configLockGuard.lockedModifier(), selectorOf(data));
 
-    delayOwnerGuard.checkTransaction@withrevert(
+    configLockGuard.checkTransaction@withrevert(
         e, to, value, data, Enum.Operation.Call,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
     );
 
     assert !lastReverted,
-        "DelayOwnerGuard rejected a plain call that is not one of the locked calls";
+        "ConfigLockGuard rejected a plain call that is not one of the locked calls";
 }
 
 /* ------------------------------------------------------------------------
@@ -395,12 +432,12 @@ rule checkTransactionAcceptsEverythingElse(
  * --------------------------------------------------------------------- */
 
 /*
- * With no guard yet, the owners' execTransaction of setGuard(DelayOwnerGuard)
+ * With no guard yet, the owners' execTransaction of setGuard(ConfigLockGuard)
  * on the Safe succeeds and the guard slot then holds it. v1.4.1's setGuard
  * probes the new guard with supportsInterface (GuardManager.sol:55), which
- * runs the real DelayOwnerGuard here, so this also shows the probe passes.
+ * runs the real ConfigLockGuard here, so this also shows the probe passes.
  */
-rule ownersCanInstallDelayOwnerGuard(
+rule ownersCanInstallConfigLockGuard(
     bytes data, uint256 safeTxGas, uint256 baseGas,
     address gasToken, address refundReceiver, bytes signatures
 ) {
@@ -413,8 +450,8 @@ rule ownersCanInstallDelayOwnerGuard(
         currentContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
-    satisfy !lastReverted && guardAddress() == delayOwnerGuard,
-        "the owners could not install DelayOwnerGuard with setGuard";
+    satisfy !lastReverted && guardAddress() == configLockGuard,
+        "the owners could not install ConfigLockGuard with setGuard";
 }
 
 /* ------------------------------------------------------------------------
@@ -431,7 +468,7 @@ rule guardedSafeCannotCallSetGuard(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require selectorOf(data) == SET_GUARD();
 
     execTransaction@withrevert(e,
@@ -439,7 +476,7 @@ rule guardedSafeCannotCallSetGuard(
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
     assert lastReverted,
-        "with DelayOwnerGuard installed, the Safe called its own setGuard";
+        "with ConfigLockGuard installed, the Safe called its own setGuard";
 }
 
 /*
@@ -452,7 +489,7 @@ rule guardedSafeCannotCallEnableModule(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require selectorOf(data) == ENABLE_MODULE();
 
     execTransaction@withrevert(e,
@@ -460,7 +497,28 @@ rule guardedSafeCannotCallEnableModule(
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
     assert lastReverted,
-        "with DelayOwnerGuard installed, the Safe called its own enableModule";
+        "with ConfigLockGuard installed, the Safe called its own enableModule";
+}
+
+/*
+ * The Safe cannot disable a module: an execTransaction calling the Safe's own
+ * disableModule reverts, whatever the module.
+ */
+rule guardedSafeCannotCallDisableModule(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures
+) {
+    env e;
+    require guardAddress() == configLockGuard;
+    require selectorOf(data) == DISABLE_MODULE();
+
+    execTransaction@withrevert(e,
+        currentContract, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
+
+    assert lastReverted,
+        "with ConfigLockGuard installed, the Safe called its own disableModule";
 }
 
 /*
@@ -473,7 +531,7 @@ rule guardedSafeCannotCallSetFallbackHandler(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require selectorOf(data) == SET_FALLBACK_HANDLER();
 
     execTransaction@withrevert(e,
@@ -481,7 +539,7 @@ rule guardedSafeCannotCallSetFallbackHandler(
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
     assert lastReverted,
-        "with DelayOwnerGuard installed, the Safe called its own setFallbackHandler";
+        "with ConfigLockGuard installed, the Safe called its own setFallbackHandler";
 }
 
 /*
@@ -494,14 +552,14 @@ rule guardedSafeCannotDelegateCall(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
 
     execTransaction@withrevert(e,
         to, value, data, Enum.Operation.DelegateCall,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
     assert lastReverted,
-        "with DelayOwnerGuard installed, the Safe made a delegate call";
+        "with ConfigLockGuard installed, the Safe made a delegate call";
 }
 
 /*
@@ -516,36 +574,36 @@ rule guardedSelfCallNeverChangesGuard(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
 
     execTransaction@withrevert(e,
         currentContract, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
-    assert guardAddress() == delayOwnerGuard,
-        "an execTransaction to the Safe itself moved DelayOwnerGuard out of the guard slot";
+    assert guardAddress() == configLockGuard,
+        "an execTransaction to the Safe itself moved ConfigLockGuard out of the guard slot";
 }
 
 /*
  * For any calldata and operation, an execTransaction addressed to the Safe
- * itself enables no module: an address that was not in the module list is
- * still not in it. disableModule stays open, and can only remove.
+ * itself leaves every entry of the module list as it was: no module is
+ * added or removed.
  */
-rule guardedSelfCallNeverEnablesAModule(
+rule guardedSelfCallNeverChangesModules(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures, address a
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
-    require moduleEntry(a) == 0;
+    require guardAddress() == configLockGuard;
+    address entryBefore = moduleEntry(a);
 
     execTransaction@withrevert(e,
         currentContract, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
-    assert moduleEntry(a) == 0,
-        "an execTransaction to the Safe itself added a module";
+    assert moduleEntry(a) == entryBefore,
+        "an execTransaction to the Safe itself changed the module list";
 }
 
 /*
@@ -558,7 +616,7 @@ rule guardedSelfCallNeverChangesFallbackHandler(
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     uint256 handlerBefore = fallbackHandlerSlotWord();
 
     execTransaction@withrevert(e,
@@ -574,9 +632,9 @@ rule guardedSelfCallNeverChangesFallbackHandler(
  * --------------------------------------------------------------------- */
 
 /*
- * A plain call to an address other than the Safe and the Delay still succeeds
- * with the guard installed. Also the non-vacuity witness for section 3: the
- * guard does not block everything.
+ * A plain call to an address other than the Safe and the modifier still
+ * succeeds with the guard installed. Also the non-vacuity witness for
+ * section 3: the guard does not block everything.
  */
 rule guardedOwnersCanStillCallOut(
     address to, uint256 value, bytes data,
@@ -585,16 +643,16 @@ rule guardedOwnersCanStillCallOut(
 ) {
     env e;
     require thresholdValue() > 0;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require to != currentContract;
-    require to != delayOwnerGuard.delay();
+    require to != configLockGuard.lockedModifier();
 
     execTransaction@withrevert(e,
         to, value, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
     satisfy !lastReverted,
-        "with DelayOwnerGuard installed, the Safe could not make a plain call to another contract";
+        "with ConfigLockGuard installed, the Safe could not make a plain call to another contract";
 }
 
 /*
@@ -610,12 +668,11 @@ rule guardedOwnersCanStillChangeOtherSettings(
 {
     env e;
     require thresholdValue() > 0;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require selectorOf(data) == f.selector;
 
     uint256 thresholdBefore = thresholdValue();
     address ownerBefore = ownerEntry(a);
-    address moduleBefore = moduleEntry(a);
 
     execTransaction@withrevert(e,
         currentContract, 0, data, Enum.Operation.Call,
@@ -623,9 +680,8 @@ rule guardedOwnersCanStillChangeOtherSettings(
 
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
-        ownerEntry(a) != ownerBefore ||
-        moduleEntry(a) != moduleBefore),
-        "with DelayOwnerGuard installed, the owners could not use this settings function";
+        ownerEntry(a) != ownerBefore),
+        "with ConfigLockGuard installed, the owners could not use this settings function";
 }
 
 /* ------------------------------------------------------------------------
@@ -633,7 +689,7 @@ rule guardedOwnersCanStillChangeOtherSettings(
  * --------------------------------------------------------------------- */
 
 /*
- * The guard does not see module transactions. With DelayOwnerGuard installed,
+ * The guard does not see module transactions. With ConfigLockGuard installed,
  * an enabled module's execTransactionFromModule addressed to the Safe with a
  * setGuard call succeeds and moves the guard slot, which section 3 shows the
  * owners cannot do. So the module path is bounded by what the module itself
@@ -643,45 +699,45 @@ rule moduleCallBypassesTheGuard(bytes data) {
     env e;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
-    require guardAddress() == delayOwnerGuard;
+    require guardAddress() == configLockGuard;
     require selectorOf(data) == SET_GUARD();
 
     bool success = execTransactionFromModule@withrevert(
         e, currentContract, 0, data, Enum.Operation.Call);
 
-    satisfy !lastReverted && success && guardAddress() != delayOwnerGuard,
+    satisfy !lastReverted && success && guardAddress() != configLockGuard,
         "an enabled module could not move the guard slot, so the module path might be guarded";
 }
 
 /* ------------------------------------------------------------------------
- * 6. Once installed, the Safe's half of the Delay lock
+ * 6. Once installed, the Safe's half of the modifier lock
  * --------------------------------------------------------------------- */
 
 /*
- * An execTransaction addressed to the Delay whose calldata starts with any of
- * the six locked selectors reverts, whatever the arguments, value and
- * operation. The guard runs before the Safe makes its call, so the Delay is
- * never reached and does not need to be in this scene. With OG-14 (no
- * delegate calls), every execTransaction to the Delay that succeeds is a
- * plain call carrying some other selector; specs/Delay/delayOwnerGuard.spec
- * shows no such call changes the Delay's owner, modules, guard, avatar or
- * target.
+ * An execTransaction addressed to the modifier whose calldata starts with any
+ * of the seven locked selectors reverts, whatever the arguments, value and
+ * operation. The guard runs before the Safe makes its call, so the modifier
+ * is never reached and does not need to be in this scene. With
+ * guardedSafeCannotDelegateCall, every execTransaction to the modifier that
+ * succeeds is a plain call carrying some other selector;
+ * specs/Delay/delayOwnerGuard.spec shows no such call changes the Delay's
+ * owner, modules, guard, avatar or target.
  */
-rule guardedSafeCannotCallLockedDelayFunctions(
+rule guardedSafeCannotCallLockedModifierFunctions(
     uint256 value, bytes data, Enum.Operation operation,
     uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
     address gasToken, address refundReceiver, bytes signatures
 ) {
     env e;
-    require guardAddress() == delayOwnerGuard;
-    address d = delayOwnerGuard.delay();
-    require d != currentContract;
-    require isLockedDelaySelector(selectorOf(data));
+    require guardAddress() == configLockGuard;
+    address m = configLockGuard.lockedModifier();
+    require m != currentContract;
+    require isLockedModifierSelector(selectorOf(data));
 
     execTransaction@withrevert(e,
-        d, value, data, operation,
+        m, value, data, operation,
         safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
 
     assert lastReverted,
-        "with DelayOwnerGuard installed, the Safe called a locked function on the Delay";
+        "with ConfigLockGuard installed, the Safe called a locked function on the modifier";
 }

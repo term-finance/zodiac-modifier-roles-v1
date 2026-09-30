@@ -207,3 +207,25 @@ rule passedVetoReachesTheDelayOwnerSafe(uint256 n, bytes32 descriptionHash) {
         && avatar.lastDataWord() == n,
         "the module call's data is not setTxNonce(n)";
 }
+
+/*
+ * The Governor's vote count is TERM's: for any account and any timepoint
+ * before the current clock, getVotes on the Governor returns TERM's
+ * getPastVotes for that account and timepoint. GP-1
+ * (specs/Governor/proposalThreshold.spec) states the proposal threshold
+ * against the Governor's own vote count; this rule is what makes that count
+ * TERM votes.
+ */
+rule governorVotesAreTermPastVotes(address account, uint256 timepoint) {
+    env e;
+    require e.msg.value == 0;
+    // TERM's clock is the block timestamp (TermToken.sol:81-83).
+    require to_mathint(e.block.timestamp) < 2^48;
+    require timepoint < e.block.timestamp;
+
+    uint256 governorVotes = getVotes(e, account, timepoint);
+    uint256 termVotes = termToken.getPastVotes(e, account, timepoint);
+
+    assert governorVotes == termVotes,
+        "the Governor's vote count differs from TERM's past votes";
+}

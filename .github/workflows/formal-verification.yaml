@@ -31,6 +31,7 @@ jobs:
           - "Safe-fallbackHandler.conf"
           - "Safe-selfHandler.conf"
           - "Safe-proposerSafeGuard.conf"
+          - "Safe-ownerlessSafeGuard.conf"
           - "Safe-v141-executionPaths.conf"
           - "Safe-v141-selfCalls.conf"
           - "Safe-v141-receive.conf"
@@ -40,6 +41,7 @@ jobs:
           - "Safe-v141-delayOwnerGuard.conf"
           - "Delay-delayOwnerGuard.conf"
           - "Governor-veto.conf"
+          - "Governor-proposalThreshold.conf"
           - "Governor-settings.conf"
       fail-fast: false
     steps:
@@ -65,7 +67,7 @@ jobs:
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
       # singletons. Governor-veto mixes compilers through its `solc_map`,
       # which names solc8.20 (the deployed Governor and TERM) and solc8.6;
-      # Safe-v141-vetoLandsOnDelay's, Safe-proposerSafeGuard's and both
+      # Safe-v141-vetoLandsOnDelay's, Safe-proposerSafeGuard's, Safe-ownerlessSafeGuard's and both
       # delayOwnerGuard confs name solc7.6 and solc8.6; and Governor-settings names solc8.20 through `solc`. So
       # those names are put on PATH too.
       - run: |

@@ -1,29 +1,30 @@
 /*
- * Property: the Delay's half of the DelayOwnerGuard lock, plus witnesses that
- * the guarded Safe can still run the Delay.
+ * Property: the Delay's half of the ConfigLockGuard lock on the DelayOwnerSafe,
+ * plus witnesses that the guarded Safe can still run the Delay.
  *
- * DelayOwnerGuard, installed on the Safe that owns the Delay, rejects six
- * calls to the Delay: transferOwnership, renounceOwnership, enableModule,
- * setGuard, setAvatar and setTarget. OG-21 (specs/SafeV141/delayOwnerGuard.spec)
- * shows an execTransaction carrying any of them reverts before the Safe makes
- * its call, and OG-14 that the Safe cannot delegate call. So every call the
+ * ConfigLockGuard, built with lockedModifier = the Delay and installed on the
+ * Safe that owns it, rejects seven calls to the Delay: transferOwnership,
+ * renounceOwnership, enableModule, disableModule, setGuard, setAvatar and
+ * setTarget. OG-23 (specs/SafeV141/delayOwnerGuard.spec) shows an
+ * execTransaction carrying any of them reverts before the Safe makes its
+ * call, and OG-16 that the Safe cannot delegate call. So every call the
  * Safe's owners get through to the Delay is a plain call carrying some other
  * selector. This file shows that no such call, from any caller, changes the
  * Delay's owner, modules, guard, avatar or target. Together they give the
  * lock end to end.
  *
  * The proof is split at the Safe's call into the Delay, as GV-2 and GV-3 are
- * in PROOFS.md G2.11. With the Safe routing arbitrary calldata into the
+ * in PROOFS.md G2.13. With the Safe routing arbitrary calldata into the
  * Delay's functions, the Prover (certora-cli 7.31.0) stops with an internal
  * error. It does not when the calldata is pinned to one call of fixed length,
  * which is how the witnesses in section 2 are stated.
  *
- * "The guard" in this file always means DelayOwnerGuard. The Delay's own
+ * "The guard" in this file always means ConfigLockGuard. The Delay's own
  * guard (PauseGuard on chain) is just a slot here.
  *
  * The scene is the real Delay mastercopy source, certora/helpers/Delay.sol
- * (solc 0.8.6), the real DelayOwnerGuard (solc 0.8.6) with its `delay` linked
- * to the Delay, and the real Safe v1.4.1 through SafeV141Harness (solc 0.7.6)
+ * (solc 0.8.6), the real ConfigLockGuard (solc 0.8.6) with its
+ * `lockedModifier` linked to the Delay, and the real Safe v1.4.1 through SafeV141Harness (solc 0.7.6)
  * for the witnesses.
  *
  * Rules, by property:
@@ -31,10 +32,11 @@
  *   the Delay's half of the lock, over every Delay write function
  *     unlockedDelayCallsNeverChangeOwnerGuardAvatarOrTarget
  *                                                any caller, any function but
- *                                                the six locked ones and setUp:
+ *                                                the seven locked ones and setUp:
  *                                                owner, guard, avatar and
  *                                                target are unchanged
- *     unlockedDelayCallsNeverEnableAModule       ... and no module is added
+ *     unlockedDelayCallsNeverChangeModules       ... and no module is added
+ *                                                or removed
  *     delayAvatarAndTargetOnlyChangeThroughOwnerSetters
  *                                                avatar and target only move
  *                                                through the owner's setAvatar
@@ -45,7 +47,6 @@
  *                                                txNonce becomes n
  *     guardedSafeCanStillSetTxCooldown
  *     guardedSafeCanStillSetTxExpiration
- *     guardedSafeCanStillDisableADelayModule
  *
  * Modelling notes.
  *   - setUp is left out of the parametric rules. It always reverts after
@@ -57,17 +58,17 @@
  *     that called back into the Delay would do so as itself, which the
  *     parametric rules already cover for any caller.
  *   - checkTransaction, checkAfterExecution and supportsInterface are
- *     DISPATCHER(true), so the real DelayOwnerGuard code runs wherever a guard
+ *     DISPATCHER(true), so the real ConfigLockGuard code runs wherever a guard
  *     hook is called: it is the only contract in the scene that implements
  *     them.
  *   - In the witnesses, checkSignatures is NONDET (the signature check
  *     passes; SE141-5 and SE141-12 cover it), and the Safe's call to `to` is
- *     DISPATCHed to the four Delay functions the witnesses use. DISPATCH
+ *     DISPATCHed to the three Delay functions the witnesses use. DISPATCH
  *     ignores `to`, so each witness pins `to` to the Delay.
  */
 
 using Delay as delayContract;
-using DelayOwnerGuard as delayOwnerGuard;
+using ConfigLockGuard as configLockGuard;
 using CalldataReader as reader;
 
 methods {
@@ -75,7 +76,7 @@ methods {
     function thresholdValue() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function delayOwnerGuard.delay() external returns (address) envfree;
+    function configLockGuard.lockedModifier() external returns (address) envfree;
 
     function delayContract.owner() external returns (address) envfree;
     function delayContract.guard() external returns (address) envfree;
@@ -92,7 +93,7 @@ methods {
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
 
-    // Guard hooks and the ERC-165 probe. DelayOwnerGuard is the only
+    // Guard hooks and the ERC-165 probe. ConfigLockGuard is the only
     // implementation in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
@@ -109,16 +110,16 @@ methods {
     unresolved external in SafeV141Harness._ => DISPATCH [
         Delay.setTxNonce(uint256),
         Delay.setTxCooldown(uint256),
-        Delay.setTxExpiration(uint256),
-        Delay.disableModule(address, address)
+        Delay.setTxExpiration(uint256)
     ] default NONDET;
 }
 
-/// The six Delay functions DelayOwnerGuard rejects for its Safe, and setUp.
+/// The seven Delay functions ConfigLockGuard rejects for its Safe, and setUp.
 definition isLockedOrSetUp(method f) returns bool =
     f.selector == sig:Delay.transferOwnership(address).selector ||
     f.selector == sig:Delay.renounceOwnership().selector ||
     f.selector == sig:Delay.enableModule(address).selector ||
+    f.selector == sig:Delay.disableModule(address, address).selector ||
     f.selector == sig:Delay.setGuard(address).selector ||
     f.selector == sig:Delay.setAvatar(address).selector ||
     f.selector == sig:Delay.setTarget(address).selector ||
@@ -127,8 +128,8 @@ definition isLockedOrSetUp(method f) returns bool =
 /// The guard is installed on the Safe and points at the Delay, the Delay is
 /// not the Safe, and the Safe owns the Delay.
 definition guardedOwner() returns bool =
-    guardAddress() == delayOwnerGuard &&
-    delayOwnerGuard.delay() == delayContract &&
+    guardAddress() == configLockGuard &&
+    configLockGuard.lockedModifier() == delayContract &&
     delayContract != currentContract &&
     delayContract.owner() == currentContract;
 
@@ -137,7 +138,7 @@ definition guardedOwner() returns bool =
  * --------------------------------------------------------------------- */
 
 /*
- * Over every write function of the Delay except the six the guard rejects and
+ * Over every write function of the Delay except the seven the guard rejects and
  * setUp, and for any caller, the owner, guard, avatar and target read the
  * same afterwards. The Safe's plain calls that pass the guard are among
  * these calls.
@@ -165,28 +166,27 @@ rule unlockedDelayCallsNeverChangeOwnerGuardAvatarOrTarget(method f, calldataarg
 }
 
 /*
- * Over the same functions and any caller, an address that was not a module
- * of the Delay is still not one afterwards. disableModule is among them, and
- * can only remove.
+ * Over the same functions and any caller, every address is a module of the
+ * Delay afterwards exactly when it was before: no module is added or removed.
  */
-rule unlockedDelayCallsNeverEnableAModule(method f, calldataarg args, address m)
+rule unlockedDelayCallsNeverChangeModules(method f, calldataarg args, address m)
     filtered { f -> !f.isView && !f.isPure &&
                     f.contract == delayContract && !isLockedOrSetUp(f) }
 {
     env e;
-    require !delayContract.isModuleEnabled(m);
+    bool enabledBefore = delayContract.isModuleEnabled(m);
 
     f(e, args);
 
-    assert !delayContract.isModuleEnabled(m),
-        "a Delay function the guard lets through enabled a module";
+    assert delayContract.isModuleEnabled(m) == enabledBefore,
+        "a Delay function the guard lets through enabled or disabled a module";
 }
 
 /*
  * Over every write function of the Delay except setUp (DM-1), the avatar only
  * changes through setAvatar and the target only through setTarget, and only
  * for the owner. This closes the gap proofsContext.md records under
- * Premise 12, independent of DelayOwnerGuard.
+ * Premise 12, independent of ConfigLockGuard.
  */
 rule delayAvatarAndTargetOnlyChangeThroughOwnerSetters(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure &&
@@ -238,7 +238,7 @@ rule guardedSafeCanStillVeto(
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
     satisfy !lastReverted && delayContract.txNonce() == n,
-        "with DelayOwnerGuard installed, the Safe could not veto with setTxNonce";
+        "with ConfigLockGuard installed, the Safe could not veto with setTxNonce";
 }
 
 /*
@@ -263,7 +263,7 @@ rule guardedSafeCanStillSetTxCooldown(
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
     satisfy !lastReverted && delayContract.txCooldown() == c,
-        "with DelayOwnerGuard installed, the Safe could not set the Delay's cooldown";
+        "with ConfigLockGuard installed, the Safe could not set the Delay's cooldown";
 }
 
 /*
@@ -288,29 +288,5 @@ rule guardedSafeCanStillSetTxExpiration(
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
     satisfy !lastReverted && delayContract.txExpiration() == x,
-        "with DelayOwnerGuard installed, the Safe could not set the Delay's expiration";
-}
-
-/*
- * A module can still be removed: an execTransaction of
- * disableModule(prev, m) to the Delay succeeds and m is no longer a module.
- */
-rule guardedSafeCanStillDisableADelayModule(
-    address m, bytes data, uint256 safeTxGas, uint256 baseGas,
-    address gasToken, address refundReceiver, bytes signatures
-) {
-    env e;
-    require thresholdValue() > 0;
-    require guardedOwner();
-
-    require data.length == 68;
-    require selectorOf(data) == sig:Delay.disableModule(address, address).selector;
-    require delayContract.isModuleEnabled(m);
-
-    execTransaction@withrevert(e,
-        delayContract, 0, data, Enum.Operation.Call,
-        safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
-
-    satisfy !lastReverted && !delayContract.isModuleEnabled(m),
-        "with DelayOwnerGuard installed, the Safe could not disable a module on the Delay";
+        "with ConfigLockGuard installed, the Safe could not set the Delay's expiration";
 }

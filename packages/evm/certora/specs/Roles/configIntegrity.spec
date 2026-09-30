@@ -73,6 +73,16 @@
  *                                         owner or an address in the module
  *                                         list
  *
+ *   with no owner, the settings functions are unreachable
+ *     noOwnerSettingsAlwaysRevert         with the owner at address(0), each of
+ *                                         the twenty settings functions reverts
+ *                                         for every caller but address(0),
+ *                                         which never sends a transaction
+ *     noOwnerStaysNoOwner                 and no entry point but setUp can give
+ *                                         the module an owner back
+ *     renounceOwnershipLeavesNoOwner      an owner's renounceOwnership reaches
+ *                                         that state (witness)
+ *
  * Deliberately NOT claimed here:
  *   - That the configuration is correct. What the owner has configured is
  *     Property 3's subject; this file says only that nobody else can move it.
@@ -527,4 +537,67 @@ rule onlyModulesOrOwnerCanCallRoles(method f, calldataarg args)
 
     assert !lastReverted => (e.msg.sender == ownerBefore || senderWasModule),
         "a caller that is neither the owner nor in the module list successfully called Roles";
+}
+
+/* ------------------------------------------------------------------------
+ * 5. With no owner, the settings functions are unreachable
+ * --------------------------------------------------------------------- */
+
+/*
+ * renounceOwnership sets the owner to address(0) (OwnableUpgradeable.sol:59).
+ * onlyOwner then admits only msg.sender == address(0), and no transaction
+ * comes from address(0): nobody holds its key and no contract lives there.
+ * onlyOwnerCanCallRolesSettings leaves that caller open, because the Prover
+ * does not rule out msg.sender == 0 by itself, so these rules exclude it
+ * explicitly.
+ *
+ * With the owner at address(0), none of the twenty settings functions
+ * succeeds, for any caller and any arguments. Checked once per function.
+ */
+rule noOwnerSettingsAlwaysRevert(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env e;
+    require owner() == 0;
+    require e.msg.sender != 0;
+
+    f@withrevert(e, args);
+
+    assert lastReverted,
+        "a settings function succeeded while the Roles module has no owner";
+}
+
+/*
+ * And the owner stays address(0): no entry point but setUp can give the
+ * module an owner back. setUp is setUpAlwaysRevertsAfterDeployment's.
+ * @withrevert keeps every instance reachable, including the settings
+ * functions, which always revert in this pre-state; a revert leaves the owner
+ * where it was.
+ */
+rule noOwnerStaysNoOwner(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure && !isSetUp(f) }
+{
+    env e;
+    require owner() == 0;
+    require e.msg.sender != 0;
+
+    f@withrevert(e, args);
+
+    assert owner() == 0,
+        "the Roles module got an owner back";
+}
+
+/*
+ * The two rules above are not about an unreachable state: an owner's
+ * renounceOwnership succeeds and leaves the module with no owner. Witness.
+ */
+rule renounceOwnershipLeavesNoOwner() {
+    env e;
+    require owner() != 0;
+    require e.msg.sender == owner();
+
+    renounceOwnership@withrevert(e);
+
+    satisfy !lastReverted && owner() == 0,
+        "the owner cannot renounce ownership";
 }
