@@ -43,6 +43,8 @@ jobs:
           - "Governor-veto.conf"
           - "Governor-proposalThreshold.conf"
           - "Governor-settings.conf"
+          - "Governor-voting.conf"
+          - "Governor-tallies.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
