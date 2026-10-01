@@ -43,6 +43,9 @@
  *     onlyOwnerCanCallRolesSettings       each of the twenty settings
  *                                         functions succeeds only for the owner
  *     ownerCanCallEachRolesSetting        and the owner can call each (witness)
+ *     atMostOneCallerPassesOnlyOwner      from the same state, each settings
+ *                                         function admits at most one
+ *                                         caller, and it is owner()
  *     onlyEnabledModulesCanExec           each of the four execution functions
  *                                         succeeds only for an address in the
  *                                         module list
@@ -82,6 +85,19 @@
  *                                         the module an owner back
  *     renounceOwnershipLeavesNoOwner      an owner's renounceOwnership reaches
  *                                         that state (witness)
+ *
+ *   role membership and default roles have one setter each
+ *     membershipOnlyChangesThroughAssignRoles
+ *                                         over every write function, setUp
+ *                                         included: a membership changes only
+ *                                         through assignRoles, and always
+ *                                         with an AssignRoles event
+ *     defaultRoleOnlyChangesThroughSetDefaultRole
+ *                                         likewise a default role, through
+ *                                         setDefaultRole and SetDefaultRole
+ *     ownerCanChangeMembershipThroughAssignRoles
+ *                                         the owner's assignRoles really does
+ *                                         change a membership (witness)
  *
  * Deliberately NOT claimed here:
  *   - That the configuration is correct. What the owner has configured is
@@ -365,6 +381,39 @@ rule ownerCanCallEachRolesSetting(method f, calldataarg args)
 }
 
 /*
+ * One owner at a time. From the same state and with the same arguments, each
+ * of the twenty settings functions admits at most one caller, and that caller
+ * is owner(). Mirrors the Delay's atMostOneCallerPassesOnlyOwner.
+ *
+ * Both calls run from the same snapshot, with the same arguments, so the only
+ * thing that differs between them is msg.sender. The first assertion is the
+ * substance; the second is its consequence, stated so the claim reads as
+ * written. ownerCanCallEachRolesSetting is the witness that the admitted
+ * caller really does get through, so "at most one" is not "none".
+ */
+rule atMostOneCallerPassesOnlyOwner(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env ea;
+    env eb;
+    require ea.msg.sender != eb.msg.sender;
+
+    address ownerBefore = owner();
+    storage init = lastStorage;
+
+    f@withrevert(ea, args);
+    bool aPassed = !lastReverted;
+
+    f@withrevert(eb, args) at init;
+    bool bPassed = !lastReverted;
+
+    assert aPassed => ea.msg.sender == ownerBefore,
+        "a settings function admitted a caller other than owner()";
+    assert !(aPassed && bPassed),
+        "two distinct callers both passed the same settings function from the same state";
+}
+
+/*
  * Each of the four execution functions only succeeds for an address in the
  * module list: moduleOnly (Modifier.sol:59-62) checks `modules[msg.sender]`
  * before anything else. The list head 0x1 also has an entry, but 0x1 is the
@@ -600,4 +649,112 @@ rule renounceOwnershipLeavesNoOwner() {
 
     satisfy !lastReverted && owner() == 0,
         "the owner cannot renounce ownership";
+}
+
+/* ------------------------------------------------------------------------
+ * 6. Role membership and default roles have one setter each
+ * --------------------------------------------------------------------- */
+
+/*
+ * The deployment evidence for "the Governor has only ever been given role 1"
+ * reads the Roles Modifier's event history: one AssignRoles and one
+ * SetDefaultRole. That reading is sound only if no membership or default role
+ * can change without the matching event. These rules prove it.
+ *
+ * Neither event has an indexed parameter, so each is a LOG1 whose only topic
+ * is the event signature. The hook records only logs the Roles Modifier
+ * itself emits.
+ *
+ * Unlike the parametric rules above, these keep setUp in `f`: setUp writes
+ * neither membership nor default roles, so it satisfies both rules in any
+ * pre-state, including the one it runs in at creation.
+ */
+
+/// keccak256("AssignRoles(address,uint16[],bool[])")
+definition ASSIGN_ROLES_TOPIC() returns bytes32 =
+    to_bytes32(0x4dcd99505817a4d3e4d3f751a4a49739ec38cb0f83319ff1224a3b289597e86c);
+
+/// keccak256("SetDefaultRole(address,uint16)")
+definition SET_DEFAULT_ROLE_TOPIC() returns bytes32 =
+    to_bytes32(0x197e61bb67ba4b0f657afcb5d2dbed385d50b697c51090f466cdbcc4c30a21ce);
+
+persistent ghost bool emittedAssignRoles;
+persistent ghost bool emittedSetDefaultRole;
+
+hook LOG1(uint offset, uint length, bytes32 t1) {
+    if (executingContract == currentContract && t1 == ASSIGN_ROLES_TOPIC()) {
+        emittedAssignRoles = true;
+    }
+    if (executingContract == currentContract && t1 == SET_DEFAULT_ROLE_TOPIC()) {
+        emittedSetDefaultRole = true;
+    }
+}
+
+/*
+ * Over every write function, setUp included, and every caller: if any
+ * module's membership of any role changed, the function was assignRoles
+ * (Roles.sol:290) and the Roles Modifier emitted AssignRoles.
+ */
+rule membershipOnlyChangesThroughAssignRoles(
+    method f, calldataarg args, uint16 roleId, address acct
+) filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+    require !emittedAssignRoles;
+    bool memberBefore = memberOf(roleId, acct);
+
+    f(e, args);
+
+    bool changed = memberOf(roleId, acct) != memberBefore;
+    assert changed =>
+        f.selector == sig:RolesHarness.assignRoles(address, uint16[], bool[]).selector,
+        "a function other than assignRoles changed a role membership";
+    assert changed => emittedAssignRoles,
+        "a role membership changed without an AssignRoles event";
+}
+
+/*
+ * The same for default roles: if any module's default role changed, the
+ * function was setDefaultRole (Roles.sol:310) and the Roles Modifier emitted
+ * SetDefaultRole. ownerCanStillReconfigure is the witness that a default
+ * role really can change.
+ */
+rule defaultRoleOnlyChangesThroughSetDefaultRole(
+    method f, calldataarg args, address acct
+) filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+    require !emittedSetDefaultRole;
+    uint16 defaultRoleBefore = defaultRoles(acct);
+
+    f(e, args);
+
+    bool changed = defaultRoles(acct) != defaultRoleBefore;
+    assert changed =>
+        f.selector == sig:RolesHarness.setDefaultRole(address, uint16).selector,
+        "a function other than setDefaultRole changed a default role";
+    assert changed => emittedSetDefaultRole,
+        "a default role changed without a SetDefaultRole event";
+}
+
+/*
+ * membershipOnlyChangesThroughAssignRoles is not achieved by nothing working:
+ * the owner's assignRoles can flip a module's membership of a role. Witness.
+ */
+rule ownerCanChangeMembershipThroughAssignRoles(
+    address module, uint16 roleId, uint16[] rolesArg, bool[] memberOfArg
+) {
+    env e;
+    require moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES();
+    require e.msg.value == 0;
+    require e.msg.sender == owner();
+
+    bool memberBefore = memberOf(roleId, module);
+    require rolesArg.length == 1 && memberOfArg.length == 1;
+    require rolesArg[0] == roleId && memberOfArg[0] == !memberBefore;
+
+    assignRoles@withrevert(e, module, rolesArg, memberOfArg);
+
+    satisfy !lastReverted && memberOf(roleId, module) != memberBefore,
+        "the owner cannot change a role membership through assignRoles";
 }
