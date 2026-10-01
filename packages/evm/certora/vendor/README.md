@@ -19,7 +19,13 @@ Modifier's OpenZeppelin 4.3.1:
   `@openzeppelin/contracts-upgradeable/...` imports point at
   `../lib/openzeppelin-contracts-upgradeable/contracts/...`.
 
-No code is changed. The repo copy in `term-finance-ops-contracts` is not the
+No code is changed. TermToken's LayerZero imports are not vendored: the
+confs remap `@layerzerolabs` to `node_modules`, where `package.json` pins
+`@layerzerolabs/lz-evm-oapp-v2` and `@layerzerolabs/lz-evm-protocol-v2` at
+2.1.3. Those releases hold the 27 files TermToken imports byte for byte as
+verified, so keep that pin.
+
+The repo copy in `term-finance-ops-contracts` is not the
 deployed Governor: it returns `7 days` from `votingPeriod()`, while the
 deployed Governor returns `22 hours`.
 

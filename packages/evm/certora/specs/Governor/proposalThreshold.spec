@@ -50,7 +50,7 @@ methods {
 /// The Governor's vote count for an account at a timepoint.
 ghost mapping(address => mapping(uint256 => uint256)) votesAt;
 
-rule holderBelowThresholdCannotPropose(
+rule callerBelowProposalThresholdCannotPropose(
     address[] targets, uint256[] values, bytes[] calldatas, string proposalText
 ) {
     env e;
