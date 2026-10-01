@@ -22,7 +22,9 @@ The conclusions drawn from these proofs establish the following generalizations:
 
 2. Only TERM token holders and Term multisig holders may veto Delay Modifier transactions, holding: 1. the owners, fallbackHandler, modules, guard constant for the DelayOwnerSafe, and 2. the owner, target, modules, guard constant for the Delay Modifier and Roles Modifier, and 3. the role targets, role scopes, role assignments constant for the Roles Modifier, and 4. the voting token, proposal threshold, voting threshold, quorum constant for the Governor.
 
-3. The following: 1. the owners, fallbackHandler, modules, guard for the ProposerSafe, OwnerlessSafe, and DelayOwnerSafe, and 2. the owner, target, modules, guard, txCooldown, txExpiration for the Delay Modifier can be changed only by the Term multisig holders on the ProposerSafe, OwnerlessSafe, or DelayOwnerSafe. The following: 1. the owner, target, modules, guard, role targets, role scopes, role assignments for the Roles Modifier, and 2. the voting token, proposal threshold, voting threshold, quorum for the Governor cannot be changed by anyone.
+3. The following: 1. the owners, fallbackHandler, modules, guard for the ProposerSafe, OwnerlessSafe, and DelayOwnerSafe, and 2. the owner, target, modules, guard, txCooldown, txExpiration for the Delay Modifier can be changed only by the Term multisig holders on the ProposerSafe, OwnerlessSafe, or DelayOwnerSafe.
+
+4. The following: 1. the owner, target, modules, guard, role targets, role scopes, role assignments for the Roles Modifier, and 2. the voting token, proposal threshold, voting threshold, quorum for the Governor cannot be changed by anyone.
 
 Only Term multisig holders can execute DEVOPS_ROLE methods subject to TERM token governance, and this cannot be changed other than through Term multisig approval.
 
@@ -69,13 +71,40 @@ Configuration items marked ⏳ (pending migration) describe the intended post-mi
 | G2.6 | DelayOwnerSafe owners are Term multisig holders. | **On-chain — Eleven keys, any five act:** ✅ at block 26084873, the DelayOwnerSafe (`0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3`) runs GnosisSafe v1.4.1 (`VERSION`), has threshold 5 (`getThreshold`) and these 11 owners (`getOwners`), each an externally owned account with no contract code:<br>• `0xeee661edcFE634Dc0e29D62C26AfD62c0843b817`<br>• `0xF6A745f9B38FFcd17Ee8909AC89151D788F95282`<br>• `0xC43d527E3544A3d199Ce28E87994384D89d90e6E`<br>• `0x8EF485fD38b7B29a827938C9F00300eaBf8E1710`<br>• `0xbfFcAdCd5549cC378693108BcD4435776A6fa795`<br>• `0xB680373c50E9E877DA7dCF9efcc0dFB234452ad3`<br>• `0x6eb0c274EC4B1d51152e45BAED22f883B2A3Bc60`<br>• `0xE82183cfAE1C24f044315c318FD97bE7e47b31D2`<br>• `0xc1047a4D9f6071B55585523F7F659F39A1fBA74b`<br>• `0xDB97c377F23a9Dc54c3D6F9df7bC0ca4Cf7D5A81`<br>• `0x89562FC5AEF155481aE0C7dde1300110B4dF2F1D`<br><br>• The identities of the eleven key holders are not visible on chain. Their status as Term multisig holders is a deployment fact. |
 | G2.7 | DelayOwnerSafe only has one enabled module, the Roles Modifier. | **On-chain — The DelayOwnerSafe's module list contains only the Roles Modifier:**<br>• ✅ The DelayOwnerSafe's (`0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3`) module list returns just one, the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`), and the list ends there (`getModulesPaginated`, block 26080124).<br><br>**On-chain — The DelayOwnerSafe's storage holds only the Roles Modifier as a module:**<br>• ✅ Read directly from storage rather than through the Safe's own functions, the module list starts at the Roles Modifier and the Roles Modifier points back to the start, so it is the only entry (`modules`, storage slot 1, block 26080124). |
 | G2.8 | Only Modules with assignedRoles or Owner can interact with Roles Modifier. | **FV — Every entry point to the Roles Modifier is enumerated below:** RI-14 `rolesWriteFunctionsAreTheKnownTwentyFive` ✅ passes: the Roles Modifier has no `fallback` or `receive` and no write functions besides these twenty-five. Entry points are grouped below by who can call each one:<br><br>*Entry points gated to enabled modules with assigned roles:*<br>• `execTransactionFromModule` (the caller's default role)<br>• `execTransactionFromModuleReturnData` (the caller's default role)<br>• `execTransactionWithRole` (the role the call names)<br>• `execTransactionWithRoleReturnData` (the role the call names)<br><br>*Owner-gated entry points — the settings functions:*<br>• `setMultisend`<br>• `allowTarget`<br>• `revokeTarget`<br>• `scopeTarget`<br>• `scopeAllowFunction`<br>• `scopeRevokeFunction`<br>• `scopeFunction`<br>• `scopeFunctionExecutionOptions`<br>• `scopeParameter`<br>• `scopeParameterAsOneOf`<br>• `unscopeParameter`<br>• `assignRoles`<br>• `setDefaultRole`<br>• `setAvatar`<br>• `setTarget`<br>• `enableModule`<br>• `disableModule`<br>• `setGuard`<br>• `transferOwnership`<br>• `renounceOwnership`<br><br>*Non-interactions — this always reverts, so none of its effects persist:*<br>• `setUp`<br><br>**FV — Execution functions succeed only if the caller address is an enabled module and has been assigned the permissioned role:** `execTransactionFromModule`, `execTransactionFromModuleReturnData`, `execTransactionWithRole`, `execTransactionWithRoleReturnData`.<br>• RI-7 `onlyEnabledModulesCanExec` ✅ passes: only enabled modules can call exec functions.<br>• RI-8 `moduleWithoutDefaultRoleCannotExecFromModule` ✅ passes: an enabled module that is not a member of its default role cannot execute through `execTransactionFromModule` or `execTransactionFromModuleReturnData`.<br>• RI-9 `moduleWithoutRoleCannotExecTransactionWithRole`, RI-10 `moduleWithoutRoleCannotExecTransactionWithRoleReturnData` ✅ pass: an enabled module that is not a member of the role the call names cannot execute through `execTransactionWithRole` or `execTransactionWithRoleReturnData`. With RI-8, a module with no assigned role can execute nothing through any of the four.<br>• RI-11 `roleMemberModuleCanExecFromModule`, RI-12 `roleMemberModuleCanExecTransactionWithRole`, RI-13 `roleMemberModuleCanExecTransactionWithRoleReturnData` ✅ pass: an enabled module that is a member of the role the call runs under can successfully call each of the four, so the restriction is not achieved by nothing working.<br><br>**FV — Owner-only settings:**<br>• RI-2 `rolesConfigOnlyChangesThroughOwner`, RI-3 `ownerOnlyChangesThroughOwnableTransfer`, RI-4 `ownerCanStillReconfigure`, RI-5 `onlyOwnerCanCallRolesSettings`, RI-6 `ownerCanCallEachRolesSetting` ✅ pass: each of the twenty settings functions only succeeds for the owner (RI-5), and the owner can successfully call each one (RI-6).<br>• RI-18 `atMostOneCallerPassesOnlyOwner` ✅ passes: at any moment, only one address can call the twenty settings functions, and it is the owner. There can only be one owner at a time.<br><br>**FV — Setup is not a callable function after deploy:**<br>• RI-1 `setUpAlwaysRevertsAfterDeployment` ✅ passes: once the module list is set up, `setUp` always reverts, so nobody can re-run it to replace the owner or the module list. |
-| G2.9 | Only enabled modules of the Roles Modifier can execute transactions through it. Roles Modifier has no owner, since its owner value is `address(0)`. | **FV — Only enabled modules can execute:**<br>• RI-7 `onlyEnabledModulesCanExec` ✅ passes: on all four execution entry points (`execTransactionFromModule`, `execTransactionFromModuleReturnData`, `execTransactionWithRole`, `execTransactionWithRoleReturnData`), a call that succeeds came from an address in the module list.<br><br>**No owner:**<br>• same as G3.RolesModifier.2. |
+| G2.9 | Only enabled modules of the Roles Modifier can execute transactions through it. Roles Modifier has no owner, since its owner value is `address(0)`. | **FV — Only enabled modules can execute:**<br>• RI-7 `onlyEnabledModulesCanExec` ✅ passes: on all four execution entry points (`execTransactionFromModule`, `execTransactionFromModuleReturnData`, `execTransactionWithRole`, `execTransactionWithRoleReturnData`), a call that succeeds came from an address in the module list.<br><br>**No owner:**<br>• same as G4.RolesModifier.2. |
 | G2.10 | The Governor is the only enabled module of the Roles Modifier with an assignedRole. | **On-chain — The Roles Modifier's module list contains only the Governor:**<br>• ✅ The Roles Modifier's (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) module list returns just one, the Governor (`0x2B715634134220ffeEE9458b4e34E41A41418607`), and the list ends there (`getModulesPaginated`, block 26080168).<br><br>**On-chain — The Roles Modifier's storage holds only the Governor as a module:**<br>• ✅ Read directly from storage rather than through the Roles Modifier's own functions, the module list starts at the Governor and the Governor points back to the start, so it is the only entry (`modules`, storage slot 104, block 26080168).<br><br>**On-chain — The Governor holds a role:**<br>• ✅ The Governor is recorded as a member of role 1 (`roles[1].members`, storage slot 107, block 26080168).<br><br>**On-chain — No other module has ever been added or given a role:**<br>• ✅ The Roles Modifier's complete event history, from its creation at block 26042039 to block 26080168, has one `EnabledModule`, for the Governor, and no `DisabledModule`. It has one `AssignRoles`, also for the Governor. |
 | G2.11 | The Governor is assigned only role 1, its `defaultRole`. | **On-chain — The Governor's default role is 1:**<br>• ✅ `defaultRoles` on the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) returns `1` for the Governor (`0x2B715634134220ffeEE9458b4e34E41A41418607`) at block 26080168.<br><br>**On-chain — The Governor is a member of role 1:**<br>• ✅ The Governor is recorded as a member of role 1 (`roles[1].members`, storage slot 107, block 26080168).<br><br>**FV — A module's roles change only through `assignRoles`, and its default role only through `setDefaultRole`:**<br>• RI-19 `membershipOnlyChangesThroughAssignRoles` ✅ passes: over every write function, `setUp` included, and any caller, a module's membership of a role changes only through `assignRoles` (`Roles.sol:290`), and every change emits `AssignRoles`.<br>• RI-20 `defaultRoleOnlyChangesThroughSetDefaultRole` ✅ passes: likewise, a module's default role changes only through `setDefaultRole` (`Roles.sol:310`), and every change emits `SetDefaultRole`.<br>• RI-21 `ownerCanChangeMembershipThroughAssignRoles` ✅ passes: the owner's `assignRoles` really does change a membership, so RI-19 is not satisfied by nothing working.<br>• RI-4 `ownerCanStillReconfigure` ✅ passes: the owner's `setDefaultRole` really does change a default role, so RI-20 is not satisfied by nothing working.<br><br>**On-chain — The Governor has only ever been given role 1:**<br>• ✅ A module's roles can only change through `assignRoles` (`Roles.sol:290`), which always emits `AssignRoles` (RI-19). The Roles Modifier's complete event history, from its creation at block 26042039 to block 26080168, has exactly one `AssignRoles`: the Governor, role 1, member (tx `0x1d4ec5029b9c66cff2c92bc8be16196bba4d4484caaa74488bdcc61616fb186a`). It also has exactly one `SetDefaultRole` (RI-20): the Governor, role 1 (tx `0xf01e95980c86dc59667c78094ba1f7a65c744b5214029ef70e721ec8c340a928`). |
 | G2.12 | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetoes. | **FV — Role 1 alone restricts member module executions to vetoes (`Delay.setTxNonce(uint256)`), except for executions addressed to MultiSend:**<br>• RC-1 `roleConfigLimitsExecTransactionWithRoleToDelaySetTxNonce`, RC-2 `roleConfigLimitsExecTransactionFromModuleToDelaySetTxNonce`, RC-3 `roleConfigLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce`, RC-4 `roleConfigLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce` ✅ pass: with no SetTxNonceGuard set on Roles Modifier, role 1's scope configuration admits only `setTxNonce(uint256)` on the Delay Modifier, with zero value and as a plain `Call`, on all four entry points, provided the destination is not the MultiSend address.<br>• RC-5 `nonMemberExecTransactionWithRoleAlwaysReverts` ✅ passes: a caller that is not a member of the role it names can execute nothing at all. Stated on `execTransactionWithRole`.<br>• RC-7 `withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig` ✅ passes: without the guard, a transaction addressed to the MultiSend address can execute even though its target is not the Delay Modifier. This is the gap the guard closes (RS-6).<br><br>**FV — SetTxNonceGuard alone restricts all Roles Modifier executions to vetoes (`Delay.setTxNonce(uint256)`):**<br>• RS-1 `setTxNonceGuardLimitsExecTransactionWithRoleToDelaySetTxNonce`, RS-2 `setTxNonceGuardLimitsExecTransactionFromModuleToDelaySetTxNonce`, RS-3 `setTxNonceGuardLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce`, RS-4 `setTxNonceGuardLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce` ✅ pass: with SetTxNonceGuard installed, every execution on all four entry points is `setTxNonce(uint256)` on the Delay Modifier, with zero value and as a plain `Call`, for any caller, any role and any Roles configuration.<br>• RS-5 `setTxNonceGuardLimitsToDelaySetTxNonceUnderMaximallyPermissiveRoles` ✅ passes: under the worst-case configuration, blanket `Clearance.Target` with `ExecutionOptions.Both`, every execution is `setTxNonce(uint256)` on the Delay Modifier, with zero value and as a plain `Call`.<br>• RS-6 `setTxNonceGuardRejectsMultisendTarget` ✅ passes: a transaction addressed to the MultiSend address always reverts.<br>• RS-7 `withoutSetTxNonceGuardPermissiveRolesAllowNonDelayCall` ✅ passes: with no guard and the same permissive configuration, a call to something other than the Delay Modifier succeeds, so it is the guard that imposes the restriction.<br><br>**FV — With role 1 and SetTxNonceGuard applied together, the Governor can only veto:**<br>• RG-2 `governorExecTransactionWithRoleLimitedToDelaySetTxNonce`, RG-3 `governorExecTransactionFromModuleLimitedToDelaySetTxNonce`, RG-4 `governorExecTransactionWithRoleReturnDataLimitedToDelaySetTxNonce`, RG-5 `governorExecTransactionFromModuleReturnDataLimitedToDelaySetTxNonce` ✅ pass: every call the Governor successfully executes through the Roles Modifier is `setTxNonce(uint256)` on the Delay Modifier, with zero value and as a plain `Call`, on all four execution entry points: `execTransactionWithRole`, `execTransactionFromModule`, `execTransactionWithRoleReturnData` and `execTransactionFromModuleReturnData`. Assumes SetTxNonceGuard is installed and pointed at the Delay Modifier, and the Governor is an enabled module, a member of role 1 only, with default role 1 (G2.11).<br><br>**FV — The Governor successfully vetoes:**<br>• RG-6 `governorCanStillCallDelaySetTxNonce` ✅ passes: with SetTxNonceGuard installed and pointed at the Delay Modifier, and the Governor enabled as a module and member of role 1 only with default role 1 (G2.11), the Governor's `setTxNonce` call really does go through, so the restriction is not achieved by nothing working.<br><br>**On-chain — The SetTxNonceGuard is the Roles Modifier's guard:**<br>• ✅ `guard` on the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) returns the SetTxNonceGuard (`0x7aE03372ECDcEe335CdEfB7d354d507F0506616C`), and `getGuard()` returns the same address (block 26095209). |
 | G2.13 | Only TERM token holders can create a Governor proposal to veto, and once the proposal passes, it can be executed successfully. | **FV — Only TERM holders can propose:**<br>• GV-1 `holderAboveThresholdCanProposeVeto` ✅ passes: any address holding at least 1,000 TERM of voting power at `clock() − 1` can propose the veto, the one-action proposal calling the Roles Modifier with `execTransactionWithRole(Delay, 0, setTxNonce(n), Call, 1, true)`, for any `n` and any description of up to 1,024 bytes accepted by `propose`, unless that exact proposal already exists.<br>• GP-1 `callerBelowProposalThresholdCannotPropose` ✅ passes: any caller whose TERM voting power at `clock() − 1` is below the proposal threshold—including callers with zero voting power, such as nonholders—cannot create proposals.<br><br>**FV — Only TERM holders can vote:**<br>• GC-1 `directVoteCountsOnlyTheVotersVotes` ✅ passes: through `castVote`, `castVoteWithReason` and `castVoteWithReasonAndParams`, a proposal's tally grows by exactly the caller's votes at its snapshot if the caller voted on it, and does not move otherwise.<br>• GC-2 `voteBySigCountsOnlyTheVotersVotes` and GC-3 `voteWithReasonAndParamsBySigCountsOnlyTheVotersVotes` ✅ pass: through `castVoteBySig` and `castVoteWithReasonAndParamsBySig`, a proposal's tally grows by exactly the signing voter's votes at its snapshot if that voter voted on it, and does not move otherwise, whoever submits the call.<br>• GC-4 `nothingButAVoteMovesATally` ✅ passes: every other write function, `execute` and `relay` included, leaves every proposal tally where it was; `queue` never succeeds (GS-4).<br>• GC-5 `termHolderVoteCounts` ✅ passes: a caller with votes at the snapshot can vote, and the tally moves, so the rules are not satisfied by nothing working.<br><br>**On-chain — The Governor counts TERM votes, and its proposal threshold is 1,000 TERM:**<br>• ✅ at block 26095237, `token()` on the Governor (`0x2B715634134220ffeEE9458b4e34E41A41418607`) returns the TERM token (`0xC3d21f79C3120A4fFda7A535f8005a7c297799bF`), and `proposalThreshold()` returns `1000000000000000000000` (1,000 TERM).<br><br>**FV — Once it passes, the veto proposal executes and carries through to the Delay Modifier:**<br>• GV-2 `passedVetoReachesTheDelayOwnerSafe` ✅ passes: once the veto's state is `Succeeded`, anyone's `execute` succeeds, and the Roles Modifier forwards the veto to the DelayOwnerSafe as exactly one module call, `execTransactionFromModule(Delay, 0, setTxNonce(n), Call)`, for any `n`, provided that call returns true. Assumes the deployed wiring: SetTxNonceGuard is the Roles Modifier's guard and points at the Delay Modifier, role 1 is scoped to `Delay.setTxNonce`, and the Governor is an enabled module in role 1 (G2.10, G2.11). A recording stand-in takes the DelayOwnerSafe's place.<br>• GV-3 `delayOwnerSafeLandsTheVeto` ✅ passes: on GnosisSafe v1.4.1, an enabled module's `execTransactionFromModule(Delay, 0, setTxNonce(n), Call)` returns true and sets the Delay Modifier's `txNonce` to `n`, for any `n` the Delay Modifier accepts, when the Safe owns the Delay Modifier (G2.3). |
 
-### Generalization 3 — The following: 1. the owners, fallbackHandler, modules, guard for the ProposerSafe, OwnerlessSafe, and DelayOwnerSafe, and 2. the owner, target, modules, guard, txCooldown, txExpiration for the Delay Modifier can be changed only by the Term multisig holders on the ProposerSafe, OwnerlessSafe, or DelayOwnerSafe. The following: 1. the owner, target, modules, guard, role targets, role scopes, role assignments for the Roles Modifier, and 2. the voting token, proposal threshold, voting threshold, quorum for the Governor cannot be changed by anyone.
+### Generalization 3 — The following: 1. the owners, fallbackHandler, modules, guard for the ProposerSafe, OwnerlessSafe, and DelayOwnerSafe, and 2. the owner, target, modules, guard, txCooldown, txExpiration for the Delay Modifier can be changed only by the Term multisig holders on the ProposerSafe, OwnerlessSafe, or DelayOwnerSafe.
+
+---
+
+#### ProposerSafe
+
+Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
+
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `addOwnerWithThreshold(address,uint256)`
+- `removeOwner(address,address,uint256)`
+- `swapOwner(address,address,address)`
+- `changeThreshold(uint256)`
+- `setGuard(address)`
+- `setFallbackHandler(address)`
+- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
+
+**Conclusion:** The modules, owners, guard, and fallbackHandler of the ProposerSafe cannot be changed other than by the Term multisig holders on the ProposerSafe.
+
+##### ProposerSafe · Table 1 — The settings functions of the ProposerSafe can only be executed by its signers since it has no enabled modules.
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.ProposerSafe.1 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the ProposerSafe can only be executed by Owners or enabled modules. | Same as G1.9. |
+| G3.ProposerSafe.2 | ProposerSafe fallback handler is `address(0)`. | Same as G1.10. |
+| G3.ProposerSafe.3 | ProposerSafe owners are Term multisig holders. | Same as G1.11. |
+| G3.ProposerSafe.4 | ProposerSafe has no enabled modules. | Same as G1.12. |
 
 ---
 
@@ -130,10 +159,58 @@ After G3.OwnerlessSafe.5, the analysis branches at the Delay Modifier into its t
 | G3.OwnerlessSafe.9b | DelayOwnerSafe owners are Term multisig holders. | Same as G2.6. |
 | G3.OwnerlessSafe.10b | DelayOwnerSafe only has one enabled module, the Roles Modifier. | Same as G2.7. |
 | G3.OwnerlessSafe.11b | Only Modules with assignedRoles or Owner can interact with Roles Modifier. | Same as G2.8. |
-| G3.OwnerlessSafe.12b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G3.RolesModifier.2. |
+| G3.OwnerlessSafe.12b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G4.RolesModifier.2. |
 | G3.OwnerlessSafe.13b | The Governor is the only enabled module of the Roles Modifier with an assignedRole. | Same as G2.10. |
 | G3.OwnerlessSafe.14b | The Governor is assigned only role 1, its `defaultRole`. | Same as G2.11. |
 | G3.OwnerlessSafe.15b | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetoes. | Same as G2.12. |
+
+
+---
+
+#### DelayOwnerSafe
+
+Settings functions (GnosisSafe v1.4.1; only the Safe itself can call them):
+
+- `enableModule(address)`
+- `disableModule(address,address)`
+- `addOwnerWithThreshold(address,uint256)`
+- `removeOwner(address,address,uint256)`
+- `swapOwner(address,address,address)`
+- `changeThreshold(uint256)`
+- `setGuard(address)`
+- `setFallbackHandler(address)`
+- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
+
+**Conclusion:** The modules, owners, guard, and fallbackHandler of the DelayOwnerSafe cannot be changed other than by its signers. The DelayOwnerSafe's only enabled module, the Roles Modifier, cannot execute DelayOwnerSafe settings functions. The roles and members of the Roles Modifier cannot be changed by any caller. Additional modules can only be added to the DelayOwnerSafe by its own signers.
+
+##### DelayOwnerSafe · Table 1 — The DelayOwnerSafe's settings can only be changed by its owners or through its only enabled module, the Roles Modifier.
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.DelayOwnerSafe.1 | Only Modules or Owners can interact with DelayOwnerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the DelayOwnerSafe can only be executed by Owners or enabled modules. | Same as G2.4. |
+| G3.DelayOwnerSafe.2 | DelayOwnerSafe fallback handler is `address(0)`. | Same as G2.5. |
+| G3.DelayOwnerSafe.3 | DelayOwnerSafe owners are Term multisig holders. | Same as G2.6. |
+| G3.DelayOwnerSafe.4 | DelayOwnerSafe only has one enabled module, the Roles Modifier. | Same as G2.7. |
+| G3.DelayOwnerSafe.5 | Only Modules with assignedRoles or Owner can interact with Roles Modifier. | Same as G2.8. |
+
+After G3.DelayOwnerSafe.5, the analysis branches at the Roles Modifier, the DelayOwnerSafe's only enabled module, into its two sources of authority: its only enabled module, the Governor, which can execute only veto transactions; and its owner, which is `address(0)`, so no owner can execute or modify the Roles Modifier. Tables 2a and 2b establish the restrictions on each path.
+
+
+##### DelayOwnerSafe · Table 2a — The Roles Modifier, the only enabled module of the DelayOwnerSafe, can only execute veto transactions (`Delay.setTxNonce(uint256)`) from the Governor contract.
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.DelayOwnerSafe.6a | The Governor is the only enabled module of the Roles Modifier with an assignedRole. | Same as G2.10. |
+| G3.DelayOwnerSafe.7a | The Governor is assigned only role 1, its `defaultRole`. | Same as G2.11. |
+| G3.DelayOwnerSafe.8a | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetoes. | Same as G2.12. |
+
+
+
+##### DelayOwnerSafe · Table 2b — The Roles Modifier, the only enabled module of the DelayOwnerSafe, has no owner, since its owner value is `address(0)`. The Roles Modifier's settings cannot be changed by anyone.
+
+| # | Statement | Evidence |
+| --- | --- | --- |
+| G3.DelayOwnerSafe.6b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G4.RolesModifier.2. |
 
 
 ---
@@ -186,83 +263,10 @@ After G3.DelayModifier.7, the analysis branches at the Roles Modifier, the Delay
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.DelayModifier.8b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G3.RolesModifier.2. |
+| G3.DelayModifier.8b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G4.RolesModifier.2. |
 
 
----
-
-#### ProposerSafe
-
-Settings functions (GnosisSafe v1.3.0; only the Safe itself can call them):
-
-- `enableModule(address)`
-- `disableModule(address,address)`
-- `addOwnerWithThreshold(address,uint256)`
-- `removeOwner(address,address,uint256)`
-- `swapOwner(address,address,address)`
-- `changeThreshold(uint256)`
-- `setGuard(address)`
-- `setFallbackHandler(address)`
-- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
-
-**Conclusion:** The modules, owners, guard, and fallbackHandler of the ProposerSafe cannot be changed other than by the Term multisig holders on the ProposerSafe.
-
-##### ProposerSafe · Table 1 — The settings functions of the ProposerSafe can only be executed by its signers since it has no enabled modules.
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G3.ProposerSafe.1 | Only Modules or Owners can interact with ProposerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the ProposerSafe can only be executed by Owners or enabled modules. | Same as G1.9. |
-| G3.ProposerSafe.2 | ProposerSafe fallback handler is `address(0)`. | Same as G1.10. |
-| G3.ProposerSafe.3 | ProposerSafe owners are Term multisig holders. | Same as G1.11. |
-| G3.ProposerSafe.4 | ProposerSafe has no enabled modules. | Same as G1.12. |
-
----
-
-#### DelayOwnerSafe
-
-Settings functions (GnosisSafe v1.4.1; only the Safe itself can call them):
-
-- `enableModule(address)`
-- `disableModule(address,address)`
-- `addOwnerWithThreshold(address,uint256)`
-- `removeOwner(address,address,uint256)`
-- `swapOwner(address,address,address)`
-- `changeThreshold(uint256)`
-- `setGuard(address)`
-- `setFallbackHandler(address)`
-- `setup(address[],uint256,address,bytes,address,address,uint256,address)`, one-time initializer: always reverts once the Safe is set up
-
-**Conclusion:** The modules, owners, guard, and fallbackHandler of the DelayOwnerSafe cannot be changed other than by its signers. The DelayOwnerSafe's only enabled module, the Roles Modifier, cannot execute DelayOwnerSafe settings functions. The roles and members of the Roles Modifier cannot be changed by any caller. Additional modules can only be added to the DelayOwnerSafe by its own signers.
-
-##### DelayOwnerSafe · Table 1 — The DelayOwnerSafe's settings can only be changed by its owners or through its only enabled module, the Roles Modifier.
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G3.DelayOwnerSafe.1 | Only Modules or Owners can interact with DelayOwnerSafe, except `fallback` and `receive`, which anyone can call. The settings functions of the DelayOwnerSafe can only be executed by Owners or enabled modules. | Same as G2.4. |
-| G3.DelayOwnerSafe.2 | DelayOwnerSafe fallback handler is `address(0)`. | Same as G2.5. |
-| G3.DelayOwnerSafe.3 | DelayOwnerSafe owners are Term multisig holders. | Same as G2.6. |
-| G3.DelayOwnerSafe.4 | DelayOwnerSafe only has one enabled module, the Roles Modifier. | Same as G2.7. |
-| G3.DelayOwnerSafe.5 | Only Modules with assignedRoles or Owner can interact with Roles Modifier. | Same as G2.8. |
-
-After G3.DelayOwnerSafe.5, the analysis branches at the Roles Modifier, the DelayOwnerSafe's only enabled module, into its two sources of authority: its only enabled module, the Governor, which can execute only veto transactions; and its owner, which is `address(0)`, so no owner can execute or modify the Roles Modifier. Tables 2a and 2b establish the restrictions on each path.
-
-
-##### DelayOwnerSafe · Table 2a — The Roles Modifier, the only enabled module of the DelayOwnerSafe, can only execute veto transactions (`Delay.setTxNonce(uint256)`) from the Governor contract.
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G3.DelayOwnerSafe.6a | The Governor is the only enabled module of the Roles Modifier with an assignedRole. | Same as G2.10. |
-| G3.DelayOwnerSafe.7a | The Governor is assigned only role 1, its `defaultRole`. | Same as G2.11. |
-| G3.DelayOwnerSafe.8a | Role 1 and the SetTxNonceGuard together restrict the Governor to only vetoes. | Same as G2.12. |
-
-
-
-##### DelayOwnerSafe · Table 2b — The Roles Modifier, the only enabled module of the DelayOwnerSafe, has no owner, since its owner value is `address(0)`. The Roles Modifier's settings cannot be changed by anyone.
-
-| # | Statement | Evidence |
-| --- | --- | --- |
-| G3.DelayOwnerSafe.6b | Roles Modifier has no owner, since its owner value is `address(0)`. | Same as G3.RolesModifier.2. |
-
+### Generalization 4 — The following: 1. the owner, target, modules, guard, role targets, role scopes, role assignments for the Roles Modifier, and 2. the voting token, proposal threshold, voting threshold, quorum for the Governor cannot be changed by anyone.
 
 ---
 
@@ -298,8 +302,8 @@ Settings functions (Roles v1.0.0; `onlyOwner`):
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.RolesModifier.1 | Only Modules with assignedRoles or Owner can interact with Roles Modifier. The settings functions are owner-only: only the Owner can successfully execute them. | Same as G2.8. |
-| G3.RolesModifier.2 | Roles Modifier has no owner, since its owner value is `address(0)`. | **FV — Settings functions are unreachable when owner is `address(0)`:**<br>• RI-15 `noOwnerSettingsAlwaysRevert` ✅ passes: with the owner at `address(0)`, each of the twenty settings functions reverts for every caller, because no user can submit a transaction from `address(0)`, so the owner-only check can never be satisfied.<br>• RI-16 `noOwnerStaysNoOwner` ✅ passes: no function can set the Roles Modifier's owner to a nonzero address (`setUp` is covered by RI-1, G2.8).<br>• RI-17 `renounceOwnershipLeavesNoOwner` ✅ passes: the owner's `renounceOwnership()` succeeds and leaves the Roles Modifier with no owner, so RI-15 and RI-16 are not about an unreachable state.<br><br>**On-chain — Owner is `address(0)`:**<br>• ⏳ pending. `owner()` on the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) must return `0x0000000000000000000000000000000000000000`, which the OwnerlessSafe sets by calling `renounceOwnership()`. At block 26083996 it returns the OwnerlessSafe (`0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03`), and `_owner` (slot 51, `OwnableUpgradeable`) holds the same address. |
+| G4.RolesModifier.1 | Only Modules with assignedRoles or Owner can interact with Roles Modifier. The settings functions are owner-only: only the Owner can successfully execute them. | Same as G2.8. |
+| G4.RolesModifier.2 | Roles Modifier has no owner, since its owner value is `address(0)`. | **FV — Settings functions are unreachable when owner is `address(0)`:**<br>• RI-15 `noOwnerSettingsAlwaysRevert` ✅ passes: with the owner at `address(0)`, each of the twenty settings functions reverts for every caller, because no user can submit a transaction from `address(0)`, so the owner-only check can never be satisfied.<br>• RI-16 `noOwnerStaysNoOwner` ✅ passes: no function can set the Roles Modifier's owner to a nonzero address (`setUp` is covered by RI-1, G2.8).<br>• RI-17 `renounceOwnershipLeavesNoOwner` ✅ passes: the owner's `renounceOwnership()` succeeds and leaves the Roles Modifier with no owner, so RI-15 and RI-16 are not about an unreachable state.<br><br>**On-chain — Owner is `address(0)`:**<br>• ⏳ pending. `owner()` on the Roles Modifier (`0xaBAC51B6AEb05a2CE65310F79e64DF203D6c8Ab3`) must return `0x0000000000000000000000000000000000000000`, which the OwnerlessSafe sets by calling `renounceOwnership()`. At block 26083996 it returns the OwnerlessSafe (`0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03`), and `_owner` (slot 51, `OwnableUpgradeable`) holds the same address. |
 
 
 ---
@@ -314,4 +318,4 @@ Settings functions: none.
 
 | # | Statement | Evidence |
 | --- | --- | --- |
-| G3.Governor.1 | Governor does not have settings functions. | **FV — Every write function of the Governor is enumerated below:** GS-1 `governorWriteFunctionsAreTheKnownFourteen` ✅ passes: TermFinanceGovernor builds on OpenZeppelin's Governor, GovernorVotes and GovernorCountingSimple. It has no write functions besides these fourteen:<br><br>*Proposal lifecycle:*<br>• `propose`<br>• `execute`<br>• `cancel`<br><br>*Voting:*<br>• `castVote`<br>• `castVoteWithReason`<br>• `castVoteWithReasonAndParams`<br>• `castVoteBySig`<br>• `castVoteWithReasonAndParamsBySig`<br><br>*Governance only — callable only by the Governor itself, as an action of an executed proposal:*<br>• `relay`, which makes one call out and writes nothing<br><br>*Token and ETH receipt — each writes nothing:*<br>• `onERC721Received`<br>• `onERC1155Received`<br>• `onERC1155BatchReceived`<br>• `receive`<br><br>*Non-interactions — this always reverts, so none of its effects persist:*<br>• `queue`<br><br>**FV — No function changes a setting:**<br>• GS-2 `governorSettingsNeverChange` ✅ passes: for every write function except `queue` (GS-4), any caller and any arguments, every setting reads the same afterwards: `name`, `version`, `COUNTING_MODE`, the executor, `token`, `votingDelay`, `votingPeriod`, `proposalThreshold`, `quorumNumerator`, `quorumDenominator` and `proposalNeedsQueuing`.<br><br>**FV — `queue` always reverts:**<br>• GS-4 `queueAlwaysReverts` ✅ passes: the Governor has no timelock, so it never overrides OpenZeppelin's `_queueOperations`, which returns 0, and `queue` then reverts with `GovernorQueueNotImplemented`. A proposal that passes goes straight to `execute`. |
+| G4.Governor.1 | Governor does not have settings functions. | **FV — Every write function of the Governor is enumerated below:** GS-1 `governorWriteFunctionsAreTheKnownFourteen` ✅ passes: TermFinanceGovernor builds on OpenZeppelin's Governor, GovernorVotes and GovernorCountingSimple. It has no write functions besides these fourteen:<br><br>*Proposal lifecycle:*<br>• `propose`<br>• `execute`<br>• `cancel`<br><br>*Voting:*<br>• `castVote`<br>• `castVoteWithReason`<br>• `castVoteWithReasonAndParams`<br>• `castVoteBySig`<br>• `castVoteWithReasonAndParamsBySig`<br><br>*Governance only — callable only by the Governor itself, as an action of an executed proposal:*<br>• `relay`, which makes one call out and writes nothing<br><br>*Token and ETH receipt — each writes nothing:*<br>• `onERC721Received`<br>• `onERC1155Received`<br>• `onERC1155BatchReceived`<br>• `receive`<br><br>*Non-interactions — this always reverts, so none of its effects persist:*<br>• `queue`<br><br>**FV — No function changes a setting:**<br>• GS-2 `governorSettingsNeverChange` ✅ passes: for every write function except `queue` (GS-4), any caller and any arguments, every setting reads the same afterwards: `name`, `version`, `COUNTING_MODE`, the executor, `token`, `votingDelay`, `votingPeriod`, `proposalThreshold`, `quorumNumerator`, `quorumDenominator` and `proposalNeedsQueuing`.<br><br>**FV — `queue` always reverts:**<br>• GS-4 `queueAlwaysReverts` ✅ passes: the Governor has no timelock, so it never overrides OpenZeppelin's `_queueOperations`, which returns 0, and `queue` then reverts with `GovernorQueueNotImplemented`. A proposal that passes goes straight to `execute`. |
