@@ -74,10 +74,15 @@
  *                                         rule above is not vacuous (witness)
  *
  *   execution and skipping are open to anyone
- *     anyoneCanExecuteNextTx              a caller that is neither owner nor
+ *     anyoneCanExecuteNextTx              from the same state, every caller
+ *                                         gets the same outcome: if one
+ *                                         succeeds, all do, with the same
+ *                                         effect
+ *     anyoneCanSkipExpired                likewise for skipExpired
+ *     outsiderCanExecuteNextTx            a caller that is neither owner nor
  *                                         module can execute a queue entry
  *                                         (witness)
- *     anyoneCanSkipExpired                and can skip an expired one
+ *     outsiderCanSkipExpired              and can skip an expired one
  *                                         (witness)
  *
  *   every entry point is accounted for
@@ -150,6 +155,7 @@
  */
 
 using ReenteringAvatar as hostileAvatar;
+using PauseGuard as pauseGuard;
 
 methods {
     function owner() external returns (address) envfree;
@@ -560,14 +566,87 @@ rule avatarEnableModuleAttemptIsReachable(
 /*
  * executeNextTx and skipExpired carry no access modifier (Delay.sol:200,
  * :227). Everything else on the Delay is owner-only (5.7), module-only (5.3)
- * or spent (5.1). These two witnesses show the exceptions really are open: a
- * caller that is neither the owner nor an enabled module gets through, and
- * the call does its job rather than returning as a no-op.
+ * or spent (5.1).
  *
- * Both are satisfy rules. They show the path exists, not that every such call
- * succeeds; when executeNextTx must succeed is a separate claim.
+ * The first two rules show the caller makes no difference. From the same
+ * state, at the same block, with the same ETH and the same arguments, any two
+ * callers get the same outcome: if one call succeeds, the other succeeds too
+ * and leaves the Delay and the avatar in the same state. So whenever
+ * executeNextTx or skipExpired can succeed, it succeeds for every caller.
+ * Nothing on either path reads msg.sender: Module.exec hands the guard
+ * address(0) as the sender, and the avatar's call back into the Delay comes
+ * from the avatar.
+ *
+ * The avatar and guard are pinned to the deployed wiring — the hostile avatar
+ * linked back to this Delay, and either no guard or PauseGuard — so every
+ * external call on the path resolves to real code. An unresolved call would
+ * be havocked separately in each run and could differ for no reason to do
+ * with the caller.
+ *
+ * Caller independence on its own would also hold if every call reverted, so
+ * the two witnesses after it show a caller that is neither the owner nor an
+ * enabled module does get through, and the call does its job rather than
+ * returning as a no-op.
  */
 rule anyoneCanExecuteNextTx(
+    address to, uint256 value, bytes data, Enum.Operation operation
+) {
+    env e1;
+    env e2;
+    require e2.block.timestamp == e1.block.timestamp;
+    require e2.block.number == e1.block.number;
+    require e2.msg.value == e1.msg.value;
+    require target() == hostileAvatar;
+    require hostileAvatar.delay() == currentContract;
+    require guard() == 0 || guard() == pauseGuard;
+
+    storage init = lastStorage;
+
+    executeNextTx@withrevert(e1, to, value, data, operation);
+    bool reverted1 = lastReverted;
+    storage after1 = lastStorage;
+
+    executeNextTx@withrevert(e2, to, value, data, operation) at init;
+    bool reverted2 = lastReverted;
+    storage after2 = lastStorage;
+
+    assert reverted1 == reverted2,
+        "executeNextTx succeeded for one caller and reverted for another";
+    assert !reverted1 => after1[currentContract] == after2[currentContract],
+        "executeNextTx left the Delay in a different state for a different caller";
+    assert !reverted1 => after1[hostileAvatar] == after2[hostileAvatar],
+        "executeNextTx left the avatar in a different state for a different caller";
+}
+
+rule anyoneCanSkipExpired() {
+    env e1;
+    env e2;
+    require e2.block.timestamp == e1.block.timestamp;
+    require e2.block.number == e1.block.number;
+    require e2.msg.value == e1.msg.value;
+
+    storage init = lastStorage;
+
+    skipExpired@withrevert(e1);
+    bool reverted1 = lastReverted;
+    storage after1 = lastStorage;
+
+    skipExpired@withrevert(e2) at init;
+    bool reverted2 = lastReverted;
+    storage after2 = lastStorage;
+
+    assert reverted1 == reverted2,
+        "skipExpired succeeded for one caller and reverted for another";
+    assert !reverted1 => after1[currentContract] == after2[currentContract],
+        "skipExpired left the Delay in a different state for a different caller";
+}
+
+/*
+ * Witnesses for the two rules above. Both are satisfy rules: they show the
+ * path exists, not that every such call succeeds; when executeNextTx must
+ * succeed is a separate claim.
+ */
+rule outsiderCanExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
 ) {
     env e;
@@ -587,7 +666,7 @@ rule anyoneCanExecuteNextTx(
         "a caller that is neither the owner nor a module cannot execute a queue entry";
 }
 
-rule anyoneCanSkipExpired() {
+rule outsiderCanSkipExpired() {
     env e;
     require moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES();
     require e.msg.value == 0;
@@ -655,4 +734,36 @@ rule onlyModulesOrOwnerCanCallDelay(method f, calldataarg args)
 
     assert !lastReverted => (e.msg.sender == ownerBefore || wasModule),
         "a caller that is neither the owner nor an enabled module successfully called the Delay";
+}
+
+/*
+ * An enabled module that is not the owner cannot veto: its setTxNonce always
+ * reverts, whatever the nonce. atMostOneCallerPassesOnlyOwner already implies
+ * this for every caller other than the owner; this states it for the callers
+ * that matter here, the Delay's modules.
+ */
+rule enabledModuleThatIsNotOwnerCannotSetTxNonce(uint256 nonce) {
+    env e;
+    require e.msg.sender != SENTINEL_MODULES();
+    require moduleEntry(e.msg.sender) != 0;
+    require e.msg.sender != owner();
+
+    setTxNonce@withrevert(e, nonce);
+
+    assert lastReverted,
+        "an enabled module that is not the owner set txNonce";
+}
+
+/*
+ * The owner can still veto, so the rule above does not hold just because
+ * setTxNonce always reverts (witness).
+ */
+rule ownerCanSetTxNonce(uint256 nonce) {
+    env e;
+    require e.msg.sender == owner();
+
+    setTxNonce@withrevert(e, nonce);
+
+    satisfy !lastReverted && txNonce() == nonce,
+        "the owner could not set txNonce";
 }

@@ -758,3 +758,52 @@ rule ownerCanChangeMembershipThroughAssignRoles(
     satisfy !lastReverted && memberOf(roleId, module) != memberBefore,
         "the owner cannot change a role membership through assignRoles";
 }
+
+/*
+ * Being the owner gives no way to execute. The owner's call to any of the
+ * four execution functions reverts unless the owner is itself an enabled
+ * module and a member of the role the call runs under: its default role for
+ * the two FromModule functions, the role it names for the two WithRole
+ * functions. Same notion of "enabled module" as onlyEnabledModulesCanExec.
+ */
+rule ownerWithoutModuleRoleCannotExecFromModule(method f, calldataarg args)
+    filtered { f -> isExecFromModule(f) }
+{
+    env e;
+    require e.msg.sender == owner();
+    require !(moduleEntry(e.msg.sender) != 0 &&
+              memberOf(defaultRoles(e.msg.sender), e.msg.sender));
+
+    f@withrevert(e, args);
+
+    assert lastReverted,
+        "the owner executed through a FromModule function without being an enabled module in its default role";
+}
+
+rule ownerWithoutModuleRoleCannotExecTransactionWithRole(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require e.msg.sender == owner();
+    require !(moduleEntry(e.msg.sender) != 0 && memberOf(role, e.msg.sender));
+
+    execTransactionWithRole@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    assert lastReverted,
+        "the owner executed through execTransactionWithRole without being an enabled module in the role it named";
+}
+
+rule ownerWithoutModuleRoleCannotExecTransactionWithRoleReturnData(
+    address to, uint256 value, bytes data, Enum.Operation operation,
+    uint16 role, bool shouldRevert
+) {
+    env e;
+    require e.msg.sender == owner();
+    require !(moduleEntry(e.msg.sender) != 0 && memberOf(role, e.msg.sender));
+
+    execTransactionWithRoleReturnData@withrevert(e, to, value, data, operation, role, shouldRevert);
+
+    assert lastReverted,
+        "the owner executed through execTransactionWithRoleReturnData without being an enabled module in the role it named";
+}
