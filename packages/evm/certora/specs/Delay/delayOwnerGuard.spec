@@ -14,7 +14,7 @@
  * lock end to end.
  *
  * The proof is split at the Safe's call into the Delay, as GV-2 and GV-3 are
- * in PROOFS.md G2.13. With the Safe routing arbitrary calldata into the
+ * in PROOFS.md P2.13. With the Safe routing arbitrary calldata into the
  * Delay's functions, the Prover (certora-cli 7.31.0) stops with an internal
  * error. It does not when the calldata is pinned to one call of fixed length,
  * which is how the witnesses in section 2 are stated.

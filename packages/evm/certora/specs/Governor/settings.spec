@@ -22,6 +22,9 @@
  *   quorumDenominator     100               code (TermFinanceGovernor.sol:28)
  *   quorum(t)             1% of TERM's      code (TermFinanceGovernor.sol:43)
  *                         supply at t
+ *   voting threshold      For votes         code (GovernorCountingSimple.sol:67)
+ *                         strictly over
+ *                         Against votes
  *   token                 TERM              immutable (GovernorVotes.sol:17)
  *   executor              the Governor      code (Governor.sol:679): no timelock
  *   proposalNeedsQueuing  false             code (Governor.sol:215)
@@ -32,7 +35,8 @@
  *                                           storage (Governor.sol:48), written
  *                                           only by the constructor
  *
- * Four rules make the claim:
+ * Five rules make the claim (sections 1-3), and section 4 covers `cancel` and
+ * `receive`, the two write functions the claim does not need to look inside:
  *
  *   governorWriteFunctionsAreTheKnownFourteen
  *     the Governor's write functions are exactly the fourteen listed, none
@@ -47,6 +51,11 @@
  *   governorSettingsAreTheDeployedValues
  *     in every state, the settings in code return the values in the table.
  *     They are compiled in, not stored, so no storage write could move them.
+ *   votingThresholdIsTheDeployedRule
+ *     in every state, a proposal's vote succeeds exactly when its For votes
+ *     are strictly over its Against votes. The threshold is compiled in too;
+ *     the only stored data it reads is the tallies, and only votes move them
+ *     (tallies.spec, voting.spec).
  *
  * Modelling notes.
  *   - The Governor reads TERM through its immutable `_token`, which the conf
@@ -83,6 +92,11 @@ methods {
     function quorumDenominator() external returns (uint256) envfree;
     function proposalNeedsQueuing(uint256) external returns (bool) envfree;
     function token() external returns (address) envfree;
+    function hashProposal(address[], uint256[], bytes[], bytes32) external returns (uint256) envfree;
+    function proposalProposer(uint256) external returns (address) envfree;
+    function proposalEta(uint256) external returns (uint256) envfree;
+    function proposalVotes(uint256) external returns (uint256, uint256, uint256) envfree;
+    function voteSucceeded(uint256) external returns (bool) envfree;
 
     // The Governor's reads of TERM through `_token` that the link leaves
     // unresolved (GovernorVotes.sol:35 and :62, TermFinanceGovernor.sol:44),
@@ -242,4 +256,266 @@ rule governorSettingsAreTheDeployedValues(uint256 proposalId, uint256 timepoint)
     assert !proposalNeedsQueuing(proposalId), "a proposal needs queuing";
     assert to_mathint(quorum(e, timepoint)) == termToken.getPastTotalSupply(e, timepoint) / 100,
         "quorum is not 1% of TERM's past total supply";
+}
+
+/*
+ * In every state of the Governor's storage, a proposal's vote succeeds
+ * exactly when its For votes are strictly over its Against votes
+ * (GovernorCountingSimple.sol:67-71). The threshold is not stored: it reads
+ * only the proposal's tallies, so nothing the Governor stores can change it.
+ */
+rule votingThresholdIsTheDeployedRule(uint256 proposalId) {
+    uint256 againstVotes;
+    uint256 forVotes;
+    uint256 abstainVotes;
+    againstVotes, forVotes, abstainVotes = proposalVotes(proposalId);
+
+    assert voteSucceeded(proposalId) <=> forVotes > againstVotes,
+        "the vote does not succeed exactly when For votes are strictly over Against votes";
+}
+
+/*
+ * Section 4:
+ *
+ *   onlyTheProposerCanCancel
+ *     a successful `cancel` came from the address recorded as the proposal's
+ *     proposer. A proposer is a TERM holder: `propose` only succeeds above the
+ *     proposal threshold (GP-1 callerBelowProposalThresholdCannotPropose,
+ *     proposalThreshold.spec)
+ *   proposerCanCancel
+ *     the proposer can cancel (witness)
+ *   receiveChangesNoState
+ *     a successful `receive` writes no storage, makes no call of any kind
+ *     and creates or destroys no contract. It only takes in the ETH it is sent
+ *   receiveRuns
+ *     some call to `receive` succeeds (witness)
+ *   noProposalIsQueued
+ *     no proposal has an eta, so none is Queued
+ *   executeOnlyRunsSucceededProposals
+ *     a successful `execute` ran a proposal whose state was Succeeded
+ *   relayOnlyCallableByTheGovernor
+ *     a successful `relay` came from the Governor itself
+ *   governorOnlyCallsItselfFromExecuteAndRelay
+ *     no write function but `execute` and `relay` makes a call to the Governor
+ *   relayCanRun
+ *     the Governor can relay (witness)
+ *   tokenReceiptChangesNoState
+ *     a successful `onERC721Received`, `onERC1155Received` or
+ *     `onERC1155BatchReceived` writes no storage, makes no call of any kind
+ *     and creates or destroys no contract
+ *   tokenReceiptRuns
+ *     each of the three can succeed (witness)
+ *
+ * The Governor declares no `fallback`, so the Prover's fallback entry is
+ * `receive` (Governor.sol:83).
+ */
+
+/* ------------------------------------------------------------------------
+ * 4. cancel and receive
+ *
+ * 4a. cancel
+ * --------------------------------------------------------------------- */
+
+/*
+ * Governor.cancel (Governor.sol:463) reverts unless the caller is
+ * proposalProposer(proposalId) and the proposal is Pending.
+ */
+rule onlyTheProposerCanCancel(
+    address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash
+) {
+    env e;
+    uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
+    address proposer = proposalProposer(proposalId);
+
+    cancel@withrevert(e, targets, values, calldatas, descriptionHash);
+
+    assert !lastReverted => e.msg.sender == proposer,
+        "someone other than the proposer cancelled a proposal";
+}
+
+rule proposerCanCancel(
+    address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash
+) {
+    env e;
+    uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
+    require e.msg.sender == proposalProposer(proposalId);
+
+    cancel@withrevert(e, targets, values, calldatas, descriptionHash);
+
+    satisfy !lastReverted, "the proposer cannot cancel";
+}
+
+/* ------------------------------------------------------------------------
+ * 4b. receive
+ * --------------------------------------------------------------------- */
+
+persistent ghost bool wroteStorage;
+persistent ghost bool madeAnyCall;
+persistent ghost bool createdOrDestroyed;
+persistent ghost bool callsItself;
+
+hook ALL_SSTORE(uint loc, uint v) {
+    wroteStorage = true;
+}
+hook CALL(uint g, address addr, uint value, uint argsOffset, uint argsLength,
+          uint retOffset, uint retLength) uint rc {
+    madeAnyCall = true;
+    if (addr == currentContract) {
+        callsItself = true;
+    }
+}
+hook CALLCODE(uint g, address addr, uint value, uint argsOffset, uint argsLength,
+              uint retOffset, uint retLength) uint rc {
+    madeAnyCall = true;
+}
+hook DELEGATECALL(uint g, address addr, uint argsOffset, uint argsLength,
+                  uint retOffset, uint retLength) uint rc {
+    madeAnyCall = true;
+}
+hook STATICCALL(uint g, address addr, uint argsOffset, uint argsLength,
+                uint retOffset, uint retLength) uint rc {
+    madeAnyCall = true;
+}
+hook CREATE1(uint value, uint offset, uint length) address v {
+    createdOrDestroyed = true;
+}
+hook CREATE2(uint value, uint offset, uint length, bytes32 salt) address v {
+    createdOrDestroyed = true;
+}
+hook SELFDESTRUCT(address a) {
+    createdOrDestroyed = true;
+}
+
+/*
+ * `receive` only checks that the executor is the Governor itself
+ * (Governor.sol:83), which it always is: there is no timelock.
+ */
+rule receiveChangesNoState(method f, calldataarg args)
+    filtered { f -> f.isFallback }
+{
+    env e;
+    require !wroteStorage;
+    require !madeAnyCall;
+    require !createdOrDestroyed;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => (!wroteStorage && !madeAnyCall && !createdOrDestroyed),
+        "receive changed state";
+}
+
+rule receiveRuns(method f, calldataarg args)
+    filtered { f -> f.isFallback }
+{
+    env e;
+
+    f@withrevert(e, args);
+
+    satisfy !lastReverted, "no call reaches receive";
+}
+
+/* ------------------------------------------------------------------------
+ * 4c. execute, relay and the token-receipt hooks
+ * --------------------------------------------------------------------- */
+
+/*
+ * No proposal is ever queued: the only write to a proposal's etaSeconds is in
+ * `queue` (Governor.sol:368), which never succeeds (queueAlwaysReverts). So
+ * `state` never returns Queued. Without this the Prover starts from a storage
+ * with an arbitrary eta, and finds a Queued proposal that `execute` runs.
+ */
+invariant noProposalIsQueued(uint256 proposalId)
+    proposalEta(proposalId) == 0
+    filtered { f -> !isQueue(f) }
+
+/*
+ * Governor.execute (Governor.sol:403) reverts unless the proposal is
+ * Succeeded or Queued, and noProposalIsQueued rules Queued out. `state`
+ * reverts for a proposal that does not exist, and so does `execute`, so those
+ * calls are not instances.
+ */
+rule executeOnlyRunsSucceededProposals(
+    address[] targets, uint256[] values, bytes[] calldatas, bytes32 descriptionHash
+) {
+    env e;
+    uint256 proposalId = hashProposal(targets, values, calldatas, descriptionHash);
+    requireInvariant noProposalIsQueued(proposalId);
+    IGovernor.ProposalState stateBefore = state(e, proposalId);
+
+    execute@withrevert(e, targets, values, calldatas, descriptionHash);
+
+    assert !lastReverted => stateBefore == IGovernor.ProposalState.Succeeded,
+        "execute ran a proposal that had not succeeded";
+}
+
+definition isExecute(method f) returns bool =
+    f.selector == sig:execute(address[], uint256[], bytes[], bytes32).selector;
+
+/*
+ * The Governor only calls itself from `execute`, as an action of a proposal,
+ * and from `relay`, which needs the Governor as its caller before it can run.
+ * No other write function makes a call to the Governor's own address, so
+ * together with relayOnlyCallableByTheGovernor, `relay` is reachable only as
+ * an action of an executed proposal. `queue` never succeeds, so it makes no
+ * call either.
+ */
+rule governorOnlyCallsItselfFromExecuteAndRelay(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure && !isExecute(f) && !isRelay(f) }
+{
+    env e;
+    require !callsItself;
+
+    f@withrevert(e, args);
+
+    assert !callsItself, "a function other than execute and relay called the Governor";
+}
+
+/*
+ * relay is onlyGovernance: the caller must be the executor (Governor.sol:224),
+ * which is the Governor itself.
+ */
+rule relayOnlyCallableByTheGovernor(address target, uint256 value, bytes data) {
+    env e;
+
+    relay@withrevert(e, target, value, data);
+
+    assert !lastReverted => e.msg.sender == currentContract,
+        "relay succeeded for a caller other than the Governor";
+}
+
+rule relayCanRun(address target, uint256 value, bytes data) {
+    env e;
+    require e.msg.sender == currentContract;
+
+    relay@withrevert(e, target, value, data);
+
+    satisfy !lastReverted, "the Governor cannot relay";
+}
+
+/*
+ * Each hook only returns its own selector, provided the executor is the
+ * Governor itself (Governor.sol:687).
+ */
+rule tokenReceiptChangesNoState(method f, calldataarg args)
+    filtered { f -> isTokenReceiver(f) }
+{
+    env e;
+    require !wroteStorage;
+    require !madeAnyCall;
+    require !createdOrDestroyed;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => (!wroteStorage && !madeAnyCall && !createdOrDestroyed),
+        "a token-receipt hook changed state";
+}
+
+rule tokenReceiptRuns(method f, calldataarg args)
+    filtered { f -> isTokenReceiver(f) }
+{
+    env e;
+
+    f@withrevert(e, args);
+
+    satisfy !lastReverted, "no call reaches the token-receipt hook";
 }

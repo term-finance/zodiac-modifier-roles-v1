@@ -37,4 +37,10 @@ contract TermFinanceGovernorSettingsHarness is TermFinanceGovernor {
     function executor() external view returns (address) {
         return _executor();
     }
+
+    /// The voting threshold: whether a proposal's votes pass it
+    /// (GovernorCountingSimple.sol:67-71).
+    function voteSucceeded(uint256 proposalId) external view returns (bool) {
+        return _voteSucceeded(proposalId);
+    }
 }

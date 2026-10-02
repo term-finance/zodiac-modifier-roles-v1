@@ -35,7 +35,7 @@
  * its handler, which comes from the handler, not the Safe (SE141-15). So once
  * the handler is locked at zero and no module can be added, the owners'
  * execTransaction calls to the Safe itself are what the rules below cover.
- * The Roles Modifier, already a module, is bounded by G2.12 in PROOFS.md.
+ * The Roles Modifier, already a module, is bounded by P2.12 in PROOFS.md.
  *
  * Rules, by property:
  *
