@@ -44,7 +44,7 @@ definition SENTINEL_MODULES() returns address = 0x1;
  */
 rule setUpAlwaysRevertsAfterDeployment(bytes initParams) {
     env e;
-    require moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES();
+    require moduleEntry(SENTINEL_MODULES()) != 0;
 
     setUp@withrevert(e, initParams);
 
