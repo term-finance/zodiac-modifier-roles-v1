@@ -1,26 +1,13 @@
 /*
- * Safe v1.4.1 (solc 0.7.6): with no fallbackHandler set, fallback()
- * changes no state at all, and receive() changes no state beyond the ETH it
- * is sent, whatever the handler.
+ * Safe v1.4.1: with no fallbackHandler set, fallback changes no state at all,
+ * and receive changes no state beyond the ETH it is sent, whatever the
+ * handler.
  *
- * EVM code can change state only through these opcodes: SSTORE (storage),
- * CALL, CALLCODE and DELEGATECALL (other code runs, ETH can move), CREATE and
- * CREATE2 (a new account), and SELFDESTRUCT. TSTORE does not exist before
- * Cancun, and solc 0.7.6 cannot emit it. STATICCALL cannot change state but
- * is flagged too, so "no call of any kind" holds. The hooks below flag each
- * one. The scene holds only the Safe, so every flag is the Safe's own code.
- *
- * ETH sent with a call is not the code's doing: the EVM credits msg.value
- * before any code runs. fallback() is not payable, so a fallback() call that
- * succeeds carries no ETH (checked below). receive() is payable, so a call
- * to it credits the Safe with the ETH sent.
- *
- * The Prover's fallback entry covers both fallback() and receive(); it has
- * no CALLDATASIZE hook to tell them apart. receive() always emits
- * SafeReceived (SE141-17) and fallback() emits nothing, so the rules tell them
- * apart by that event.
- *
- * The ghosts are persistent so an unresolved call cannot havoc them.
+ * The hooks below flag every opcode through which code can change state
+ * (SSTORE, CALL, CALLCODE, DELEGATECALL, CREATE, CREATE2 and SELFDESTRUCT),
+ * and STATICCALL too. The Prover's fallback entry covers both fallback and
+ * receive; receive always emits SafeReceived and fallback emits nothing, so
+ * the rules tell them apart by that event.
  */
 
 methods {
@@ -167,10 +154,8 @@ rule receiveRuns(method f, calldataarg args)
 }
 
 /*
- * The hooks do fire. A successful approveHash writes storage, and fallback()
- * with a handler set makes its CALL to the handler. The Safe's code has no
- * CREATE, CREATE2 or SELFDESTRUCT anywhere, so no call can show those hooks
- * firing; they rest on the Prover's opcode instrumentation.
+ * The hooks do fire: a successful approveHash writes storage, and fallback
+ * with a handler set makes its call to the handler.
  */
 rule storageHookFires(method f, calldataarg args)
     filtered { f -> f.selector == sig:approveHash(bytes32).selector }

@@ -1,84 +1,16 @@
 /*
- * Property: the Term multisig holders on the ProposerSafe and the Term
- * multisig holders on the OwnerlessSafe may execute DEVOPS_ROLE methods,
- * provided the DEVOPS_ROLE method call is not vetoed (P1.13 in PROOFS.md).
- * One end-to-end rule for each group of holders.
+ * DEVOPS_ROLE methods end to end: the Term multisig holders on the
+ * ProposerSafe, through the Delay Modifier, and the Term multisig holders on
+ * the OwnerlessSafe, directly, can make the OwnerlessSafe run a DEVOPS_ROLE
+ * method, provided the call is not vetoed.
  *
- * Only the OwnerlessSafe holds DEVOPS_ROLE on the protocol contracts (P1.1),
- * so a DEVOPS_ROLE method runs when the OwnerlessSafe calls it. Its own owners
- * make it call directly, through execTransaction. The ProposerSafe's owners
- * make it call through the Delay Modifier: the ProposerSafe is the Delay's one
- * module (P1.8) and the Delay is the OwnerlessSafe's one module (P1.5).
- *
- *   proposerOwnersExecuteDevopsMethodThroughTheDelay (DE-1)
- *     ProposerSafe owner --approveHash, execTransaction--> ProposerSafe
- *       --execTransactionFromModule--> Delay, which queues the proposal
- *     the cooldown passes, nobody vetoes, the PauseGuard is not paused
- *     anyone --executeNextTx--> Delay (+ PauseGuard)
- *       --execTransactionFromModule--> OwnerlessSafe
- *       --call--> protocol contract, onlyRole(DEVOPS_ROLE)
- *
- *   ownerlessOwnersExecuteDevopsMethodThroughExecTransaction (DE-2)
- *     OwnerlessSafe owner --approveHash, execTransaction--> OwnerlessSafe
- *       --call--> protocol contract, onlyRole(DEVOPS_ROLE)
- *
- * DE-1 runs in one execution what DM-5 (a module queues), DP-29 (a queued
- * transaction executes after the cooldown) and SE-6 (the OwnerlessSafe makes
- * the call) cover in pieces. DE-2 does the same for SE-5, SE-8, SE-12 and
- * SE-6. Each rule ends at the protocol contract's role check, and only passes
- * if the method behind it runs, called by the OwnerlessSafe.
- *
- * The scene:
- *   - the real GnosisSafe v1.3.0 code twice, as ProposerSafeHarness and
- *     OwnerlessSafeHarness (solc 0.7.6), as in
- *     proposerToOwnerlessSettings.spec;
- *   - the real Delay mastercopy source, certora/helpers/Delay.sol (solc
- *     0.8.6), whose target is linked to the OwnerlessSafe and whose guard is
- *     linked to PauseGuard;
- *   - the PauseGuard source, contracts/helpers/PauseGuard.sol;
- *   - DevopsRoleTarget, a protocol contract's DEVOPS_ROLE method behind
- *     OpenZeppelin's onlyRole(DEVOPS_ROLE), on the same OpenZeppelin v5
- *     AccessControl code the protocol runs (see its header).
- * No guard is installed on either Safe.
- *
- * Not vetoed. A veto moves the Delay's txNonce past the proposal's nonce
- * with setTxNonce (P2.13). In DE-1 nobody calls setTxNonce between the
- * queueing and the execution, so the proposal is still at txNonce when
- * executeNextTx runs. DP-32 and DP-33 show that a vetoed proposal cannot
- * execute.
- *
- * Why a witness (satisfy) and not an assert. As in DV-1
- * (vetoSignedPath.spec) and PO-5 (proposerToOwnerlessSettings.spec),
- * execTransaction reads gasleft() (GS010), which the Prover leaves
- * unconstrained, so "does not revert" cannot be asserted for every
- * execution. Each rule shows an execution exists in which the owner's
- * approval is what gets the DEVOPS_ROLE method run. The signature checks are
- * the real ones.
- *
- * Modelling notes.
- *   - Each Safe's threshold is 1 and the owner's approval is the one
- *     signature. The Prover unrolls the signature loop once (loop_iter 1);
- *     the deployed thresholds are 5 (ProposerSafe) and 9 (OwnerlessSafe).
- *     The loop is covered one pass at a time by
- *     eachSignatureAcceptsANewApprovingOwner (SE-12), and a threshold-t
- *     check only repeats that pass t times.
- *   - Each Safe's call is a low-level `call` with a symbolic target, which
- *     the Prover cannot resolve. The ProposerSafe's is routed to
- *     Delay.execTransactionFromModule and the OwnerlessSafe's to
- *     DevopsRoleTarget.devopsMethod, which is what each calls on chain.
- *     DISPATCH ignores `to`, so the rules pin `to`. The routed call keeps
- *     its caller, so the role check sees the OwnerlessSafe.
- *   - The roles are P1.1's: the OwnerlessSafe holds DEVOPS_ROLE, and the
- *     scene's other callers (the ProposerSafe, the Delay and the signing
- *     owner) do not.
- *   - The ProposerSafe's call to the Delay carries the DEVOPS_ROLE call as a
- *     `bytes` argument inside `bytes`. DE-1 pins that calldata word by word,
- *     as proposerToOwnerlessSettings.spec does, so the entry the Delay
- *     queues is the entry executeNextTx runs.
- *   - The conf remaps two OpenZeppelin interface files, IAccessControl and
- *     IERC165, to the vendored v5 tree (certora/vendor/TermToken/lib), so
- *     DevopsRoleTarget compiles against OpenZeppelin v5 while PauseGuard
- *     keeps the repository's OpenZeppelin v4.9.6.
+ * The scene is the real GnosisSafe v1.3.0 twice (ProposerSafeHarness, and
+ * OwnerlessSafeHarness as the main contract), the real Delay
+ * (certora/helpers/Delay.sol) with the OwnerlessSafe as its target and
+ * PauseGuard as its guard, and DevopsRoleTarget, a DEVOPS_ROLE method behind
+ * OpenZeppelin's onlyRole(DEVOPS_ROLE). Each Safe's threshold is 1;
+ * ownersCanMakeTheSafeAct (SE-6) covers any threshold. No guard is installed
+ * on either Safe.
  */
 
 using ProposerSafeHarness as proposerSafe;
@@ -142,10 +74,8 @@ definition SENTINEL() returns address = 0x1;
 /// 32-byte word.
 definition DEVOPS_CALL_LENGTH() returns uint256 = 36;
 
-/// The length of the ProposerSafe's call to the Delay that carries it: the
-/// selector (4 bytes), four head words (to, value, the offset of `data`,
-/// operation) and the length of `data` (32 bytes each), which is 164 bytes,
-/// then the 36 bytes of `data` padded to 64.
+/// The length of the ProposerSafe's call to the Delay that carries it (see
+/// isQueueCall).
 definition QUEUE_CALL_LENGTH() returns uint256 = 228;
 
 /// P1.1: the OwnerlessSafe holds DEVOPS_ROLE on the protocol contract, and
@@ -168,8 +98,8 @@ function devopsCall(bytes data, uint256 v) {
 }
 
 /*
- * `q` is the ABI encoding of the Delay's
- * execTransactionFromModule(to, 0, inner, Call), with `inner` 36 bytes long:
+ * `q` is the ABI encoding of the Delay's execTransactionFromModule(to, 0,
+ * inner, Call), with `inner` 36 bytes long:
  *   bytes 0-3          the selector
  *   bytes 4-35         to
  *   bytes 36-67        value, 0
@@ -177,10 +107,9 @@ function devopsCall(bytes data, uint256 v) {
  *   bytes 100-131      operation, 0 (Call)
  *   bytes 132-163      the length of `data`, 36
  *   bytes 164-199      `data`, then zero padding to byte 227
+ *
  * The 36 bytes of `data` are compared by two overlapping 32-byte windows, at
- * its start and at its end. The caller pins both lengths first: a read past
- * the end of an array reverts, and a revert inside a `require` leaves no
- * execution at all.
+ * its start and at its end.
  */
 function isQueueCall(bytes q, address to, bytes inner) returns bool {
     return
@@ -254,7 +183,7 @@ rule proposerOwnersExecuteDevopsMethodThroughTheDelay(
     // still at txNonce.
 
     // 2. After the cooldown, and before the proposal expires, anyone executes
-    // it. The timing is the Delay's own, as in DP-29.
+    // it.
     uint256 createdAt = delayContract.txCreatedAt(slot);
     require eExec.msg.value == 0;
     require eExec.block.timestamp >= createdAt;

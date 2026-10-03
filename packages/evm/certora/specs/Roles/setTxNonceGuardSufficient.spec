@@ -1,39 +1,12 @@
 /*
- * Property 2 — SetTxNonceGuard alone is sufficient.
+ * SetTxNonceGuard alone is sufficient: with the guard installed and pointed
+ * at the Delay, and the role configuration left completely unconstrained,
+ * every call that completes through the Roles Modifier is setTxNonce(uint256)
+ * on the Delay, with zero value and as a plain Call. The caller is any
+ * module, not just the Governor.
  *
- * "The guard" in this file always means SetTxNonceGuard, installed on the
- * Roles module. PauseGuard, installed on the Delay, is not in this
- * scene and nothing here says anything about it.
- *
- * The role configuration is left completely unconstrained — no require
- * touches roles[] storage — so the Prover is free to pick the most permissive
- * configuration that exists, including one where every address holds
- * Clearance.Target with ExecutionOptions.Both and every caller is a member of
- * every role. The claim is that SetTxNonceGuard still admits nothing but
- * setTxNonce(uint256) on the Delay.
- *
- * This is the "we got the scoping wrong" story. It is the reason the guard is
- * worth deploying at all: Roles configuration is a large mutable surface
- * (scopeTarget, scopeAllowFunction, scopeParameter, assignRoles, and an owner
- * who can change any of them later), while the guard is an immutable address
- * check in code that no Roles-side mistake can widen.
- *
- * Note that the caller is NOT pinned to the Governor here. The rules quantify
- * over any msg.sender that clears the moduleOnly gate, so this bounds every
- * module on the modifier, present and future.
- *
- * Deliberately NOT claimed here:
- *   - That the guard survives its own removal. Roles.setGuard is onlyOwner;
- *     an owner that calls setGuard(0) is outside this model, and
- *     setTxNonceRoleConfigSufficient.spec is what covers that world.
- *   - That the guard constrains the 9/9 Safe's own signed transactions. It is
- *     installed on the Roles module, so it sees module transactions only.
- *
- * Modelling note. `target` is linked to DummyAvatar so the avatar never
- * reverts on its own account, leaving the guard as the only rejecter once
- * Permissions.check is satisfied. The IGuard hooks are resolved by
- * DISPATCHER, which lets withoutSetTxNonceGuardPermissiveRolesAllowNonDelayCall below flip guard() to 0 and
- * exhibit the same call succeeding.
+ * The scene is the Roles Modifier under RolesHarness with `target` linked to
+ * DummyAvatar, and DelayTarget as the Delay.
  */
 
 using SetTxNonceGuard as setTxNonceGuardContract;
@@ -69,7 +42,8 @@ function setTxNonceGuardInstalled(env e) {
 }
 
 /*
- * THE property. No assumption whatsoever about the role configuration.
+ * Every call that completes through execTransactionWithRole is setTxNonce on
+ * the Delay, with zero value and as a plain Call.
  */
 rule setTxNonceGuardLimitsExecTransactionWithRoleToDelaySetTxNonce(
     address to, uint256 value, bytes data,
@@ -88,6 +62,9 @@ rule setTxNonceGuardLimitsExecTransactionWithRoleToDelaySetTxNonce(
     ), "a call that was not setTxNonce on the Delay completed with SetTxNonceGuard installed";
 }
 
+/*
+ * The same through execTransactionFromModule.
+ */
 rule setTxNonceGuardLimitsExecTransactionFromModuleToDelaySetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
 ) {
@@ -104,6 +81,9 @@ rule setTxNonceGuardLimitsExecTransactionFromModuleToDelaySetTxNonce(
     ), "a non-setTxNonce call completed through the default-role entry point with SetTxNonceGuard installed";
 }
 
+/*
+ * The same through execTransactionWithRoleReturnData.
+ */
 rule setTxNonceGuardLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce(
     address to, uint256 value, bytes data,
     Enum.Operation operation, uint16 role, bool shouldRevert
@@ -122,10 +102,7 @@ rule setTxNonceGuardLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce(
 }
 
 /*
- * The fourth execution entry point: the default role AND execAndReturnData.
- * The guard sees the outer transaction on every one of the four, so the claim
- * does not weaken here — but the path is distinct code and is asserted
- * separately.
+ * The same through execTransactionFromModuleReturnData.
  */
 rule setTxNonceGuardLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -144,15 +121,9 @@ rule setTxNonceGuardLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce(
 }
 
 /*
- * The same claim stated against a configuration that is explicitly the worst
- * case rather than merely unconstrained: the caller is an enabled module, a
- * member of the role it names, and that role holds blanket Target clearance
- * with both Send and DelegateCall permitted on whatever address it likes.
- *
- * Logically this is implied by setTxNonceGuardLimitsExecTransactionWithRoleToDelaySetTxNonce. It is written out
- * because it is the configuration a reader actually worries about, and
- * because if the general rule ever fails this one localises whether the cause
- * is the permissive branch or something else.
+ * The same under the worst-case configuration: the caller is an enabled
+ * module and a member of the role it names, and that role has Target
+ * clearance on `to` with both Send and DelegateCall.
  */
 rule setTxNonceGuardLimitsToDelaySetTxNonceUnderMaximallyPermissiveRoles(
     address to, uint256 value, bytes data,
@@ -177,14 +148,9 @@ rule setTxNonceGuardLimitsToDelaySetTxNonceUnderMaximallyPermissiveRoles(
 }
 
 /*
- * The multisend branch, which is the one place where the role layer alone
- * does not bound `to` at all: Permissions.check diverts to
- * checkMultisendTransaction whenever to == multisend, and that branch never
- * consults clearance for `to` itself (Permissions.sol:188-192). The guard
- * closes it, because the guard sees the OUTER transaction.
- *
- * setTxNonceRoleConfigSufficient.spec carries the counterpart showing this branch open
- * when the guard is absent.
+ * A transaction addressed to the multisend address always reverts. The role
+ * configuration does not bound `to` on the multisend branch; the guard does,
+ * because it sees the outer transaction.
  */
 rule setTxNonceGuardRejectsMultisendTarget(
     uint256 value, bytes data, Enum.Operation operation, uint16 role, bool shouldRevert
@@ -201,12 +167,9 @@ rule setTxNonceGuardRejectsMultisendTarget(
 }
 
 /*
- * The guard is what is doing the work, not some incidental property of the
- * scene. Same permissive configuration, same non-setTxNonce call, guard
- * removed: it succeeds.
- *
- * Without this witness every rule above is consistent with a scene in which
- * nothing at all can execute.
+ * With no guard and the same permissive configuration, a call to something
+ * other than the Delay succeeds, so it is the guard that imposes the
+ * restriction.
  */
 rule withoutSetTxNonceGuardPermissiveRolesAllowNonDelayCall(
     address to, bytes data, uint16 role

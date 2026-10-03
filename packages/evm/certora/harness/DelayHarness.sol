@@ -3,16 +3,8 @@ pragma solidity >=0.8.0;
 
 import "../helpers/Delay.sol";
 
-/// @dev Exposes the Zodiac Modifier's internal module linked list as an
-/// external view getter for Certora specs, and nothing else. The vendored
-/// certora/helpers/Delay.sol is left untouched: this contract only inherits
-/// it, so every rule verified here runs against the real mastercopy code.
-///
-/// `modules` is `mapping(address => address) internal` (Modifier.sol:16) with
-/// no public getter. The raw entry, not isModuleEnabled, is what the
-/// moduleOnly gate actually reads (Modifier.sol:58-61), and the two diverge at
-/// SENTINEL_MODULES, which setupModules self-links (Delay.sol:106-112):
-/// moduleOnly accepts it, while isModuleEnabled reports it as not enabled.
+/// @dev Exposes the Modifier's internal module list entry as a view getter,
+/// and nothing else. certora/helpers/Delay.sol is inherited unmodified.
 contract DelayHarness is Delay {
     constructor(
         address _owner,

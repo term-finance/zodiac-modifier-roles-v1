@@ -1,54 +1,15 @@
 /*
- * TermFinanceGovernor: TERM holders can propose the veto, and once it has
- * passed, anyone can execute it and the Roles Modifier forwards it to the
+ * Governor veto: TERM holders can propose the veto, and once it has passed
+ * anyone can execute it and the Roles Modifier forwards it to the
  * DelayOwnerSafe.
  *
- * The veto is the runbook's proposal: one action, calling the Roles Modifier
- * with execTransactionWithRole(Delay, 0, setTxNonce(n), Call, 1, true).
- *
- * The contracts are the deployed code:
- *   Governor        TermFinanceGovernor 0x2B715634134220ffeEE9458b4e34E41A41418607,
- *                   verified source in certora/vendor/TermFinanceGovernor
- *                   (OpenZeppelin v5.2.0, solc 0.8.20)
- *   TERM            TermToken, the implementation 0xeC222d8AfB8b4E78C418ebc1ab2cA181f19FbadC
- *                   behind the TERM proxy 0xC3d21f79C3120A4fFda7A535f8005a7c297799bF,
- *                   verified source in certora/vendor/TermToken (solc 0.8.20)
- *   Roles Modifier  contracts/Roles.sol, which verify_fv_source.sh ties to
- *                   the deployed mastercopy
- *   guard           contracts/helpers/SetTxNonceGuard.sol
- * except the DelayOwnerSafe, which is RecordingAvatar: it records the module
- * call Roles makes and returns true. GV-3 (specs/SafeV141/vetoLandsOnDelay.spec)
- * shows the real Safe v1.4.1 returns true for that call and sets the Delay's
- * txNonce; RecordingAvatar's header says why the two are separate rules. The
- * Delay is DelayTarget, the vendored Delay v1.0.1, used here only as the
- * address and selector the veto names.
- *
- * Modelling notes.
- *   - On chain TERM is an ERC1967 proxy that delegatecalls TermToken. Here
- *     the Governor's token is linked straight to TermToken; the proxy adds
- *     nothing but the delegatecall.
- *   - The Governor's call to its proposal's target is a low-level call to an
- *     address taken from calldata, which the Prover cannot resolve on its
- *     own. The DISPATCH entry routes it to Roles' execTransactionWithRole,
- *     where it lands on chain. Any other unresolved call is havoced
- *     (HAVOC_ALL), which can only make these rules harder to pass, never
- *     easier. Roles' guard and target are linked in the conf.
- *   - The Governor reads TERM through its immutable `_token`, which the conf
- *     links to TermToken. The Prover resolves some of those calls from the
- *     link but not all: the first run left propose's getPastVotes call
- *     unresolved, havoced it to return no data, and the Governor's ABI decoder
- *     reverted. The Governor's DISPATCH list therefore also sends clock,
- *     getPastVotes and getPastTotalSupply to TermToken, where every call
- *     through `_token` lands on chain.
- *   - The Prover replaces most compiler-generated copy loops with a single
- *     copy, but not the ones in propose, where its memory analysis fails at
- *     the description-suffix assembly (Governor.sol:827). It unrolls those
- *     instead, 4 times by default, which is too few to copy the 292-byte
- *     veto calldata, so no execution of propose could succeed and GV-1 held
- *     vacuously (job 94639ac2). The conf unrolls copy loops 32 times
- *     (`-copyLoopUnroll 32`). That covers the calldata and any description
- *     up to 1,024 bytes, the limit optimistic hashing already places on the
- *     description (`hashing_length_bound`).
+ * The veto is one action: the Roles Modifier's execTransactionWithRole(Delay,
+ * 0, setTxNonce(n), Call, 1, true). The scene is the deployed
+ * TermFinanceGovernor (TermFinanceGovernorHarness) with its token linked to
+ * TermToken, the Roles Modifier (RolesHarness) with SetTxNonceGuard, and
+ * DelayTarget as the Delay. The DelayOwnerSafe is RecordingAvatar, a stand-in
+ * that records the module call and returns true; delayOwnerSafeLandsTheVeto
+ * (GV-3) shows the real Safe v1.4.1 lands the veto.
  */
 
 using TermToken as termToken;
@@ -87,9 +48,8 @@ methods {
     function avatar.lastDataWord() external returns (uint256) envfree;
     function avatar.lastOperation() external returns (uint8) envfree;
 
-    // The Governor's call to its proposal's target (Governor.sol:447-458),
-    // and its reads of TERM through `_token` that the link leaves unresolved
-    // (GovernorVotes.sol:35 and :62, TermFinanceGovernor.sol:44).
+    // The Governor's call to its proposal's target, and its reads of TERM
+    // through `_token`.
     unresolved external in TermFinanceGovernorHarness._ => DISPATCH [
         RolesHarness.execTransactionWithRole(address, uint256, bytes, Enum.Operation, uint16, bool),
         TermToken.clock(),
@@ -105,15 +65,12 @@ definition SENTINEL() returns address = 0x1;
 definition ROLE() returns uint16 = 1;
 
 /*
- * The deployed wiring of the veto path through the Roles Modifier, as the
- * runbook sets it up and the verification plan checks it on chain:
- *   - SetTxNonceGuard is Roles' guard and is pointed at this Delay;
- *   - role 1 is scoped to the Delay (scopeTarget) with setTxNonce allowed
- *     and no value or delegatecall (scopeAllowFunction, options None);
- *   - the Governor is an enabled module on Roles and a member of role 1;
- *   - Roles' target is the DelayOwnerSafe, here RecordingAvatar.
- * The DelayOwnerSafe's side (Roles is a module on it, and it owns the Delay)
- * is GV-3's.
+ * The deployed wiring of the veto path through the Roles Modifier:
+ *   - SetTxNonceGuard is the Roles Modifier's guard, pointed at this Delay;
+ *   - role 1 is scoped to the Delay, with setTxNonce allowed and no value or
+ *     delegatecall;
+ *   - the Governor is an enabled module and a member of role 1;
+ *   - the Roles Modifier's target is RecordingAvatar, the DelayOwnerSafe.
  */
 function vetoPathWired() {
     require roles.guard() == setTxNonceGuard;
@@ -133,20 +90,18 @@ function vetoPathWired() {
     require options == RolesHarness.ExecutionOptions.None;
     require isWildcarded;
 
-    // The module list's head 0x1 cannot send transactions; the Prover must
-    // not place the Governor there.
     require currentContract != SENTINEL();
     require roles.moduleEntry(currentContract) != 0;
     require roles.memberOf(ROLE(), currentContract);
 }
 
 /*
- * Any address with at least the proposal threshold of TERM votes (1,000 TERM)
- * at clock() - 1 can propose the veto, for any nonce n and any description
- * (up to 1,024 bytes) propose accepts from it, unless that exact proposal
- * already exists. The new proposal records the caller as proposer, and its
- * vote opens at once (votingDelay is 0) and runs for the voting period
- * (22 hours).
+ * A caller with at least the proposal threshold of TERM votes (1,000 TERM) at
+ * clock() - 1 can propose the veto, for any nonce n and any description
+ * propose accepts from it, unless that exact proposal already exists. The
+ * proposal records the caller as proposer, and its vote opens at once and
+ * runs for the voting period. So callerBelowProposalThresholdCannotPropose is
+ * not vacuous.
  */
 rule holderAboveThresholdCanProposeVeto(uint256 n, string proposalText) {
     env e;
@@ -176,11 +131,9 @@ rule holderAboveThresholdCanProposeVeto(uint256 n, string proposalText) {
 
 /*
  * Once the veto has passed (its state is Succeeded), anyone's execute
- * succeeds, and the Roles Modifier forwards the veto to the DelayOwnerSafe
- * as exactly one module call: execTransactionFromModule(Delay, 0,
- * setTxNonce(n), Call), from Roles, for any n. Holds under the deployed
- * wiring above, with RecordingAvatar returning true for that call; GV-3
- * shows the real Safe v1.4.1 does.
+ * succeeds, and the Roles Modifier forwards the veto to the DelayOwnerSafe as
+ * exactly one module call, execTransactionFromModule(Delay, 0, setTxNonce(n),
+ * Call), for any n. So executeOnlyRunsSucceededProposals is not vacuous.
  */
 rule passedVetoReachesTheDelayOwnerSafe(uint256 n, bytes32 descriptionHash) {
     env e;
@@ -209,12 +162,9 @@ rule passedVetoReachesTheDelayOwnerSafe(uint256 n, bytes32 descriptionHash) {
 }
 
 /*
- * The Governor's vote count is TERM's: for any account and any timepoint
- * before the current clock, getVotes on the Governor returns TERM's
- * getPastVotes for that account and timepoint. GP-1
- * (specs/Governor/proposalThreshold.spec) states the proposal threshold
- * against the Governor's own vote count; this rule is what makes that count
- * TERM votes.
+ * For any account and any timepoint before the current clock, the Governor's
+ * getVotes returns TERM's getPastVotes. So the votes the Governor rules count
+ * are TERM votes.
  */
 rule governorVotesAreTermPastVotes(address account, uint256 timepoint) {
     env e;

@@ -1,13 +1,9 @@
 /*
- * Safe v1.4.1 (solc 0.7.6): modules and owners can change the Safe's
- * settings, by having the Safe call its own settings functions.
+ * Safe v1.4.1: modules and owners can change the Safe's settings by having
+ * the Safe call its own settings functions, and nothing else can.
  *
- * Those calls are low-level `call`s with a symbolic target, which the Prover
- * cannot resolve, and by default it assumes an unresolved call leaves the
- * calling contract's own storage alone. So the DISPATCH declarations below
- * route that call to the matching settings function on the Safe, which is
- * what happens on chain when `to` is the Safe itself. Kept in its own conf so
- * the rules in executionPaths.spec keep the default call handling.
+ * The Safe's calls are routed to its own settings functions, as on chain when
+ * `to` is the Safe itself.
  */
 
 methods {
@@ -18,7 +14,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    // The signature check passes, as in executionPaths.spec.
+    // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
 
     unresolved external in SafeV141Harness.execTransactionFromModule(address, uint256, bytes, Enum.Operation) => DISPATCH [
@@ -56,9 +52,8 @@ methods {
         SafeV141Harness.setFallbackHandler(address)
     ] default HAVOC_ECF;
 
-    // Every other call the Safe makes, fallback()'s call to its handler
-    // included, is routed the same way whatever its target: as if the target
-    // were the Safe. That can only add ways for a setting to change.
+    // Every other call the Safe makes, fallback's call to its handler
+    // included, is routed the same way, as if its target were the Safe.
     unresolved external in SafeV141Harness._ => DISPATCH [
         SafeV141Harness.enableModule(address),
         SafeV141Harness.disableModule(address, address),
@@ -95,11 +90,10 @@ definition isSelfOnlySetting(method f) returns bool =
     f.selector == sig:setFallbackHandler(address).selector;
 
 /*
- * A module can change each setting: for each of the eight settings functions,
- * a module's execTransactionFromModule addressed to the Safe, with a call to
- * that function, succeeds and a setting changes. `f` only picks which
- * function's selector the call carries; the call itself goes through the
- * module transaction.
+ * For each of the eight settings functions, a module's
+ * execTransactionFromModule addressed to the Safe, with a call to that
+ * function, succeeds and a setting changes. `f` picks the selector the call
+ * carries.
  */
 rule moduleCanChangeSettings(method f, bytes data, address a)
     filtered { f -> isSelfOnlySetting(f) }
@@ -155,8 +149,7 @@ rule moduleCanChangeSettingsWithReturnData(method f, bytes data, address a)
 }
 
 /*
- * Owners can change each setting: the same through execTransaction, once the
- * threshold is passed. No guard and gasPrice 0, as in ownersCanMakeTheSafeAct.
+ * The same through execTransaction, once the threshold is passed.
  */
 rule ownersCanChangeSettings(
     method f, bytes data, address a, uint256 safeTxGas, uint256 baseGas,
@@ -186,18 +179,13 @@ rule ownersCanChangeSettings(
         "an owner transaction cannot use this settings function to change the Safe's settings";
 }
 
-
 /*
- * The Safe's settings only change through a module transaction from an
- * enabled module or through execTransaction (which needs the owners'
- * signatures: execTransactionRunsOnlyAfterTheSignatureCheck and
- * eachSignatureAcceptsANewApprovingOwner). Over every write function,
- * fallback included.
- * The Safe's calls to itself run the real settings functions (DISPATCH above);
- * any other call it makes is routed the same way, as if it went to the Safe,
- * so a fallback handler is treated as the Safe itself. The caller is never the
- * Safe itself: a call the Safe makes to itself starts inside one of these
- * functions and is covered there.
+ * Over every write function, fallback included, the Safe's settings only
+ * change through an enabled module's execTransactionFromModule or
+ * execTransactionFromModuleReturnData, or through execTransaction. A fallback
+ * handler is treated as the Safe itself. The caller is never the Safe: a call
+ * the Safe makes to itself starts inside one of these functions and is
+ * covered there.
  */
 rule settingsOnlyChangeThroughAModuleOrOwners(method f, calldataarg args, address a)
     filtered { f -> !f.isView && !f.isPure }

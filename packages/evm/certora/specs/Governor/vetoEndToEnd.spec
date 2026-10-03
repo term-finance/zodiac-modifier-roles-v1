@@ -1,57 +1,14 @@
 /*
- * TermFinanceGovernor: a TERM holder can veto a Delay Modifier transaction,
- * from the proposal to the Delay's txNonce, in one rule.
+ * Veto end to end: a TERM holder proposes the veto, a TERM holder votes it
+ * through, anyone executes it once the vote has ended, and the Delay's
+ * txNonce becomes n. The proposal starts with no votes, so the Governor's own
+ * counting of TERM votes is what passes it.
  *
- * A holder proposes the veto, a holder votes it through, anyone executes it
- * once the vote has ended, and the Delay's txNonce becomes n. veto.spec
- * follows the same path in pieces: GV-1 proposes, GV-2 starts from a veto
- * whose state is already Succeeded, and GV-3 and RL-1 take it from the
- * DelayOwnerSafe and from Roles into the Delay. No rule there derives the
- * pass from votes. This rule chains them, with the pass coming from the
- * Governor's own vote counting over TERM's checkpoints.
- *
- * The veto is the runbook's proposal: one action, calling the Roles Modifier
- * with execTransactionWithRole(Delay, 0, setTxNonce(n), Call, 1, true).
- *
- *     Governor --execTransactionWithRole--> Roles (+ SetTxNonceGuard)
- *        --exec--> DelayOwnerSafe --call--> Delay.setTxNonce
- *
- * The scene is veto.spec's, with one change. The Governor, TERM, the Roles
- * Modifier and SetTxNonceGuard are the deployed code, wired as in veto.spec.
- * The DelayOwnerSafe is ForwardingAvatar, not RecordingAvatar, and the Delay
- * (DelayTarget, the vendored Delay v1.0.1) is linked into it, so the veto's
- * module call goes on into the Delay and the rule can read the Delay's own
- * state afterwards. ForwardingAvatar forwards the way the Safe's module path
- * does (see its header). GV-3 (specs/SafeV141/vetoLandsOnDelay.spec) shows
- * the real Safe v1.4.1 returns true for that module call and sets the Delay's
- * txNonce, which is what the stand-in does here.
- *
- * Modelling notes.
- *   - The real Safe v1.4.1 cannot be in this scene. With it inlined behind
- *     the Governor's dispatched call to Roles, the Prover (certora-cli
- *     7.31.0) stops with an internal error at the Safe's call to the Delay
- *     (certora/helpers/RecordingAvatar.sol). ForwardingAvatar makes that call
- *     as a typed call that the `ForwardingAvatar:delay` link resolves, with
- *     no DISPATCH entry. Roles' setTxNonceLands.spec declares a DISPATCH
- *     entry for its other forwards; it is left out here, since a second
- *     DISPATCH entry behind the Governor's is what stopped the Prover with
- *     the real Safe. The veto never takes those forwards.
- *   - Everything else is as in veto.spec: the Governor's DISPATCH list sends
- *     its reads of TERM and its call to Roles where they land on chain, and
- *     the conf unrolls copy loops 32 times for propose.
- *   - The proposal, the vote and the execution are three calls with three
- *     envs. TERM's clock is the block timestamp (TermToken.sol:81-83), so
- *     the envs' timestamps order them: the vote opens at once after the
- *     proposal (votingDelay is 0) and runs for the voting period (22 hours),
- *     and execution comes after it ends.
- *   - The Governor's storage starts arbitrary. The rule starts from a
- *     proposal that does not exist and has no votes, as it would on chain,
- *     so a vote cannot pass on tallies that were already there.
- *   - A satisfy, like DV-1 (specs/Delay/vetoSignedPath.spec). It shows the
- *     whole path can run on the real code, a holder's vote carrying the veto
- *     through to the Delay. It does not say every holder can: which holders
- *     have the votes is TERM's state, and the Governor's vote thresholds
- *     (the proposal threshold, GP-1, and the 1% quorum) decide it.
+ * The veto is one action: the Roles Modifier's execTransactionWithRole(Delay,
+ * 0, setTxNonce(n), Call, 1, true). The scene is veto.spec's, except that the
+ * DelayOwnerSafe is ForwardingAvatar, a stand-in that forwards the Roles
+ * Modifier's call into the Delay (DelayTarget). delayOwnerSafeLandsTheVeto
+ * (GV-3) shows the real Safe v1.4.1 lands the veto.
  */
 
 using TermToken as termToken;
@@ -87,10 +44,8 @@ methods {
     function delay.txNonce() external returns (uint256) envfree;
     function delay.queueNonce() external returns (uint256) envfree;
 
-    // The Governor's call to its proposal's target (Governor.sol:447-458),
-    // and its reads of TERM through `_token` that the link leaves unresolved
-    // (GovernorVotes.sol:35 and :62, TermFinanceGovernor.sol:44), as in
-    // veto.spec.
+    // The Governor's call to its proposal's target, and its reads of TERM
+    // through `_token`.
     unresolved external in TermFinanceGovernorHarness._ => DISPATCH [
         RolesHarness.execTransactionWithRole(address, uint256, bytes, Enum.Operation, uint16, bool),
         TermToken.clock(),
@@ -99,8 +54,7 @@ methods {
     ] default HAVOC_ALL;
 }
 
-/// Head of the Roles Modifier's module list, and of the Safe's: neither can
-/// send transactions, so the Prover must not place a caller there.
+/// Head of the Roles Modifier's and the Safe's module lists.
 definition SENTINEL() returns address = 0x1;
 
 /// The role the veto runs under.
@@ -116,15 +70,13 @@ function tally(uint256 proposalId) returns mathint {
 }
 
 /*
- * The deployed wiring of the veto path, as the runbook sets it up and the
- * verification plan checks it on chain (veto.spec's vetoPathWired), plus the
- * DelayOwnerSafe's side, which veto.spec leaves to GV-3:
- *   - SetTxNonceGuard is Roles' guard and is pointed at this Delay;
- *   - role 1 is scoped to the Delay (scopeTarget) with setTxNonce allowed
- *     and no value or delegatecall (scopeAllowFunction, options None);
- *   - the Governor is an enabled module on Roles and a member of role 1;
- *   - Roles' target is the DelayOwnerSafe, here ForwardingAvatar, with Roles
- *     enabled as a module on it, and it owns the Delay.
+ * The deployed wiring of the veto path:
+ *   - SetTxNonceGuard is the Roles Modifier's guard, pointed at this Delay;
+ *   - role 1 is scoped to the Delay, with setTxNonce allowed and no value or
+ *     delegatecall;
+ *   - the Governor is an enabled module and a member of role 1;
+ *   - the Roles Modifier's target is ForwardingAvatar, the DelayOwnerSafe,
+ *     which has the Roles Modifier as a module and owns the Delay.
  */
 function vetoPathWired() {
     require roles.guard() == setTxNonceGuard;

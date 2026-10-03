@@ -1,80 +1,15 @@
 /*
- * NOTE ON THE FUNCTION-SCOPE PINS BELOW.
+ * The setTxNonce role configuration alone, with no SetTxNonceGuard: outside
+ * the multisend branch, every call that completes through the Roles Modifier
+ * is setTxNonce(uint256) on the Delay, with zero value and as a plain Call.
+ * On the multisend branch the configuration bounds each entry of a batch, but
+ * not the outer destination, value or operation.
  *
- * They go through functionScopeConfigForSelector (uint32 selector), not
- * functionScopeConfigForData (bytes blob). Same slot either way -- the bytes
- * form does bytes4(data) on entry -- but calling the bytes form inside a CVL
- * `require` makes every surrounding require stop binding, and all four
- * roleConfigLimits rules then report counterexamples in which to, value,
- * operation AND the selector are simultaneously unconstrained.
- *
- * That is not possible for a sound require: adding one can only remove states.
- * Confirmed by bisecting setTxNonceGuardAndRoleConfig.spec, whose preconditions
- * are a strict superset of setTxNonceGuardSufficient.spec's yet which failed
- * the same four conclusions until the bytes-form call was removed.
- *
- * Unlike that spec, the pins here are load-bearing -- no guard is installed, so
- * the options pin is what forces value == 0 and Operation.Call -- so they
- * cannot be dropped, only restated. Do not switch them back to the bytes form.
- */
-/*
- * Property 3 — the setTxNonce role configuration alone is sufficient:
- * SetTxNonceGuard is absent, and the scoping still admits nothing but
- * setTxNonce on the Delay.
- *
- * "The guard" in this file always means SetTxNonceGuard, installed on the
- * Roles module. PauseGuard, installed on the Delay, is not in this
- * scene and nothing here says anything about it.
- *
- * `guard() == 0` throughout, so Module.exec skips the IGuard hooks entirely
- * and Permissions.check is the only gate left. The configuration is the one
- * from the deployment runbook:
- *
- *     scopeTarget(1, delay)                                  -> Clearance.Function
- *     scopeAllowFunction(1, delay, 0x46ba2307, Options.None) -> setTxNonce only
- *     assignRoles(governor, [1], [true])                     -> member of role 1
- *
- * stated pointwise on each rule's own universally quantified `to`, `role` and
- * `data`, which is a faithful encoding of "nothing else was ever scoped,
- * allowed, or assigned".
- *
- * WHY THIS SPEC IS NARROWER THAN setTxNonceGuardSufficient.spec — the multisend branch.
- * Permissions.check dispatches on `to == multisend` BEFORE it looks at
- * clearance (Permissions.sol:188-192), and the batch branch never consults
- * clearance for `to` itself; it only checks the entries inside the blob. So
- * the role layer does not bound the OUTER destination or the OUTER operation
- * at all, and a caller can address the configured multisend and have the
- * module delegatecall into it. Every bounding rule below therefore has to
- * carry `to != multisend()` as a precondition, and
- * withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig exhibits the gap. The guard has no such
- * precondition — it inspects the outer transaction — which is the concrete
- * sense in which the two mechanisms are not interchangeable.
- *
- * Deliberately NOT claimed here:
- *   - That the configuration stays this way. Every require below describes
- *     mutable storage that Roles' owner can change with a single call; that
- *     is the asymmetry with the immutable guard, not an oversight.
- *   - Anything about ExecutionOptions other than None on the scoped function.
- *     A future scopeFunctionExecutionOptions raising it to Send or Both would
- *     break the value == 0 and Operation.Call halves of the conclusion, and
- *     the rules would fail — correctly. optionsSendLetsValueThrough and its
- *     two siblings at the end of this file exhibit exactly that.
- *   - That the entry LOOP visits every entry of a batch of three or more.
- *     What an entry may BE is settled for any batch length, loop-free, by
- *     checkTransactionAdmitsOnlyDelaySetTxNonce: checkMultisendTransaction
- *     decides nothing itself, it hands each entry to checkTransaction, and
- *     that function admits only setTxNonce on the Delay. What loop_iter still
- *     bounds is the parse — that the stride lands on each successive entry —
- *     which roleConfigLimitsSingleEntry/TwoEntryMultisendToDelaySetTxNonce
- *     check for one and two entries. Raising loop_iter extends the parse check
- *     to longer bounded batches, never to arbitrary ones.
- *   - Multisend blobs of at most 100 bytes. checkMultisendTransaction's loop
- *     starts at i = 100, so such a blob never enters it and check() returns
- *     having verified role membership only — no target, function or parameter
- *     scoping — while the outer transaction still fires at multisend(). Open
- *     in this scene; SetTxNonceGuard closes it. shortMultisendBlobSkipsEvery-
- *     EntryCheck exhibits it, so the hole is machine-checked rather than only
- *     described here.
+ * The configuration is role 1's: Function clearance on the Delay, setTxNonce
+ * allowed with ExecutionOptions None, and the Governor a member of role 1,
+ * stated pointwise on each rule's `to`, `role` and `data`. The scene is the
+ * Roles Modifier under RolesHarness with `target` linked to DummyAvatar, and
+ * DelayTarget as the Delay.
  */
 
 using DelayTarget as delayMod;
@@ -92,21 +27,18 @@ methods {
     function owner() external returns (address) envfree;
     function defaultRoles(address) external returns (uint16) envfree;
 
-    // Mirrors checkMultisendTransaction's own per-entry parsing
-    // (Permissions.sol:220-235) byte for byte; see the harness.
+    // Parses one multisend entry the way checkMultisendTransaction does.
     function multisendEntryAt(bytes, uint256) external
         returns (Enum.Operation, address, uint256, uint256, bytes) envfree;
 
-    // Permissions.checkTransaction itself, reached without going through
-    // either the direct path or the multisend loop; see the harness.
+    // Permissions.checkTransaction, called directly.
     function checkEntry(uint16, address, uint256, bytes, Enum.Operation) external;
 }
 
 definition ROLE() returns uint16 = 1;
 
-// The scoped function's ExecutionOptions, as checkExecutionOptions will read
-// them. Options.None is what scopeAllowFunction was called with, and it is
-// what forces value == 0 and Operation.Call.
+// The scoped function's ExecutionOptions are None, which forces value == 0
+// and Operation.Call.
 function setTxNonceScopedWithNoOptions(bytes data) {
     RolesHarness.ExecutionOptions options; bool isWildcarded; uint256 length;
     options, isWildcarded, length =
@@ -117,7 +49,7 @@ function setTxNonceScopedWithNoOptions(bytes data) {
 }
 
 function setTxNonceRoleConfigWithoutGuard(env e, address governor, address to, uint16 role, bytes data) {
-    // The guard is gone. This is the whole point of the file.
+    // No SetTxNonceGuard.
     require guard() == 0;
 
     require delayMod != currentContract;
@@ -145,7 +77,9 @@ function setTxNonceRoleConfigWithoutGuard(env e, address governor, address to, u
 }
 
 /*
- * THE property, outside the multisend branch.
+ * Outside the multisend branch, every call that completes through
+ * execTransactionWithRole is setTxNonce on the Delay, with zero value and as
+ * a plain Call.
  */
 rule roleConfigLimitsExecTransactionWithRoleToDelaySetTxNonce(
     address to, uint256 value, bytes data,
@@ -166,6 +100,9 @@ rule roleConfigLimitsExecTransactionWithRoleToDelaySetTxNonce(
     ), "the role configuration alone let a non-setTxNonce call through";
 }
 
+/*
+ * The same through execTransactionFromModule.
+ */
 rule roleConfigLimitsExecTransactionFromModuleToDelaySetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
 ) {
@@ -184,6 +121,9 @@ rule roleConfigLimitsExecTransactionFromModuleToDelaySetTxNonce(
     ), "the role configuration alone let a non-setTxNonce call through the default-role entry point";
 }
 
+/*
+ * The same through execTransactionWithRoleReturnData.
+ */
 rule roleConfigLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce(
     address to, uint256 value, bytes data,
     Enum.Operation operation, uint16 role, bool shouldRevert
@@ -204,10 +144,7 @@ rule roleConfigLimitsExecTransactionWithRoleReturnDataToDelaySetTxNonce(
 }
 
 /*
- * The fourth execution entry point: the default role AND execAndReturnData.
- * Carries the same to != multisend() precondition as the three above, for the
- * same reason — Permissions.check dispatches on the batch branch before it
- * looks at clearance, on every entry point alike.
+ * The same through execTransactionFromModuleReturnData.
  */
 rule roleConfigLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -228,9 +165,8 @@ rule roleConfigLimitsExecTransactionFromModuleReturnDataToDelaySetTxNonce(
 }
 
 /*
- * A caller that is not a member of the role gets nothing, whatever it sends.
- * This is the half of the configuration that assignRoles carries, isolated
- * from the scoping half.
+ * A caller that is not a member of the role it names can execute nothing
+ * through execTransactionWithRole.
  */
 rule nonMemberExecTransactionWithRoleAlwaysReverts(
     address to, uint256 value, bytes data,
@@ -249,33 +185,8 @@ rule nonMemberExecTransactionWithRoleAlwaysReverts(
 }
 
 /*
- * The multisend branch, bounded — for a SINGLE-ENTRY batch.
- *
- * The four rules above exclude `to == multisend()` outright. This one goes
- * into that branch and shows the role layer still bounds what is in it: if a
- * one-entry batch completes, that entry is setTxNonce on the Delay, value 0,
- * Operation.Call. checkMultisendTransaction forwards every entry to the same
- * checkTransaction the non-multisend path uses (Permissions.sol:236), so the
- * scoping that pins the direct call pins the entry too.
- *
- * SCOPE, STATED RATHER THAN ASSUMED. The conf runs `optimistic_loop: true`,
- * so executions needing more iterations than `loop_iter` are ASSUMED away
- * rather than checked. Requiring the batch to hold exactly one entry makes
- * this rule's scope explicit instead of hiding behind that assumption — this
- * rule on its own says nothing about longer batches. Two entries are covered
- * by roleConfigLimitsTwoEntryMultisendToDelaySetTxNonce; three or more are
- * not, and raising loop_iter is what would extend the pattern further.
- *
- *     data.length > 100         the loop is entered at all (i starts at 100)
- *     data.length <= 185 + len  it exits after one entry (i += 85 + dataLength)
- *
- * The first of those is not a formality. A blob of at most 100 bytes never
- * enters the loop body, so check() returns having verified role MEMBERSHIP
- * ONLY — no target, function or parameter scoping at all — and the outer
- * transaction still fires at multisend(). That is a real hole in this
- * guard-less scene, it is not closed by this rule, and it is listed with the
- * other non-claims in the file header. SetTxNonceGuard closes it, along with
- * the whole branch: see setTxNonceGuardRejectsMultisendTarget.
+ * On the multisend branch, for a single-entry batch: if the batch completes,
+ * its entry is setTxNonce on the Delay, with zero value and as a plain Call.
  */
 rule roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce(
     uint256 value, bytes data, Enum.Operation operation, uint16 role, bool shouldRevert
@@ -296,9 +207,8 @@ rule roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce(
     require to_mathint(data.length) <= 185 + to_mathint(innerDataLength);
     require innerData.length >= 4;
 
-    // The configuration is pinned pointwise on the INNER entry, because that
-    // is what checkTransaction is handed in this branch — not on the outer
-    // `to`, which is multisend() and which this branch never consults.
+    // The configuration is pinned on the inner entry, which is what
+    // checkTransaction is handed on this branch.
     setTxNonceRoleConfigWithoutGuard(e, governor, innerTo, role, innerData);
     require multisend() != delayMod;
 
@@ -315,15 +225,8 @@ rule roleConfigLimitsSingleEntryMultisendToDelaySetTxNonce(
 }
 
 /*
- * The gap named in the file header, exhibited rather than asserted away: with
- * the guard absent, a transaction addressed to the configured multisend can
- * complete even though `to` is not the Delay. Permissions.check took the
- * batch branch and never asked what clearance `to` itself holds.
- *
- * Read this together with setTxNonceGuardSufficient.spec's setTxNonceGuardRejectsMultisendTarget:
- * the same call reverts once the guard is installed. That pair is the
- * argument for keeping the guard even though the role configuration is
- * correct.
+ * Without the guard, a transaction addressed to the multisend address can
+ * complete although it is not the Delay.
  */
 rule withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig(bytes data, uint16 role) {
     env e;
@@ -339,27 +242,8 @@ rule withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig(bytes data, uint16 r
 }
 
 /*
- * The multisend branch, bounded — for a TWO-ENTRY batch.
- *
- * Same argument as the single-entry rule: checkMultisendTransaction hands
- * every entry it visits to the same checkTransaction the direct path uses
- * (Permissions.sol:236), so the per-entry conclusion does not depend on how
- * many entries there are. What IS bounded is how many the Prover unrolls.
- * This rule exists so that the single-entry result cannot be mistaken for an
- * artefact of the one-entry shape, and so that a second iteration of the loop
- * is actually exercised rather than assumed away.
- *
- * Requires `loop_iter: 2` in the conf. The batch shape is pinned explicitly,
- * as it is in the single-entry rule:
- *
- *     i1 = 100                     first entry (the loop's starting index)
- *     i2 = 185 + dataLength1       second entry (i += 85 + dataLength)
- *     data.length > i2             the loop reaches the second entry
- *     data.length <= i2 + 85 + dataLength2    and stops after it
- *
- * This still says nothing about batches of three or more, and nothing about
- * blobs of at most 100 bytes, which never enter the loop at all — see
- * shortMultisendBlobSkipsEveryEntryCheck below.
+ * The same for a two-entry batch: if it completes, both entries are
+ * setTxNonce on the Delay, with zero value and as a plain Call.
  */
 rule roleConfigLimitsTwoEntryMultisendToDelaySetTxNonce(
     uint256 value, bytes data, Enum.Operation operation, uint16 role, bool shouldRevert
@@ -381,9 +265,7 @@ rule roleConfigLimitsTwoEntryMultisendToDelaySetTxNonce(
     require data1.length >= 4;
     require data2.length >= 4;
 
-    // Pinned pointwise on BOTH inner entries, because both are what
-    // checkTransaction is handed in this branch — never the outer `to`,
-    // which is multisend() and which this branch does not consult.
+    // The configuration is pinned on both inner entries.
     setTxNonceRoleConfigWithoutGuard(e, governor, to1, role, data1);
     setTxNonceRoleConfigWithoutGuard(e, governor, to2, role, data2);
     require multisend() != delayMod;
@@ -405,29 +287,9 @@ rule roleConfigLimitsTwoEntryMultisendToDelaySetTxNonce(
 }
 
 /*
- * The 100-byte hole, exhibited rather than left as a comment.
- *
- * checkMultisendTransaction's entry loop starts at i = 100
- * (Permissions.sol:216), so a blob of at most 100 bytes never enters the body.
- * check() then returns having verified role MEMBERSHIP ONLY: no clearance for
- * the outer `to`, no per-entry check, and — because check() is not even passed
- * the outer value or operation on this branch (Permissions.sol:186-191) —
- * no constraint on either of those.
- *
- * This rule pins that shape down: the outer destination is multisend(), which
- * the configuration leaves at Clearance.None, the operation is DelegateCall,
- * and the value is symbolic. If it completes, none of those was checked by
- * anything.
- *
- * It is a witness. It does not bound the hole, it proves the hole is real, so
- * that the file header's caveat is machine-checked rather than asserted. It is
- * strictly sharper than withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig,
- * which leaves data.length free and can therefore be satisfied by a
- * well-formed single setTxNonce entry instead of by the empty-loop case.
- *
- * Nothing in this file closes this. SetTxNonceGuard does, by rejecting
- * to != delay before any of it is reached — see
- * setTxNonceGuardSufficient.spec's setTxNonceGuardRejectsMultisendTarget.
+ * A multisend blob of at most 100 bytes never enters
+ * checkMultisendTransaction's entry loop, so a DelegateCall with non-zero
+ * value to the multisend address, which has no clearance, can complete.
  */
 rule shortMultisendBlobSkipsEveryEntryCheck(bytes data, uint256 value, uint16 role) {
     env e;
@@ -437,62 +299,24 @@ rule shortMultisendBlobSkipsEveryEntryCheck(bytes data, uint256 value, uint16 ro
     require multisend() != delayMod;
     require multisend() != 0;
 
-    // Below the loop's starting index (i starts at 100), so the loop body is
-    // unreachable and no entry is ever parsed, let alone checked.
+    // Below the entry loop's starting index of 100.
     require data.length <= 100;
 
-    // Pin the witness rather than leaving it to the Prover's choice: a NON-ZERO
-    // value rides along on a DELEGATECALL to an address the configuration
-    // leaves at Clearance.None. If any of those three were actually gated,
-    // this rule would have no model.
     require value != 0;
 
     execTransactionWithRole@withrevert(
         e, multisend(), value, data, Enum.Operation.DelegateCall, role, true
     );
 
-    // Stated over @withrevert rather than leaning on path pruning, so the
-    // obligation is visible in the rule: there EXISTS a completing execution
-    // of exactly this shape.
     satisfy !lastReverted,
         "a multisend blob of at most 100 bytes cannot complete, so the 100-byte caveat in this file's header overstates the gap";
 }
 
 /*
- * THE PER-ENTRY RESTRICTION, WITHOUT ANY LOOP.
- *
- * This is the rule that makes batch length stop mattering.
- *
- * checkMultisendTransaction does not decide anything itself. It parses the
- * blob and hands each entry to checkTransaction (Permissions.sol:236) — the
- * same function the direct, non-multisend path calls (Permissions.sol:190).
- * So "what may an entry be?" is a question about checkTransaction alone, and
- * checkTransaction contains no loop over entries.
- *
- * This rule asks exactly that question, with `to`, `value`, `data` and
- * `operation` universally quantified and nothing driving the batch loop: if
- * checkTransaction accepts, the arguments were setTxNonce on the Delay, value
- * 0, Operation.Call. `to` ranges over every address, multisend() included —
- * a case the OUTER dispatch never reaches but the loop body can hand over.
- *
- * Composed with roleConfigLimitsSingleEntry/TwoEntryMultisendToDelaySetTxNonce,
- * which confirm the parse feeds checkTransaction the entry's real fields, this
- * gives: every entry the loop visits is setTxNonce on the Delay, FOR ANY
- * NUMBER OF ENTRIES. loop_iter then bounds only how many entries the Prover
- * walks, not what is true of the ones it walks.
- *
- * ON isWildcarded. checkTransaction's one loop is checkParameters
- * (Permissions.sol:312), reached only when isWildcarded is false. The runbook
- * configures the scoped function wildcarded, and pinning that here is what
- * keeps this rule free of every loop. The conclusion does not depend on it:
- * parameter scoping can only narrow what is admitted, never widen it. The pin
- * buys loop-freedom, not strength.
- *
- * WHAT THIS STILL DOES NOT COVER. It says what an entry may be, not which
- * entries get checked. A blob of at most 100 bytes has no entry checked at all
- * (shortMultisendBlobSkipsEveryEntryCheck), and it says nothing about the
- * OUTER value or operation, which Permissions.check is not passed on this
- * branch (Permissions.sol:186-191) and which no configuration can restrict.
+ * If checkTransaction accepts an entry, the entry is setTxNonce on the Delay,
+ * with zero value and as a plain Call, for any `to`, multisend included.
+ * checkMultisendTransaction hands each entry of a batch to checkTransaction,
+ * so this holds for every entry of a batch of any length.
  */
 rule checkTransactionAdmitsOnlyDelaySetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -527,9 +351,8 @@ rule checkTransactionAdmitsOnlyDelaySetTxNonce(
 }
 
 /*
- * Non-vacuity for the rule above: checkTransaction really does accept the
- * intended entry, so the restriction is not achieved by it rejecting
- * everything.
+ * checkTransaction accepts the intended setTxNonce entry, so the rule above
+ * is not vacuous.
  */
 rule checkTransactionStillAdmitsDelaySetTxNonce(bytes data) {
     env e;
@@ -553,35 +376,8 @@ rule checkTransactionStillAdmitsDelaySetTxNonce(bytes data) {
 }
 
 /*
- * THE EXCEPTION THAT IS NOT EMPTY, AND THE REASON THE GUARD IS LOAD-BEARING.
- *
- * The 100-byte hole lets a caller past the permission check but carries no
- * payload: 32 bytes cannot hold an 85-byte entry header, and MultiSendCallOnly
- * executes nothing (Property 7). On its own that is a bypass to do nothing.
- *
- * The OUTER VALUE is a different matter, and it is not empty.
- *
- * Permissions.check is handed `value` but does not forward it on the multisend
- * branch (Permissions.sol:186-191): checkMultisendTransaction takes `data`
- * alone. So no configuration constrains the outer value. Roles then runs
- * exec(multisend(), value, data, operation) with it intact.
- *
- * With Operation.Call that value is real money. The avatar's Executor passes
- * it straight to the `call` (safe-contracts Executor.sol; delegatecall takes no
- * value argument, which is why the DelegateCall witness above does not move
- * any), and MultiSendCallOnly.multiSend is `payable` and has no withdrawal
- * function of any kind. ETH sent there is gone.
- *
- * So the role configuration alone does NOT confine the Governor to
- * setTxNonce: it cannot stop ETH leaving the contract at `target` -- the
- * DelayOwnerSafe in the deployment -- whose own balance is what Module.exec
- * spends, and which therefore bounds the loss. SetTxNonceGuard does,
- * because it inspects the outer transaction and requires both
- * `to == delay` and `value == 0` (SetTxNonceGuard.checkTransaction).
- *
- * This rule exhibits the permission half: Roles lets such a transaction out.
- * What the avatar then does with it is the source fact above -- the Roles
- * scenes link `target` to DummyAvatar, which returns true and moves nothing.
+ * On the multisend branch the role configuration does not constrain the outer
+ * value: a Call with non-zero value to the multisend address can complete.
  */
 rule roleConfigDoesNotStopValueLeavingOnMultisendBranch(
     bytes data, uint256 value, uint16 role
@@ -593,8 +389,6 @@ rule roleConfigDoesNotStopValueLeavingOnMultisendBranch(
     require multisend() != delayMod;
     require multisend() != 0;
 
-    // A plain Call, so the avatar's Executor forwards the value, and a
-    // non-zero one, so there is something to forward.
     require value != 0;
 
     execTransactionWithRole@withrevert(
@@ -606,29 +400,12 @@ rule roleConfigDoesNotStopValueLeavingOnMultisendBranch(
 }
 
 /*
- * WHY THE OPTIONS PIN IS LOAD-BEARING: RAISING IT BREAKS THE RESTRICTION.
- *
- * Every bounding rule above pins the scoped function's ExecutionOptions to
- * None, and the header lists "ExecutionOptions other than None" as not
- * claimed. These witnesses turn that into a checked statement rather than an
- * asserted one: with the guard absent and the same runbook configuration
- * except for the options, a call outside the restriction completes on the
- * direct path, exactly as checkExecutionOptions (Permissions.sol:284-306)
- * says it should.
- *
- *   Send          -> a non-zero value reaches setTxNonce on the Delay
- *   DelegateCall  -> Operation.DelegateCall reaches setTxNonce on the Delay
- *   Both          -> both at once
- *
- * So the value == 0 and Operation.Call halves of the restriction rest on the
- * options staying None, and nothing else in the configuration supplies them.
- * With SetTxNonceGuard installed this does not arise: Property 2 leaves the
- * configuration, options included, entirely unconstrained.
- *
- * `to` is the Delay, never multisend(), so this is the direct path and not the
- * multisend branch, which ignores the outer value and operation regardless
- * (roleConfigDoesNotStopValueLeavingOnMultisendBranch). isWildcarded keeps
- * checkParameters, the only loop on the path, out of it.
+ * With no guard, and role 1's configuration except that the scoped function's
+ * ExecutionOptions are raised, a call outside the restriction completes:
+ *   Send          a non-zero value reaches setTxNonce on the Delay
+ *   DelegateCall  Operation.DelegateCall reaches setTxNonce on the Delay
+ *   Both          both at once
+ * So the value == 0 and Operation.Call halves rest on the options being None.
  */
 function setTxNonceRoleConfigWithOptions(
     env e, address governor, bytes data, RolesHarness.ExecutionOptions raised

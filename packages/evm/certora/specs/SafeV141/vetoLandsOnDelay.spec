@@ -1,23 +1,12 @@
 /*
- * Safe v1.4.1 as the DelayOwnerSafe: the module call the Roles Modifier
- * makes for a passed veto lands on the Delay.
+ * The veto lands on the DelayOwnerSafe: on the real Safe v1.4.1
+ * (SafeV141Harness), an enabled module's execTransactionFromModule(Delay, 0,
+ * setTxNonce(n), Call) succeeds and sets the Delay's txNonce to n. This is
+ * the other side of the module call that veto.spec's
+ * passedVetoReachesTheDelayOwnerSafe (GV-2) records.
  *
- * GV-2 (specs/Governor/veto.spec) follows a passed veto from the Governor
- * through the Roles Modifier to its module call on the DelayOwnerSafe,
- * execTransactionFromModule(Delay, 0, setTxNonce(n), Call), with a recording
- * avatar in the Safe's place. This rule, GV-3, is that call's other side, on
- * the real Safe v1.4.1: made by an enabled module, it returns true and the
- * Delay's txNonce becomes n. The Delay is DelayTarget, the vendored Delay
- * v1.0.1 the Roles scenes use.
- *
- * Modelling note. The Safe calls the Delay with Executor's low-level `call`
- * (Executor.sol, Safe v1.4.1) to an address taken from calldata, which the
- * Prover cannot resolve on its own. The DISPATCH entry routes it to
- * DelayTarget.setTxNonce, where it lands on chain. Any other unresolved call
- * is havoced (HAVOC_ALL), which can only make the rule harder to pass. The
- * Safe is called directly here, where the Prover handles this dispatch;
- * behind the Governor and the Roles Modifier it does not (see
- * certora/helpers/RecordingAvatar.sol).
+ * The Delay is DelayTarget, and the Safe's call to it is routed to
+ * DelayTarget.setTxNonce.
  */
 
 using DelayTarget as delay;
@@ -39,16 +28,14 @@ methods {
     ] default HAVOC_ALL;
 }
 
-/// Head of the Safe's module list. It cannot send transactions, so the
-/// Prover must not place the caller there.
+/// Head of the Safe's module list.
 definition SENTINEL() returns address = 0x1;
 
 /*
- * An enabled module's execTransactionFromModule(Delay, 0, setTxNonce(n), Call)
- * on the Safe returns true and sets the Delay's txNonce to n, for any n the
- * Delay accepts (txNonce < n <= queueNonce), when the Safe owns the Delay.
- * `data` is setTxNonce(n) as GV-2 records it: 36 bytes, setTxNonce's selector,
- * then n.
+ * An enabled module's execTransactionFromModule(Delay, 0, setTxNonce(n),
+ * Call) on the Safe returns true and sets the Delay's txNonce to n, for any n
+ * the Delay accepts (txNonce < n <= queueNonce), when the Safe owns the
+ * Delay.
  */
 rule delayOwnerSafeLandsTheVeto(uint256 n, bytes data) {
     env e;

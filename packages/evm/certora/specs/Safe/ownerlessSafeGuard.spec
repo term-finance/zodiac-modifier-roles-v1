@@ -1,56 +1,13 @@
 /*
- * Property: ConfigLockGuard on the Ownerless Safe (GnosisSafe v1.3.0) leaves
- * the governance path open, and has no function that can change it.
+ * ConfigLockGuard on the OwnerlessSafe (GnosisSafe v1.3.0), built with
+ * lockedModifier = address(0): it leaves the governance path through the
+ * module open, and has no function that can change what it checks. What the
+ * guard blocks for the signers is proposerSafeGuard.spec's.
  *
- * The Ownerless Safe owns no modifier once it renounces the Roles Modifier,
- * so its ConfigLockGuard is built with lockedModifier = address(0). That is
- * the Proposer Safe's configuration on the same Safe code, so what the guard
- * blocks for the signers is proved by specs/Safe/proposerSafeGuard.spec (PG)
- * and is not repeated here. This file adds what is specific to the Ownerless
- * Safe:
- *
- *   - its one module, the Delay, is how governance proposals run. Safe v1.3.0
- *     never consults the guard on the module path, so with the guard
- *     installed the Delay can still make the Safe change any of its settings
- *     and call out to any contract;
- *   - the guard itself has no state-changing function, so nothing can change
- *     what it checks once deployed.
- *
- * "The guard" in this file always means ConfigLockGuard, installed as the
- * Safe's transaction guard. The scene is the real v1.3.0 code through
- * GnosisSafeHarness (solc 0.7.6) and the real ConfigLockGuard (solc 0.8.6).
- *
- * Rules, by property:
- *
- *   every entry point of the guard is accounted for
- *     configLockGuardFunctionsAreTheKnownFour    the guard has no fallback,
- *                                                its functions are exactly
- *                                                checkTransaction,
- *                                                checkAfterExecution,
- *                                                supportsInterface and
- *                                                lockedModifier, and none of
- *                                                them writes state
- *
- *   once installed, governance through the module still works
- *     moduleCanStillChangeEachSetting            for each of the Safe's eight
- *                                                settings functions, an
- *                                                enabled module's call to it
- *                                                succeeds and a setting
- *                                                changes
- *     moduleCanStillCallOut                      an enabled module's plain
- *                                                call to another contract
- *                                                succeeds
- *
- * Modelling notes.
- *   - checkTransaction and checkAfterExecution are DISPATCHER(true), so
- *     wherever the Safe calls its guard the real ConfigLockGuard code runs: it
- *     is the only contract in the scene that implements them. On the module
- *     path v1.3.0 calls neither.
- *   - The Safe's low-level call to `to` has a symbolic target. As in
- *     proposerSafeGuard.spec, it is DISPATCHed to the Safe's eight settings
- *     functions. DISPATCH runs the function on the Safe whatever `to` is, so
- *     moduleCanStillChangeEachSetting pins `to` to the Safe itself. A call
- *     whose selector is none of the eight is HAVOC_ECF.
+ * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
+ * ConfigLockGuard in its guard slot. The module's call to `to` is routed to
+ * the Safe's eight settings functions, so moduleCanStillChangeEachSetting
+ * pins `to` to the Safe.
  */
 
 using ConfigLockGuard as configLockGuard;
@@ -65,7 +22,7 @@ methods {
 
     function configLockGuard.lockedModifier() external returns (address) envfree;
 
-    // Guard hooks. ConfigLockGuard is the only implementation in the scene.
+    // Guard calls resolve to ConfigLockGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -110,10 +67,10 @@ definition isSettingsFunction(method f) returns bool =
  * --------------------------------------------------------------------- */
 
 /*
- * The guard has no fallback, its external functions are exactly the four
- * below, and none of them writes state. So what it checks is fixed at
- * deployment: lockedModifier is immutable and there is no admin. If a
- * function is ever added, this rule fails.
+ * ConfigLockGuard has no fallback, its functions are exactly
+ * checkTransaction, checkAfterExecution, supportsInterface and
+ * lockedModifier, and none of them writes state. lockedModifier is immutable
+ * and the guard has no admin, so what it checks is fixed at deployment.
  */
 rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
     filtered { f -> f.contract == configLockGuard }
@@ -135,16 +92,13 @@ rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
 
 /* ------------------------------------------------------------------------
  * 2. Once installed, governance through the module still works
- *
- * The module is the Delay on chain, so these calls are governance proposals
- * that have waited out the cooldown.
  * --------------------------------------------------------------------- */
 
 /*
  * For each of the Safe's eight settings functions, including the four the
  * guard blocks for the signers, an enabled module's execTransactionFromModule
  * addressed to the Safe with a call to it succeeds and a setting changes. `f`
- * only picks which selector the call carries.
+ * picks the selector the call carries.
  */
 rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
     filtered { f -> f.contract == currentContract && isSettingsFunction(f) }
@@ -175,9 +129,8 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
 }
 
 /*
- * An enabled module's plain call to another contract, the shape of a
- * governance proposal acting on the protocol, still succeeds with the guard
- * installed.
+ * With the guard installed, an enabled module's plain
+ * execTransactionFromModule to another contract succeeds.
  */
 rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
     env e;

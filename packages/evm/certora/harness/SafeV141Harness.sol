@@ -1,16 +1,12 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-// Pinned to the compiler the deployed v1.4.1 singleton was built with
-// (0x41675C099F32341bf84BFc5382aF534df5C7461a, byte-identical to this package's
-// artifact). 0.7.6 wraps on overflow where 0.8 reverts, so proving against a
-// 0.8 build would be proving different bytecode. Any other compiler fails here.
+// Pinned to solc 0.7.6, the compiler the deployed v1.4.1 singleton
+// (0x41675C099F32341bf84BFc5382aF534df5C7461a) was built with.
 pragma solidity 0.7.6;
 
 import "@safe-global/safe-contracts/contracts/Safe.sol";
 
-/// @dev Exposes Safe v1.4.1's internal settings as external view getters for
-/// Certora specs, and nothing else. Safe is inherited unmodified, so every
-/// rule verified here runs against the real v1.4.1 code: the version the
-/// DelayOwnerSafe uses on chain.
+/// @dev Exposes Safe v1.4.1's internal settings as view getters for the
+/// specs, and nothing else. Safe is inherited unmodified.
 contract SafeV141Harness is Safe {
     using SafeMath for uint256;
     function moduleEntry(address module) external view returns (address) {
@@ -34,9 +30,8 @@ contract SafeV141Harness is Safe {
     }
 
     /// The raw 256-bit word in the fallback handler slot. fallback() treats
-    /// the slot as set whenever this word is non-zero (FallbackManager.sol:66,
-    /// `if iszero(handler)`), so "no handler" has to be stated on the raw word,
-    /// not on an address-typed read, which drops the upper 96 bits.
+    /// the slot as set whenever this word is non-zero, so "no handler" is
+    /// stated on the raw word.
     function fallbackHandlerSlotWord() external view returns (uint256 w) {
         bytes32 slot = FALLBACK_HANDLER_STORAGE_SLOT;
         // solhint-disable-next-line no-inline-assembly

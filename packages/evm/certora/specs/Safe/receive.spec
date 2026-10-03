@@ -1,14 +1,7 @@
 /*
- * GnosisSafe v1.3.0 (solc 0.7.6): receive() only emits SafeReceived.
- *
- * receive() (EtherPaymentFallback.sol:10) is `emit SafeReceived(msg.sender,
- * msg.value);` and nothing else. The Prover has no CALLDATASIZE hook, so it
- * cannot see which calls land in receive() rather than fallback(); both sit
- * behind its fallback entry. The rules below therefore key on the event:
+ * GnosisSafe v1.3.0: receive only emits SafeReceived. The Prover's fallback
+ * entry covers both fallback and receive, so the rules key on the event:
  * whenever SafeReceived is emitted, that is all the call did.
- *
- * The ghosts are persistent so an unresolved call on the fallback() path
- * cannot havoc them. Every assertion is on non-reverting runs only.
  */
 
 /// keccak256("SafeReceived(address,uint256)")

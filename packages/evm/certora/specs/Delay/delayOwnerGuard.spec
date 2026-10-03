@@ -1,70 +1,19 @@
 /*
- * Property: the Delay's half of the ConfigLockGuard lock on the DelayOwnerSafe,
- * plus witnesses that the guarded Safe can still run the Delay.
+ * The Delay's half of the ConfigLockGuard lock on the DelayOwnerSafe, plus
+ * witnesses that the guarded Safe can still run the Delay.
  *
- * ConfigLockGuard, built with lockedModifier = the Delay and installed on the
- * Safe that owns it, rejects seven calls to the Delay: transferOwnership,
- * renounceOwnership, enableModule, disableModule, setGuard, setAvatar and
- * setTarget. OG-23 (specs/SafeV141/delayOwnerGuard.spec) shows an
- * execTransaction carrying any of them reverts before the Safe makes its
- * call, and OG-16 that the Safe cannot delegate call. So every call the
- * Safe's owners get through to the Delay is a plain call carrying some other
- * selector. This file shows that no such call, from any caller, changes the
- * Delay's owner, modules, guard, avatar or target. Together they give the
- * lock end to end.
+ * ConfigLockGuard rejects seven calls to its lockedModifier
+ * (transferOwnership, renounceOwnership, enableModule, disableModule,
+ * setGuard, setAvatar and setTarget; OG-23) and every delegate call (OG-16).
+ * This file shows that no other Delay call, from any caller, changes the
+ * Delay's owner, modules, guard, avatar or target.
  *
- * The proof is split at the Safe's call into the Delay, as GV-2 and GV-3 are
- * in PROOFS.md P2.13. With the Safe routing arbitrary calldata into the
- * Delay's functions, the Prover (certora-cli 7.31.0) stops with an internal
- * error. It does not when the calldata is pinned to one call of fixed length,
- * which is how the witnesses in section 2 are stated.
- *
- * "The guard" in this file always means ConfigLockGuard. The Delay's own
- * guard (PauseGuard on chain) is just a slot here.
- *
- * The scene is the real Delay mastercopy source, certora/helpers/Delay.sol
- * (solc 0.8.6), the real ConfigLockGuard (solc 0.8.6) with its
- * `lockedModifier` linked to the Delay, and the real Safe v1.4.1 through SafeV141Harness (solc 0.7.6)
- * for the witnesses.
- *
- * Rules, by property:
- *
- *   the Delay's half of the lock, over every Delay write function
- *     unlockedDelayCallsNeverChangeOwnerGuardAvatarOrTarget
- *                                                any caller, any function but
- *                                                the seven locked ones and setUp:
- *                                                owner, guard, avatar and
- *                                                target are unchanged
- *     unlockedDelayCallsNeverChangeModules       ... and no module is added
- *                                                or removed
- *     delayAvatarAndTargetOnlyChangeThroughOwnerSetters
- *                                                avatar and target only move
- *                                                through the owner's setAvatar
- *                                                and setTarget
- *
- *   once installed, the Safe still runs the Delay
- *     guardedSafeCanStillVeto                    setTxNonce(n) succeeds and
- *                                                txNonce becomes n
- *     guardedSafeCanStillSetTxCooldown
- *     guardedSafeCanStillSetTxExpiration
- *
- * Modelling notes.
- *   - setUp is left out of the parametric rules. It always reverts after
- *     deployment (DM-1).
- *   - A Delay function that no selector matches does not exist: the Delay has
- *     no fallback (DM-13), so a call with any other selector, or with less
- *     than four bytes of calldata, reverts.
- *   - The Delay's call to its target in executeNextTx is NONDET. A target
- *     that called back into the Delay would do so as itself, which the
- *     parametric rules already cover for any caller.
- *   - checkTransaction, checkAfterExecution and supportsInterface are
- *     DISPATCHER(true), so the real ConfigLockGuard code runs wherever a guard
- *     hook is called: it is the only contract in the scene that implements
- *     them.
- *   - In the witnesses, checkSignatures is NONDET (the signature check
- *     passes; SE141-5 and SE141-12 cover it), and the Safe's call to `to` is
- *     DISPATCHed to the three Delay functions the witnesses use. DISPATCH
- *     ignores `to`, so each witness pins `to` to the Delay.
+ * The scene is the real Delay (certora/helpers/Delay.sol), the real
+ * ConfigLockGuard with its lockedModifier linked to the Delay, and, for the
+ * witnesses, the real Safe v1.4.1 (SafeV141Harness). In the witnesses the
+ * signature check is stubbed to pass (SE141-5 and SE141-12 cover it), and the
+ * Safe's call to `to` is routed to the Delay function each witness names,
+ * with `to` pinned to the Delay.
  */
 
 using Delay as delayContract;
@@ -93,8 +42,7 @@ methods {
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
 
-    // Guard hooks and the ERC-165 probe. ConfigLockGuard is the only
-    // implementation in the scene.
+    // Guard calls resolve to ConfigLockGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -138,10 +86,10 @@ definition guardedOwner() returns bool =
  * --------------------------------------------------------------------- */
 
 /*
- * Over every write function of the Delay except the seven the guard rejects and
- * setUp, and for any caller, the owner, guard, avatar and target read the
- * same afterwards. The Safe's plain calls that pass the guard are among
- * these calls.
+ * Over every Delay write function except the seven the guard rejects and
+ * setUp, and for any caller, the owner, guard, avatar and target are
+ * unchanged. The Safe's plain calls that pass the guard are among these
+ * calls. setUp always reverts after deployment (DM-1).
  */
 rule unlockedDelayCallsNeverChangeOwnerGuardAvatarOrTarget(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure &&
@@ -183,10 +131,9 @@ rule unlockedDelayCallsNeverChangeModules(method f, calldataarg args, address m)
 }
 
 /*
- * Over every write function of the Delay except setUp (DM-1), the avatar only
- * changes through setAvatar and the target only through setTarget, and only
- * for the owner. This closes the gap proofsContext.md records under
- * Premise 12, independent of ConfigLockGuard.
+ * Over every Delay write function except setUp, the avatar only changes
+ * through setAvatar and the target only through setTarget, and only for the
+ * owner.
  */
 rule delayAvatarAndTargetOnlyChangeThroughOwnerSetters(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure &&
@@ -210,8 +157,6 @@ rule delayAvatarAndTargetOnlyChangeThroughOwnerSetters(method f, calldataarg arg
 
 /* ------------------------------------------------------------------------
  * 2. Once installed, the Safe still runs the Delay
- *
- * Each witness pins the calldata to one call of fixed length.
  * --------------------------------------------------------------------- */
 
 /*

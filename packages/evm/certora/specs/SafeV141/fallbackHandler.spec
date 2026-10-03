@@ -1,23 +1,11 @@
 /*
- * Safe v1.4.1 (solc 0.7.6): once fallback() calls its handler, every
- * call the handler makes comes from the handler, never from the Safe.
+ * Safe v1.4.1: once fallback calls its handler, every call the handler makes
+ * comes from the handler, never from the Safe.
  *
- * The handler slot is pointed at ForwardingFallbackHandler, which makes one
- * call onward to CallerProbe, and the probe records its msg.sender.
- * fallback() reaches the handler through a low-level `call` to an address
- * read from storage, which the Prover cannot resolve, so the DISPATCH below
- * routes it to the handler, as happens on chain when the slot holds the
- * handler's address. The rule requires exactly that.
- *
- * This holds because fallback() uses CALL, not DELEGATECALL
- * (fallbackOnlyCallsItsHandler in executionPaths.spec): a
- * delegatecalled handler would run as the Safe, and its onward calls would
- * come from the Safe.
- *
- * The Prover's fallback entry also covers receive(): with empty calldata the
- * Safe runs receive(), which never calls the handler. So the rule checks the
- * sender whenever the handler made its onward call, and
- * fallbackReachesTheHandler shows that call does happen.
+ * The handler slot points at ForwardingFallbackHandler, which makes one call
+ * onward to CallerProbe, and the probe records its msg.sender. fallback's
+ * call to the handler is routed to ForwardingFallbackHandler, as on chain
+ * when the slot holds its address.
  */
 
 using ForwardingFallbackHandler as handler;
@@ -40,9 +28,7 @@ rule fallbackHandlerCallsComeFromTheHandler(method f, calldataarg args)
     filtered { f -> f.isFallback }
 {
     env e;
-    // The handler is not the Safe itself. Already implied: scene contracts
-    // have distinct addresses. A Safe that is its own handler is
-    // selfHandlerFallbackChangesNothing.
+    // The handler is not the Safe itself.
     require handler != currentContract;
     require fallbackHandlerIs(handler);
     require probe.hits() == 0;

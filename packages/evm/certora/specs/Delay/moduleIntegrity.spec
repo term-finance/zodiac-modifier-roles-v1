@@ -1,157 +1,9 @@
 /*
- * Property: nothing but the Delay's owner can change who is allowed to queue.
+ * Delay Modifier access control and module list.
  *
- * This is the file that covers the attack the whole integration exists to
- * rule out: an unauthorized party gets an address into the Delay's module
- * ring, that address queues a malicious transaction, and after the cooldown
- * anyone executes it against the avatar. Everything downstream of the module
- * ring — the cooldown, the veto, the pause — is irrelevant once a hostile
- * module is enabled, because the queue entry it writes is indistinguishable
- * from a legitimate one.
- *
- * The scene is the real Delay, not a model: certora/helpers/Delay.sol is the
- * verified mastercopy source, inherited unmodified by
- * certora/harness/DelayHarness.sol, which adds one view getter and no logic.
- *
- * Four claims, and the fourth is the reason the scene is not the one the
- * other Delay spec uses:
- *
- *   1. The module ring changes only through enableModule/disableModule, and
- *      only for the owner.
- *   2. Only an address already in the ring can put an entry in the queue.
- *   3. `owner` and `guard` are likewise owner-only, so neither the ring's
- *      gatekeeper nor the guard sitting over execution can be re-pointed by
- *      anyone else.
- *   4. An execution cannot become a module grant. executeNextTx forwards to
- *      the avatar, and the avatar can call anything — including straight back
- *      into the Delay. That return path is where enableModule would be
- *      reached without ever going through the owner, and it is the shape of
- *      the incident this design was written after.
- *
- * Claim 4 is why `target` is linked to ReenteringAvatar rather than
- * DummyAvatar. DummyAvatar returns true and calls nothing, so under it every
- * statement about what the avatar's call can do back to the Delay holds
- * vacuously. ReenteringAvatar tries enableModule on the Delay that forwarded
- * to it, every time, and records that it tried — so
- * avatarEnableModuleAttemptIsReachable can show the path was actually
- * exercised rather than assumed away.
- *
- * Rules, by claim:
- *
- *   setUp is spent
- *     setUpAlwaysRevertsAfterDeployment   the public, unmodified setUp cannot
- *                                         be re-entered to reset the ring or
- *                                         the owner. Every rule below that
- *                                         pins the ring relies on this
- *
- *   the module ring
- *     modulesOnlyChangeThroughOwnerEnableOrDisable
- *                                         over every entry point: the ring
- *                                         moves only under enableModule or
- *                                         disableModule, and only for owner
- *     ownerCanEnableModule                the owner still can (witness)
- *
- *   who may queue
- *     queueOnlyGrowsThroughEnabledModules over every entry point: queueNonce
- *                                         and txHash move only for a caller
- *                                         already in the ring
- *     enabledModuleCanQueue               an enabled module still can
- *                                         (witness)
- *
- *   the ring's gatekeeper and the guard over execution
- *     ownerOnlyChangesThroughOwnableTransfer
- *     guardOnlyChangesThroughOwnerSetGuard
- *     atMostOneCallerPassesOnlyOwner      from the same state, every
- *                                         onlyOwner entry point admits at
- *                                         most one caller, and it is owner()
- *
- *   an execution is not a module grant
- *     executeNextTxCannotEnableModuleThroughTheAvatar
- *                                         end to end, with a hostile avatar
- *     avatarEnableModuleAttemptIsReachable
- *                                         the hostile avatar really is
- *                                         reached and really does try, so the
- *                                         rule above is not vacuous (witness)
- *
- *   execution and skipping are open to anyone
- *     anyoneCanExecuteNextTx              from the same state, every caller
- *                                         gets the same outcome: if one
- *                                         succeeds, all do, with the same
- *                                         effect
- *     anyoneCanSkipExpired                likewise for skipExpired
- *     outsiderCanExecuteNextTx            a caller that is neither owner nor
- *                                         module can execute a queue entry
- *                                         (witness)
- *     outsiderCanSkipExpired              and can skip an expired one
- *                                         (witness)
- *
- *   every entry point is accounted for
- *     delayWriteFunctionsAreTheKnownFifteen
- *                                         the Delay's write functions are
- *                                         exactly the fifteen listed, with
- *                                         no fallback
- *     onlyModulesOrOwnerCanCallDelay      over every write function except
- *                                         executeNextTx, skipExpired and
- *                                         setUp: a call that succeeds came
- *                                         from the owner or an enabled module
- *
- * Composition with the Roles specs. This file proves only that `owner` is the
- * sole route into the ring. What stops the Governor from BEING that route is
- * Property 1: with SetTxNonceGuard and the role configuration in place, the
- * only call the Governor can make the DelayOwnerSafe emit is
- * Delay.setTxNonce. The DelayOwnerSafe is the Delay's owner, so those two
- * together — and only together — give the claim that matters:
- *
- *     the Governor can never enable a module on the Delay.
- *
- * Neither half states that conclusion on its own, and weakening either one
- * silently gives it up. See PROOFS.md Property 5.
- *
- * Deliberately NOT claimed here:
- *   - Anything about who the owner is. `owner` is left unconstrained, so
- *     these rules hold for any owner, including a Safe. That the owner is the
- *     DelayOwnerSafe rather than something reachable by the Governor is a
- *     deployment fact, checked in the verification plan, not proved here.
- *   - That the owner will not enable a hostile module itself. A 5-of-11
- *     quorum that wants to hand the Delay over can; the point of these rules
- *     is that nothing else can.
- *   - That the avatar cannot do harm elsewhere. ReenteringAvatar models the
- *     one return path this file is about — back into the Delay's own
- *     owner-only surface. What a real avatar does with the rest of a queue
- *     entry is the queue entry's business, and is what the cooldown is for.
- *   - That the Delay's avatar is not its own owner. Both
- *     modulesOnlyChangeThroughOwnerEnableOrDisable and
- *     executeNextTxCannotEnableModuleThroughTheAvatar require
- *     target() != owner(): if a Delay were wired so that the contract it
- *     forwards to is also the contract that owns it, the return path would
- *     reach enableModule with msg.sender == owner and an execution really
- *     could enable a module. In the deployment those are the Ownerless Safe
- *     and the DelayOwnerSafe, two distinct addresses, checked in the
- *     verification plan.
- *   - Anything about the guard's behaviour. PauseGuard is in the scene only
- *     so setGuard's ERC-165 probe and Module.exec's hooks resolve against a
- *     real implementation instead of an unresolved call. Property 4 is where
- *     the guard is actually specified.
- *
- * Modelling notes.
- *   - The witness rules and the two claim-4 rules require `guard() == 0`.
- *     Module.exec consults the guard before forwarding, so an installed guard
- *     can only ADD reverts to executeNextTx; proving a negative claim against
- *     the guard-less, maximally permissive executor is the conservative
- *     direction, and it keeps the claim-4 statement about the avatar rather
- *     than about PauseGuard's flag.
- *   - The parametric rules exclude setUp from `f`;
- *     setUpAlwaysRevertsAfterDeployment carries that entry point on its own.
- *     See the note above the rules for why pinning the pre-state instead
- *     would make the setUp instance vacuous. Three of the four then assume
- *     nothing at all about the pre-state; the exception is
- *     modulesOnlyChangeThroughOwnerEnableOrDisable, which needs
- *     target() != owner() for the reason given at the rule.
- *   - loop_iter 1 with optimistic_loop bounds skipExpired's while loop and
- *     getModulesPaginated's; neither calls exec or writes the ring.
- *   - executeNextTx and the queueing entry points hash the whole transaction.
- *     The conf sets optimistic_hashing with hashing_length_bound 1024, so
- *     these rules cover transactions whose `data` is at most 971 bytes.
+ * The scene is the real Delay (certora/helpers/Delay.sol) under DelayHarness.
+ * `target` is linked to ReenteringAvatar, which calls enableModule back on
+ * the Delay whenever the Delay forwards a call to it.
  */
 
 using ReenteringAvatar as hostileAvatar;
@@ -172,21 +24,7 @@ methods {
     function hostileAvatar.attempts() external returns (uint256) envfree;
     function hostileAvatar.succeeded() external returns (bool) envfree;
 
-    // NO summary for the avatar's return path into the Delay. The conf links
-    // ReenteringAvatar.delay to DelayHarness, so
-    // IDelayOwnerFunctions(delay).enableModule(attacker) resolves statically
-    // and needs no dispatcher.
-    //
-    // A `_.enableModule(address) => DISPATCHER(true)` here is actively wrong:
-    // the wildcard catches this rule file's own direct calls on
-    // currentContract too, routes them through the dispatcher's per-case
-    // storage merge, and lets the Prover report enableModule as succeeding
-    // while neither write to `modules` lands. That shows up as
-    // ownerCanEnableModule failing with the ring untouched after a call that
-    // did not revert.
-
-    // Module.exec's guard hooks, and Guardable.setGuard's ERC-165 probe of a
-    // new guard. PauseGuard is the only implementor in the scene.
+    // Guard calls resolve to PauseGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -195,48 +33,17 @@ methods {
     function _.supportsInterface(bytes4) external => DISPATCHER(true);
 }
 
-/// Modifier.sol:13 — `address internal constant`, so there is no getter.
+// SENTINEL_MODULES, an internal constant in Modifier.sol.
 definition SENTINEL_MODULES() returns address = 0x1;
-
-/*
- * On setUp, and why the parametric rules exclude it.
- *
- * setUp is the one entry point that can legitimately rewrite the module ring
- * and the owner, so a parametric rule that left it in would report it as a
- * counterexample to every claim in this file. The obvious fix — requiring the
- * ring already set up (moduleEntry(SENTINEL_MODULES()) == SENTINEL_MODULES(),
- * Delay.sol:106-112) — is worse than useless: in that pre-state setUp ALWAYS
- * reverts, and a parametric `f(e, args)` without @withrevert prunes reverting
- * paths, so the setUp instance passes with an unreachable body. Vacuous, not
- * proved.
- *
- * So the parametric rules below filter setUp out of `f` and assume nothing at
- * all about the pre-state, which makes them strictly stronger — they hold from
- * any storage the Prover can pick. setUpAlwaysRevertsAfterDeployment states
- * the setUp case directly instead, as a revert claim where a revert is the
- * thing being asserted rather than something silently assumed away.
- *
- * The two together cover every entry point of the deployed contract. The
- * non-parametric rules further down still require the ring set up, because
- * they are about behaviour in the deployed configuration rather than about
- * every reachable storage state.
- */
 
 /* ------------------------------------------------------------------------
  * 1. setUp is spent
  * --------------------------------------------------------------------- */
 
 /*
- * setUp is `public` with no access modifier of its own (Delay.sol:76). It is
- * safe only because of two things inside it: __Ownable_init() carries OZ's
- * `initializer` (Delay.sol:87), and setupModules() requires the sentinel slot
- * to still be empty (Delay.sol:106-112). A second setUp would run
- * transferOwnership(attacker) AND reset the module ring — both halves of what
- * the rest of this file protects — so it is worth pinning rather than reading
- * off the source.
- *
- * Stated against the module ring alone, so it holds whichever of the two
- * guards the Prover's chosen pre-state trips.
+ * Once the module list is set up, setUp always reverts, so nobody can re-run
+ * it to reset the module list or the owner. The parametric rules below
+ * exclude setUp; this rule covers it.
  */
 rule setUpAlwaysRevertsAfterDeployment(bytes initParams) {
     env e;
@@ -249,14 +56,13 @@ rule setUpAlwaysRevertsAfterDeployment(bytes initParams) {
 }
 
 /* ------------------------------------------------------------------------
- * 2. The module ring
+ * 2. The module list
  * --------------------------------------------------------------------- */
 
 /*
- * THE property this file exists for. Over every state-changing entry point of
- * the Delay — including executeNextTx, whose avatar tries enableModule on the
- * way through — if any address's ring entry moved, the entry point was
- * enableModule or disableModule and the caller was the owner.
+ * Over every write function except setUp, the module list changes only
+ * through enableModule or disableModule, and only when the caller is the
+ * owner.
  */
 rule modulesOnlyChangeThroughOwnerEnableOrDisable(method f, calldataarg args, address m)
     filtered {
@@ -265,20 +71,6 @@ rule modulesOnlyChangeThroughOwnerEnableOrDisable(method f, calldataarg args, ad
     }
 {
     env e;
-    // The avatar is not itself the Delay's owner - the same deployment
-    // constraint executeNextTxCannotEnableModuleThroughTheAvatar depends on,
-    // and it is needed here for the same reason. Without it the Prover picks
-    // target() == owner(), the avatar's enableModule on the way through
-    // executeNextTx then arrives with msg.sender == owner() and legitimately
-    // succeeds, and the ring moves under an entry point that is not
-    // enableModule and for a caller, e.msg.sender, that is not the owner.
-    //
-    // That counterexample does not violate "only the owner can change the
-    // ring": the nested call WAS the owner. It violates the stronger reading
-    // this rule asserts, that the OUTERMOST caller is the owner, which is
-    // only equivalent while no nested caller can be the owner. In the
-    // deployment the avatar is the Ownerless Safe and the owner is the
-    // DelayOwnerSafe, two distinct addresses, checked in the verification plan.
     require target() != owner();
 
     address ownerBefore = owner();
@@ -295,23 +87,7 @@ rule modulesOnlyChangeThroughOwnerEnableOrDisable(method f, calldataarg args, ad
 }
 
 /*
- * The bound above is not achieved by nothing working: enableModule is
- * reachable and completes for the owner, so modulesOnlyChangeThroughOwner-
- * EnableOrDisable is bounding a live path rather than an empty one.
- *
- * It asserts ONLY that the call does not revert, and deliberately says nothing
- * about the ring afterwards. The post-state is not observable in this scene:
- * the Prover scalarizes the constant-key modules[SENTINEL_MODULES] that
- * Modifier's own code touches (visible in counterexamples as a scalar going
- * SENTINEL -> m across the call), while every getter reachable from CVL takes
- * the key as a parameter and reads the storage wordmap, which does not see
- * that write. Asserting the ring here - through isModuleEnabled, through
- * moduleEntry, or through a dedicated constant-key harness getter - fails on a
- * model where enableModule reports success and the ring reads unchanged. That
- * is a scene artifact, not a Delay behaviour: the write demonstrably happens.
- *
- * So the post-state claim is left to PROOFS.md's "Explicitly not proved"
- * rather than asserted against a storage view that cannot see it.
+ * The owner's enableModule succeeds, so the rule above is not vacuous.
  */
 rule ownerCanEnableModule(address m) {
     env e;
@@ -332,14 +108,8 @@ rule ownerCanEnableModule(address m) {
  * --------------------------------------------------------------------- */
 
 /*
- * The other half of the attack: even an address that somehow reached a Delay
- * entry point cannot leave a queue entry behind unless it is already in the
- * ring. Stated on both things a queued entry writes — the nonce that orders
- * the queue, and the hash executeNextTx later checks against.
- *
- * moduleOnly gates on the raw ring entry (Modifier.sol:58-61), which is what
- * moduleEntry returns, not on isModuleEnabled: the two diverge at the
- * self-linked sentinel.
+ * Over every write function except setUp, only an enabled module can move the
+ * queue nonce or write a queue entry.
  */
 rule queueOnlyGrowsThroughEnabledModules(method f, calldataarg args, uint256 n)
     filtered {
@@ -360,7 +130,8 @@ rule queueOnlyGrowsThroughEnabledModules(method f, calldataarg args, uint256 n)
 }
 
 /*
- * An enabled module still can. Non-vacuity witness for the rule above.
+ * An enabled module's execTransactionFromModule succeeds and moves the queue
+ * nonce forward by one, so the rule above is not vacuous.
  */
 rule enabledModuleCanQueue(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -382,18 +153,13 @@ rule enabledModuleCanQueue(
 }
 
 /* ------------------------------------------------------------------------
- * 4. The ring's gatekeeper, and the guard over execution
+ * 4. The owner and the guard
  * --------------------------------------------------------------------- */
 
 /*
- * Ownership cannot be seized: it moves only through OwnableUpgradeable's own
- * two entry points, and only for the current owner.
- *
- * renounceOwnership is in the allowed set because it exists on the mastercopy
- * and cannot be removed — the Delay is a minimal proxy to immutable code. If
- * the owner ever called it, `owner` would become zero and enableModule,
- * setGuard, setTxNonce, setTxCooldown and setTxExpiration would all be frozen
- * for good. That is a runbook constraint, not something these rules prevent.
+ * Over every write function except setUp, the owner changes only through
+ * transferOwnership or renounceOwnership, and only when the caller is the
+ * current owner.
  */
 rule ownerOnlyChangesThroughOwnableTransfer(method f, calldataarg args)
     filtered {
@@ -415,9 +181,8 @@ rule ownerOnlyChangesThroughOwnableTransfer(method f, calldataarg args)
 }
 
 /*
- * The guard over execution is owner-only too, so a hostile module cannot
- * detach PauseGuard on its way past — it would have to be the owner, and by
- * the ring rule it cannot become the owner either.
+ * Over every write function except setUp, the guard changes only through
+ * setGuard, and only when the caller is the owner.
  */
 rule guardOnlyChangesThroughOwnerSetGuard(method f, calldataarg args)
     filtered {
@@ -438,25 +203,7 @@ rule guardOnlyChangesThroughOwnerSetGuard(method f, calldataarg args)
         "a caller other than the owner changed the guard";
 }
 
-/*
- * One owner at a time. From the same state, every onlyOwner entry point
- * admits at most one caller, and the caller it admits is owner(). So there is
- * never a second address that can act as the Delay's owner alongside the
- * first — the authority behind every rule above is a single address, not a
- * set.
- *
- * Both calls run from the same snapshot, with the same arguments, so the only
- * thing that differs between them is msg.sender. The first assertion is the
- * substance; the second is its consequence, stated so the claim reads as
- * written. ownerCanEnableModule is the witness that the admitted caller
- * really does get through, so "at most one" is not "none".
- *
- * The onlyOwner surface: setTxCooldown, setTxExpiration, setTxNonce
- * (Delay.sol:117-142), setAvatar, setTarget (zodiac core/Module.sol:23, :31),
- * enableModule, disableModule (core/Modifier.sol), setGuard
- * (guard/Guardable.sol:17), transferOwnership, renounceOwnership
- * (OwnableUpgradeable.sol:59, :67).
- */
+// The ten onlyOwner functions.
 definition isOnlyOwner(method f) returns bool =
     f.selector == sig:DelayHarness.setTxCooldown(uint256).selector ||
     f.selector == sig:DelayHarness.setTxExpiration(uint256).selector ||
@@ -469,6 +216,10 @@ definition isOnlyOwner(method f) returns bool =
     f.selector == sig:DelayHarness.transferOwnership(address).selector ||
     f.selector == sig:DelayHarness.renounceOwnership().selector;
 
+/*
+ * Each onlyOwner function succeeds only when the caller is the owner, and
+ * from the same state no two different callers can both succeed.
+ */
 rule atMostOneCallerPassesOnlyOwner(method f, calldataarg args)
     filtered { f -> isOnlyOwner(f) }
 {
@@ -491,19 +242,30 @@ rule atMostOneCallerPassesOnlyOwner(method f, calldataarg args)
         "two distinct callers both passed the same onlyOwner entry point from the same state";
 }
 
+/*
+ * For each onlyOwner function, some call from the owner succeeds, so
+ * atMostOneCallerPassesOnlyOwner is not vacuous.
+ */
+rule ownerCanCallEachDelaySetting(method f, calldataarg args)
+    filtered { f -> isOnlyOwner(f) }
+{
+    env e;
+    require e.msg.sender == owner();
+
+    f@withrevert(e, args);
+
+    satisfy !lastReverted,
+        "the owner cannot successfully call this onlyOwner function";
+}
+
 /* ------------------------------------------------------------------------
  * 5. An execution is not a module grant
  * --------------------------------------------------------------------- */
 
 /*
- * The incident's shape, stated end to end. The avatar is hostile: every queue
- * entry it is handed, it turns around and calls enableModule on the Delay
- * that forwarded to it. executeNextTx runs anyway — the avatar swallows the
- * refusal and reports success — and the attacker is still not in the ring
- * afterwards.
- *
- * enableModule is onlyOwner and the caller on that return path is the avatar,
- * not the owner. This rule says the Delay has no other way to read it.
+ * Executing a queue entry cannot enable a module, even when the avatar calls
+ * enableModule back on the Delay: that call reverts and the module list is
+ * unchanged.
  */
 rule executeNextTxCannotEnableModuleThroughTheAvatar(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -514,12 +276,6 @@ rule executeNextTxCannotEnableModuleThroughTheAvatar(
     require hostileAvatar.delay() == currentContract;
     require guard() == 0;
 
-    // The avatar is not itself the Delay's owner. In the deployment it is the
-    // Ownerless Safe while the owner is the DelayOwnerSafe, two distinct
-    // addresses; wire a Delay so that its avatar IS its owner and an execution
-    // really could enable a module, because the return path would then arrive
-    // at enableModule with msg.sender == owner. That is a deployment
-    // constraint this rule depends on, not one it proves.
     require target() != owner();
 
     address attacker = hostileAvatar.attacker();
@@ -536,10 +292,8 @@ rule executeNextTxCannotEnableModuleThroughTheAvatar(
 }
 
 /*
- * That the rule above is about a refusal and not about a path that never
- * runs: there is a state in which executeNextTx completes AND the avatar was
- * reached and did try. Without this, a DummyAvatar-shaped scene would satisfy
- * the rule above while proving nothing at all.
+ * executeNextTx can succeed with the avatar reached and attempting
+ * enableModule, so the rule above is not vacuous.
  */
 rule avatarEnableModuleAttemptIsReachable(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -564,29 +318,9 @@ rule avatarEnableModuleAttemptIsReachable(
  * --------------------------------------------------------------------- */
 
 /*
- * executeNextTx and skipExpired carry no access modifier (Delay.sol:200,
- * :227). Everything else on the Delay is owner-only (5.7), module-only (5.3)
- * or spent (5.1).
- *
- * The first two rules show the caller makes no difference. From the same
- * state, at the same block, with the same ETH and the same arguments, any two
- * callers get the same outcome: if one call succeeds, the other succeeds too
- * and leaves the Delay and the avatar in the same state. So whenever
- * executeNextTx or skipExpired can succeed, it succeeds for every caller.
- * Nothing on either path reads msg.sender: Module.exec hands the guard
- * address(0) as the sender, and the avatar's call back into the Delay comes
- * from the avatar.
- *
- * The avatar and guard are pinned to the deployed wiring — the hostile avatar
- * linked back to this Delay, and either no guard or PauseGuard — so every
- * external call on the path resolves to real code. An unresolved call would
- * be havocked separately in each run and could differ for no reason to do
- * with the caller.
- *
- * Caller independence on its own would also hold if every call reverted, so
- * the two witnesses after it show a caller that is neither the owner nor an
- * enabled module does get through, and the call does its job rather than
- * returning as a no-op.
+ * Whether executeNextTx or skipExpired succeeds, and what it changes, does
+ * not depend on who the caller is: from the same state, block and msg.value,
+ * two different callers get the same outcome.
  */
 rule anyoneCanExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -642,9 +376,8 @@ rule anyoneCanSkipExpired() {
 }
 
 /*
- * Witnesses for the two rules above. Both are satisfy rules: they show the
- * path exists, not that every such call succeeds; when executeNextTx must
- * succeed is a separate claim.
+ * A caller that is neither the owner nor an enabled module can execute or
+ * skip a queue entry, so the two rules above are not vacuous.
  */
 rule outsiderCanExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -685,18 +418,8 @@ rule outsiderCanSkipExpired() {
  * 7. Every entry point is accounted for
  * --------------------------------------------------------------------- */
 
-/*
- * 5.7, 5.3, 5.1 and 5.8 each cover a list of functions. These two rules show
- * the lists are complete.
- *
- * The first is a claim about shape: the Delay's write functions are exactly
- * the fifteen below, and it has no fallback. If a function is ever added,
- * this rule fails, and the new function needs its own access rule.
- *
- * The second covers every write function at once, rather than by name: apart
- * from the three with their own rules, any call that succeeds came from the
- * owner or an enabled module. It holds for a function added later too.
- */
+// Together with isOnlyOwner, these make up the Delay's fifteen write
+// functions.
 definition isQueueing(method f) returns bool =
     f.selector == sig:DelayHarness.execTransactionFromModule(address,uint256,bytes,Enum.Operation).selector ||
     f.selector == sig:DelayHarness.execTransactionFromModuleReturnData(address,uint256,bytes,Enum.Operation).selector;
@@ -708,6 +431,10 @@ definition isOpenToAnyone(method f) returns bool =
 definition isSetUp(method f) returns bool =
     f.selector == sig:DelayHarness.setUp(bytes).selector;
 
+/*
+ * The Delay has no fallback, and its write functions are exactly the fifteen
+ * in isOnlyOwner, isQueueing, isOpenToAnyone and isSetUp.
+ */
 rule delayWriteFunctionsAreTheKnownFifteen(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
 {
@@ -721,6 +448,10 @@ rule delayWriteFunctionsAreTheKnownFifteen(method f, calldataarg args)
         "the Delay has a write function that no access rule covers";
 }
 
+/*
+ * Apart from executeNextTx, skipExpired and setUp, a call to any write
+ * function succeeds only if the caller is the owner or an enabled module.
+ */
 rule onlyModulesOrOwnerCanCallDelay(method f, calldataarg args)
     filtered {
         f -> !f.isView && !f.isPure && !isOpenToAnyone(f) && !isSetUp(f)
@@ -737,10 +468,8 @@ rule onlyModulesOrOwnerCanCallDelay(method f, calldataarg args)
 }
 
 /*
- * An enabled module that is not the owner cannot veto: its setTxNonce always
- * reverts, whatever the nonce. atMostOneCallerPassesOnlyOwner already implies
- * this for every caller other than the owner; this states it for the callers
- * that matter here, the Delay's modules.
+ * An enabled module that is not the owner cannot call setTxNonce: the call
+ * always reverts, whatever the nonce.
  */
 rule enabledModuleThatIsNotOwnerCannotSetTxNonce(uint256 nonce) {
     env e;
@@ -755,8 +484,8 @@ rule enabledModuleThatIsNotOwnerCannotSetTxNonce(uint256 nonce) {
 }
 
 /*
- * The owner can still veto, so the rule above does not hold just because
- * setTxNonce always reverts (witness).
+ * The owner's setTxNonce succeeds and sets txNonce, so the rule above does
+ * not hold just because setTxNonce always reverts.
  */
 rule ownerCanSetTxNonce(uint256 nonce) {
     env e;

@@ -1,25 +1,7 @@
 /*
- * Safe v1.4.1 (solc 0.7.6): a Safe set as its own fallback handler.
- * v1.4.1's setFallbackHandler and setup refuse this (GS400,
- * FallbackManager.sol:34), but a delegatecall made through execTransaction or
- * a module runs in the Safe's own storage and can still write the slot, so
- * the case is kept. Only the Safe can change its handler
- * (settingsOnlyChangeWhenTheSafeCallsItself).
- *
- * fallback() then calls the Safe itself, as the Safe, with the caller's
- * calldata plus the caller's 20-byte address appended:
- *  - 4+ bytes of calldata: the selector matched nothing (that is why fallback
- *    ran), the inner call has the same selector, so it lands in fallback
- *    again, forever, until gas or call depth runs out and every level reverts.
- *  - 1-3 bytes: the inner selector is those bytes plus the first bytes of the
- *    caller's address, so it can pick another function, but with only 21-23
- *    bytes of calldata. Any function with an argument fails ABI decoding
- *    (one argument needs 36 bytes); every function with none is a view
- *    (getThreshold, getOwners, getChainId, domainSeparator, nonce, VERSION).
- * So fallback either reverts or returns a view's answer.
- *
- * The self-call resolves to the Safe in this scene. The conf's recursion
- * limit cuts off the endless fallback->fallback case, which reverts on chain.
+ * Safe v1.4.1: a Safe set as its own fallback handler. fallback then calls
+ * the Safe itself, as the Safe, with the caller's calldata plus the caller's
+ * 20-byte address appended.
  */
 
 methods {
@@ -33,8 +15,8 @@ persistent ghost bool madeDelegateCall;
 
 hook CALL(uint g, address addr, uint value, uint argsOffset, uint argsLength,
           uint retOffset, uint retLength) uint rc {
-    // The hook sees CALL's raw 256-bit address word; the EVM calls only its
-    // low 160 bits, so compare the address actually called.
+    // CALL's address word may carry upper bits; the EVM calls its low 160
+    // bits.
     if (to_mathint(addr) % 2^160 != to_mathint(currentContract)) {
         calledSomeoneElse = true;
     }
@@ -57,10 +39,8 @@ rule selfHandlerFallbackChangesNothing(method f, calldataarg args)
     filtered { f -> f.isFallback }
 {
     env e;
-    // The slot word is exactly the Safe's address, upper 96 bits clear, so the
-    // Prover resolves fallback()'s call as a call to the Safe itself. A word
-    // with upper bits set behaves the same on chain (CALL uses only the low
-    // 160 bits), but the Prover would treat it as an unknown address.
+    // The slot word is exactly the Safe's address, so the Prover resolves
+    // fallback's call as a call to the Safe itself.
     require fallbackHandlerIs(currentContract);
     require !calledSomeoneElse;
     require !calledWithValue;

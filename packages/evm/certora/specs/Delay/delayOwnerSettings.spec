@@ -1,57 +1,14 @@
 /*
- * Property: the Term multisig holders on the DelayOwnerSafe can change the
- * Delay Modifier's owner, target, modules, guard, txCooldown and txExpiration
- * through the signed path, end to end, with the real signature check.
+ * DelayOwnerSafe owners change Delay Modifier settings: an owner of the
+ * DelayOwnerSafe approves with approveHash the hash of the Safe's call to one
+ * of the Delay's settings functions, anyone submits it through
+ * execTransaction with that approval as the signature, and the setting
+ * changes.
  *
- * It covers P4.DelayModifier.13. The Delay Modifier's owner is the
- * DelayOwnerSafe (P2.3 in PROOFS.md), so a Safe transaction addressed to the
- * Delay is how the Term multisig holders reach these settings. The flow is the
- * one the owners use:
- *   1. an owner calls approveHash on the hash of a Safe transaction that calls
- *      one of the Delay's settings functions;
- *   2. anyone calls execTransaction with that approval as the signature;
- *   3. the Safe's signature check runs for real, the Safe calls the Delay, the
- *      Delay's onlyOwner check sees the Safe, and the setting changes.
- * The signature check is the real one: the owner's approval is what lets the
- * call through. Every setting the statement names is covered, and the veto,
- * setTxNonce, is specs/Delay/vetoSignedPath.spec.
- *
- * The scene is the real Safe v1.4.1 code through SafeV141Harness (solc 0.7.6)
- * and the real Delay mastercopy source, certora/helpers/Delay.sol (solc 0.8.6).
- * No guard is installed on the Safe.
- *
- * Why witnesses (satisfy) and not asserts. execTransaction reads gasleft()
- * (GS010), which the Prover treats as an unconstrained value, so "does not
- * revert" cannot be asserted for every execution. Each rule shows an
- * execution exists in which the owner's approval alone makes the Delay change
- * the setting. That is what "can be changed by the Term multisig holders"
- * needs.
- *
- * Rules, by setting:
- *   owner                 ownersApprovalTransfersOwnership
- *   target                ownersApprovalSetsTarget
- *   modules               ownersApprovalEnablesModule, ownersApprovalDisablesModule
- *   guard                 ownersApprovalSetsGuard
- *   txCooldown            ownersApprovalSetsTxCooldown
- *   txExpiration          ownersApprovalSetsTxExpiration
- * The veto, setTxNonce, is vetoSignedPath.spec.
- *
- * Modelling notes.
- *   - The threshold is 1 and the owner's approval is the one signature. The
- *     Prover unrolls the signature loop once (loop_iter 1); the deployed
- *     threshold is larger. The loop is covered one pass at a time by
- *     eachSignatureAcceptsANewApprovingOwner (SE141-12), and a threshold-t
- *     check only repeats that pass t times.
- *   - The Safe's call to the Delay is a low-level `call` with a symbolic
- *     target, which the Prover cannot resolve. The DISPATCH declaration routes
- *     it to the Delay function the call names, where it lands on chain.
- *     DISPATCH ignores `to`, so each rule pins `to` to the Delay. As in
- *     delayOwnerGuard.spec, each rule pins the calldata to one call of fixed
- *     length: with arbitrary calldata routed into the Delay's functions the
- *     Prover (certora-cli 7.31.0) stops with an internal error.
- *   - setGuard probes the new guard with ERC-165's supportsInterface. No guard
- *     contract is in the scene, so the probe is NONDET: the witness is a guard
- *     that answers yes, as PauseGuard does (DP-2 in PAUSEGUARD_PROOFS.md).
+ * The scene is the real Safe v1.4.1 (SafeV141Harness) and the real Delay
+ * (certora/helpers/Delay.sol), with the Safe as the Delay's owner. The Safe's
+ * threshold is 1 and no guard is installed on it; ownersCanMakeTheSafeAct
+ * (SE141-6) covers any threshold.
  */
 
 using Delay as delayContract;

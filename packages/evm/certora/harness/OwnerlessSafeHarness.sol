@@ -3,9 +3,8 @@ pragma solidity 0.7.6;
 
 import "./GnosisSafeHarness.sol";
 
-/// @dev The Ownerless Safe, as its own contract in a scene that also holds the
-/// Proposer Safe. See ProposerSafeHarness. It adds nothing to
-/// GnosisSafeHarness.
+/// @dev The OwnerlessSafe, as its own contract in a scene that also holds the
+/// ProposerSafe. It adds nothing to GnosisSafeHarness.
 contract OwnerlessSafeHarness is GnosisSafeHarness {
 
 }

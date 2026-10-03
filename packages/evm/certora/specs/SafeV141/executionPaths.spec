@@ -1,12 +1,10 @@
 /*
- * Safe v1.4.1 (solc 0.7.6): who can make the Safe act or change it.
- * No assumption about modules or a fallback handler.
+ * Safe v1.4.1: who can make the Safe act or change it. No assumption about
+ * modules or a fallback handler. "Act" means an outgoing CALL or
+ * DELEGATECALL.
  *
  * The same rules as specs/Safe/executionPaths.spec (GnosisSafe v1.3.0), run
- * against the v1.4.1 code. v1.4.1 removed requiredTxGas, so its rule is gone
- * and the always-reverting set is setup and simulateAndRevert.
- *
- * "Act" = an outgoing CALL or DELEGATECALL.
+ * against the v1.4.1 code. v1.4.1 removed requiredTxGas, so its rule is gone.
  *
  * Assumes the Safe is set up (threshold > 0). No rule depends on the
  * threshold or the number of owners, and no rule runs the signature loop.
@@ -25,12 +23,8 @@ methods {
     function signatureTypeAt(bytes, uint256) external returns (uint8) envfree;
 
     // Stand-in for the signature loop: it records that it ran, on which hash
-    // and for how many signatures, and returns. checkSignatures itself runs
-    // for real, so its "threshold > 0" check (GS001) is kept. execTransaction
-    // reads the owners nowhere else (Safe.sol:139-221). The loop is covered
-    // one pass at a time by eachSignatureAcceptsANewApprovingOwner. The other
-    // rules here leave execTransaction out, or only check which function was
-    // called.
+    // and for how many signatures. The loop itself is covered one pass at a
+    // time by eachSignatureAcceptsANewApprovingOwner.
     function checkNSignatures(bytes32 dataHash, bytes memory data, bytes memory signatures, uint256 requiredSignatures) internal
         => recordSignatureCheck(dataHash, requiredSignatures);
 }
@@ -72,9 +66,8 @@ definition isApproveHash(method f) returns bool =
 ghost bool safeActed;
 
 /*
- * These three record what already happened in this call. They are persistent
- * so a DELEGATECALL to unknown code does not havoc them: that code runs after
- * the check and cannot undo it. The Safe's storage is still havoced.
+ * Persistent, so a delegatecall to unknown code, which runs after the check,
+ * does not havoc them.
  */
 
 /// Set if the Safe made an outgoing call before the signature check ran.
@@ -105,9 +98,8 @@ hook CALL(uint g, address addr, uint value, uint argsOffset, uint argsLength,
     if (!signatureCheckRan) {
         actedBeforeSignatureCheck = true;
     }
-    // The hook sees CALL's raw 256-bit address word; the EVM calls only its
-    // low 160 bits. fallback() passes its whole slot word, which may carry
-    // upper bits, so compare the address actually called.
+    // CALL's address word may carry upper bits; the EVM calls its low 160
+    // bits.
     if (to_mathint(addr) % 2^160 != expectedCallee) {
         calledSomeoneElse = true;
     }
@@ -126,8 +118,9 @@ hook DELEGATECALL(uint g, address addr, uint argsOffset, uint argsLength,
 }
 
 /*
- * Every write function is one of the fifteen above (fallback covers every
- * other selector). @withrevert keeps the always-reverting ones reachable.
+ * The Safe has no write functions besides the fifteen above. The Prover
+ * checks fallback and receive as one entry, and any other selector lands in
+ * fallback.
  */
 rule safeEntryPointsAreAllAccountedFor(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
@@ -162,17 +155,9 @@ rule safeActsOnlyThroughItsThreeEntryPaths(method f, calldataarg args)
 }
 
 /*
- * With a handler set, fallback() only ever makes a plain call, with no ETH,
- * to the handler stored in its slot. It never delegatecalls, so the handler
- * runs as its own contract, not as the Safe, and cannot write the Safe's
- * storage. Anything the handler then calls has the handler as msg.sender.
- *
- * Assumes the handler is not the Safe itself. v1.4.1's setFallbackHandler
- * and setup refuse that (GS400, FallbackManager.sol:34), but a delegatecall
- * made through execTransaction or a module runs in the Safe's storage and can
- * still write the slot. Then fallback() calls back into the Safe as the Safe,
- * with the caller's address appended to the calldata, which can select a
- * different function. That case is selfHandlerFallbackChangesNothing.
+ * With a handler set, fallback only ever makes a plain call, with no ETH, to
+ * the handler stored in its slot. It never delegatecalls, so anything the
+ * handler then calls has the handler as msg.sender.
  */
 rule fallbackOnlyCallsItsHandler(method f, calldataarg args)
     filtered { f -> f.isFallback }
@@ -257,10 +242,7 @@ rule enabledModuleCanMakeTheSafeAct(method f, calldataarg args)
  * execTransaction only succeeds after the signature check has run on its own
  * transaction hash at the current nonce, asking for as many signatures as the
  * threshold, and at least one. The Safe makes no outgoing call before that
- * check. execTransaction calls checkSignatures directly, with no try/catch,
- * so on chain a failing check reverts the whole transaction. The threshold is
- * not assumed: a zero threshold is shown to fail. No loop runs, so this holds
- * for any threshold.
+ * check. No loop runs, so this holds for any threshold.
  */
 rule execTransactionRunsOnlyAfterTheSignatureCheck(
     address to, uint256 value, bytes data, Enum.Operation operation,
@@ -287,10 +269,9 @@ rule execTransactionRunsOnlyAfterTheSignatureCheck(
 }
 
 /*
- * Once the threshold is passed — the signature check succeeds — owners can
+ * Once the threshold is passed (the signature check succeeds), owners can
  * make the Safe act through execTransaction, whatever the threshold and
- * however many owners there are. No guard and gasPrice 0, so the transaction
- * is the only outgoing call.
+ * however many owners there are.
  */
 rule ownersCanMakeTheSafeAct(
     address to, uint256 value, bytes data, Enum.Operation operation,
@@ -341,8 +322,7 @@ rule settingsOnlyChangeWhenTheSafeCallsItself(method f, calldataarg args, addres
 
 /*
  * An approval for `a` is only recorded by `a` itself, while `a` is in the
- * owner list. (The list head 0x1 also passes, but cannot send transactions and
- * is rejected as a signer.)
+ * owner list.
  */
 rule onlyOwnersCanApproveHashes(method f, calldataarg args, address a, bytes32 h)
     filtered { f -> !f.isView && !f.isPure && !isActPath(f) }
@@ -382,15 +362,13 @@ rule simulateAndRevertAlwaysReverts(address targetContract, bytes payload) {
 /*
  * Each pass of the signature check accepts exactly one new, approving owner.
  * Stated on one pass of the loop body (checkNSignaturesLoopBody, a verbatim
- * copy of Safe.sol:285-331) for any pass `i` and any previous signer, so no
- * loop runs and it covers every pass, for any threshold: `t` passes accept
- * `t` distinct approving owners.
+ * copy of Safe.sol:285-331) for any pass `i` and any previous signer, so it
+ * covers every pass, for any threshold.
  *
- * The signer it accepts is above the previous one (so no repeats), is in the
- * owner list and is not the list head 0x1. For v == 1 it approved by being the
- * sender or with approveHash; otherwise it is the address ecrecover returns
- * for the signature (v > 1) or a contract that returned the EIP-1271 magic
- * value (v == 0), by the body's own code.
+ * The signer it accepts is above the previous one, so there are no repeats,
+ * and is an owner other than the list head 0x1. An approved-hash signature (v
+ * == 1) is accepted only if the signer is the sender or approved the hash
+ * with approveHash.
  */
 rule eachSignatureAcceptsANewApprovingOwner(
     bytes32 dataHash, bytes data, bytes signatures,

@@ -21,29 +21,15 @@ contract RolesHarness is Roles {
         return roles[roleId].members[member];
     }
 
-    /// @dev The raw module linked-list entry. This, not isModuleEnabled, is
-    /// what the moduleOnly modifier actually gates on (Modifier.sol:59-62).
-    /// The two diverge at SENTINEL_MODULES, which is self-linked by
-    /// setupModules (Roles.sol:56-59): moduleOnly accepts it, while
-    /// isModuleEnabled reports it as not enabled.
+    /// @dev The raw module linked-list entry, which is what moduleOnly gates
+    /// on.
     function moduleEntry(address module) external view returns (address) {
         return modules[module];
     }
 
-    /// @dev Exposes Permissions.checkTransaction — the per-entry gate that BOTH
-    /// the direct path (Permissions.sol:190) and checkMultisendTransaction's
-    /// loop body (Permissions.sol:236) call. Internal library functions are
-    /// inlined into importers, so this runs the same code the module runs, not
-    /// a copy of it.
-    ///
-    /// The point of exposing it is to state the per-entry restriction WITHOUT
-    /// driving the multisend loop, so the claim does not inherit `loop_iter`
-    /// as a bound on batch length.
-    ///
-    /// Declared `view` so it is excluded from the parametric rules that
-    /// quantify over state-changing entry points, in particular
-    /// governorSucceedsOnlyThroughRolesExecEntryPoints, which filters
-    /// `!f.isView && !f.isPure`.
+    /// @dev Permissions.checkTransaction, the per-entry check that both the
+    /// direct path and checkMultisendTransaction's loop call. Declared
+    /// `view`, so the parametric rules over write functions skip it.
     function checkEntry(
         uint16 roleId,
         address to,
@@ -68,8 +54,8 @@ contract RolesHarness is Roles {
         return roles[roleId].targets[targetAddress].options;
     }
 
-    /// @dev Mirrors checkTransaction's own `bytes4(data)` truncation
-    /// (Permissions.sol:270) so specs never need to slice `data` themselves.
+    /// @dev The function scope config for `data`'s selector, as
+    /// checkTransaction keys it.
     function functionScopeConfigForData(
         uint16 roleId,
         address targetAddress,
@@ -81,18 +67,9 @@ contract RolesHarness is Roles {
             ];
     }
 
-    /// @dev functionScopeConfigForData, keyed on the selector directly rather
-    /// than on a `bytes` blob.
-    ///
-    /// Semantically identical: functionScopeConfigForData does `bytes4(data)`
-    /// on entry, so passing selectorOf(data) here gives the same slot. The
-    /// difference is the parameter type. Calling the `bytes` form inside a CVL
-    /// `require` makes the surrounding requires stop binding -- see the note in
-    /// specs/Roles/setTxNonceGuardAndRoleConfig.spec -- and this form exists so
-    /// a spec can pin the function scope without tripping that.
-    ///
-    /// uint32 rather than bytes4 so it accepts selectorOf's return type and
-    /// CVL's `sig:C.f(...).selector` without a cast.
+    /// @dev functionScopeConfigForData, keyed on the selector directly.
+    /// uint32 so it takes selectorOf's return type and CVL's
+    /// `sig:C.f(...).selector` without a cast.
     function functionScopeConfigForSelector(
         uint16 roleId,
         address targetAddress,
@@ -127,12 +104,8 @@ contract RolesHarness is Roles {
         return Permissions.unpackParameter(scopeConfig, index);
     }
 
-    /// @dev Mirrors checkParameters' own Static-value extraction
-    /// (Permissions.sol:346-349) so params.spec never reimplements the
-    /// calldata layout math. Reverts (CalldataOutOfBounds) exactly when the
-    /// real function would; a plain CVL call to this getter (without a
-    /// revert-tolerant modifier) therefore restricts a rule to the
-    /// in-bounds case for free.
+    /// @dev Permissions.pluckStaticValue: the static value of argument
+    /// `index`. Reverts exactly when the real function would.
     function pluckStaticValueAt(
         bytes memory data,
         uint256 index
@@ -140,19 +113,13 @@ contract RolesHarness is Roles {
         return Permissions.pluckStaticValue(data, index);
     }
 
-    /// @dev Mirrors checkTransaction's own `bytes4(data)` truncation
-    /// (Permissions.sol:270), so a spec can pin `data` to a particular
-    /// selector without slicing bytes in CVL.
-    /// Returned as uint32 rather than bytes4 so a spec can compare it
-    /// directly against CVL's `sig:C.f(...).selector`, which is uint32.
+    /// @dev The selector of `data`, as checkTransaction reads it, as a uint32
+    /// to compare against CVL's `sig:C.f(...).selector`.
     function selectorOf(bytes memory data) external pure returns (uint32) {
         return uint32(bytes4(data));
     }
 
-    /// @dev pluckStaticValueAt, already widened to uint256. CVL has no cast
-    /// from bytes32 to uint256, and every rule that compares a plucked
-    /// argument against numeric contract state (a nonce, a balance) needs
-    /// one; doing the widening in Solidity keeps that out of the spec.
+    /// @dev pluckStaticValueAt, widened to uint256.
     function pluckStaticUintAt(
         bytes memory data,
         uint256 index
@@ -194,12 +161,10 @@ contract RolesHarness is Roles {
                 .length;
     }
 
-    /// @dev Mirrors checkMultisendTransaction's own per-entry parsing
-    /// (Permissions.sol:220-235) exactly, including its zero-copy `out`
-    /// slice (a `bytes memory` pointer that reuses the just-read
-    /// `dataLength` word, sitting immediately before it in `data`, as its
-    /// own length prefix). Given `i`, the byte offset of one entry, returns
-    /// what checkTransaction would be called with for that entry.
+    /// @dev Parses the multisend entry at byte offset `i` exactly as
+    /// checkMultisendTransaction does, and returns what checkTransaction
+    /// would be called with for that entry. `out` reuses the entry's
+    /// dataLength word as its length prefix, as the original does.
     function multisendEntryAt(
         bytes memory data,
         uint256 i

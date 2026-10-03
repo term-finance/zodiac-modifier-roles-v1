@@ -1,58 +1,13 @@
 /*
- * TermFinanceGovernor: only TERM holders can vote. A vote adds exactly the
- * voter's votes at the proposal's snapshot to that proposal's tally, so an
- * account with no TERM votes at the snapshot adds nothing, and nothing but a
- * vote moves a tally.
+ * Governor vote counting: through each of the five voting functions, a
+ * proposal's tally grows by exactly the voter's votes at its snapshot, so an
+ * account with no votes at the snapshot moves nothing.
  *
- * The Governor counts votes with GovernorCountingSimple
- * (GovernorCountingSimple.sol:76-99): an account votes at most once per
- * proposal, and its vote adds `totalWeight` to one of againstVotes, forVotes
- * or abstainVotes. `totalWeight` is _getVotes(voter, proposalSnapshot(id))
- * (Governor.sol:648), which GovernorVotes reads from TERM's getPastVotes
- * (GovernorVotes.sol:57-63).
- *
- * Rules:
- *
- *   directVoteCountsOnlyTheVotersVotes
- *     castVote, castVoteWithReason and castVoteWithReasonAndParams, where the
- *     voter is the caller: every proposal's tally moves by exactly the
- *     caller's votes at that proposal's snapshot if the caller voted on it,
- *     and not at all otherwise
- *   voteBySigCountsOnlyTheVotersVotes
- *   voteWithReasonAndParamsBySigCountsOnlyTheVotersVotes
- *     the same for the two by-signature functions, where the voter is the
- *     account named in the call, whoever submits it
- *   termHolderVoteCounts
- *     a caller with votes at the snapshot can vote, and its vote moves the
- *     tally (witness)
- *
- * nothingButAVoteMovesATally, the rule that nothing but a vote moves a tally,
- * is in tallies.spec, without this file's ghost and internal summaries.
- * Together they cover every write function of the Governor: the five voting
- * functions are this file's first three rules', queue never succeeds (GS-4
- * queueAlwaysReverts, settings.spec), and tallies.spec takes the rest.
- *
- * The contracts are the deployed code, as in settings.spec: TermFinanceGovernor
- * 0x2B715634134220ffeEE9458b4e34E41A41418607 through
- * TermFinanceGovernorSettingsHarness, which adds only view getters, so the
- * write functions quantified over are exactly the deployed Governor's. Its
- * token is linked to TermToken.
- *
- * Modelling notes.
- *   - _getVotes (GovernorVotes.sol:57-63) is summarised as an arbitrary value
- *     per account and timepoint, as in proposalThreshold.spec, and the rules
- *     state a vote's weight against that value. GV-4
- *     `governorVotesAreTermPastVotes` (veto.spec) shows the Governor's vote
- *     count is TERM's getPastVotes.
- *   - SignatureChecker.isValidSignatureNow is summarised as an arbitrary
- *     boolean. If it returns false the by-signature functions revert, and if
- *     true they count the named voter's votes. Whether a signature is valid
- *     is not what these rules are about; that a vote counts only the named
- *     voter's votes, whoever submits it, is.
- *   - As in settings.spec, the arbitrary calls of execute and relay are
- *     havoced with HAVOC_ECF: they may do anything to every contract but the
- *     Governor. A call back into the Governor is itself one of the write
- *     functions these rules cover.
+ * The Governor is the deployed TermFinanceGovernor under
+ * TermFinanceGovernorSettingsHarness, which adds only view getters, with its
+ * token linked to TermToken. The Governor's vote count is summarized as an
+ * arbitrary value per account and timepoint; governorVotesAreTermPastVotes
+ * (GV-4) shows it is TERM's getPastVotes.
  */
 
 using TermToken as termToken;
@@ -86,13 +41,13 @@ function tally(uint256 proposalId) returns mathint {
     return againstVotes + forVotes + abstainVotes;
 }
 
-/// The three voting functions whose voter is the caller (Governor.sol:532-561).
+/// The three voting functions whose voter is the caller.
 definition isDirectVote(method f) returns bool =
     f.selector == sig:castVote(uint256, uint8).selector ||
     f.selector == sig:castVoteWithReason(uint256, uint8, string).selector ||
     f.selector == sig:castVoteWithReasonAndParams(uint256, uint8, string, bytes).selector;
 
-/// The two whose voter is named in the call (Governor.sol:565-620).
+/// The two whose voter is named in the call.
 definition isVoteBySig(method f) returns bool =
     f.selector == sig:castVoteBySig(uint256, uint8, address, bytes).selector ||
     f.selector == sig:castVoteWithReasonAndParamsBySig(uint256, uint8, address, string, bytes, bytes).selector;
@@ -100,8 +55,7 @@ definition isVoteBySig(method f) returns bool =
 /*
  * For any proposal: if the caller voted on it in this call, its tally grew by
  * exactly the caller's votes at its snapshot; otherwise its tally did not
- * move. An account with no votes at the snapshot adds nothing. Checked once
- * per function.
+ * move. An account with no votes at the snapshot adds nothing.
  */
 rule directVoteCountsOnlyTheVotersVotes(method f, calldataarg args, uint256 proposalId)
     filtered { f -> isDirectVote(f) }
@@ -156,8 +110,8 @@ rule voteWithReasonAndParamsBySigCountsOnlyTheVotersVotes(
 }
 
 /*
- * The rules above are not achieved by nothing working: a caller with votes
- * at the snapshot can vote, and its vote moves the tally. Witness.
+ * A caller with votes at the snapshot can vote, and its vote moves the tally,
+ * so the rules above are not vacuous.
  */
 rule termHolderVoteCounts(uint256 proposalId, uint8 support) {
     env e;

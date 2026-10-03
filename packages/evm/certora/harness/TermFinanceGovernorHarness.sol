@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-// Pinned to the compiler the deployed Governor was built with
-// (0x2B715634134220ffeEE9458b4e34E41A41418607, fully verified on Blockscout:
-// solc 0.8.20, optimizer off, EVM paris). Any other compiler fails here.
+// Pinned to solc 0.8.20, the compiler the deployed Governor
+// (0x2B715634134220ffeEE9458b4e34E41A41418607) was built with.
 pragma solidity 0.8.20;
 
 import {TermFinanceGovernor, IVotes} from "../vendor/TermFinanceGovernor/contracts/TermFinanceGovernor.sol";
@@ -9,11 +8,9 @@ import {TermFinanceGovernor, IVotes} from "../vendor/TermFinanceGovernor/contrac
 /// @dev Adds helpers that build the veto proposal and hand it to the real
 /// propose, execute and hashProposal, and nothing else. TermFinanceGovernor
 /// is inherited unmodified from its verified source
-/// (certora/vendor/TermFinanceGovernor), so every rule runs against the
-/// deployed Governor code.
+/// (certora/vendor/TermFinanceGovernor).
 ///
-/// The veto proposal is the one the runbook uses: a single action calling the
-/// Roles Modifier with
+/// The veto proposal is a single action calling the Roles Modifier with
 /// `execTransactionWithRole(delay, 0, setTxNonce(n), Call, 1, true)`.
 contract TermFinanceGovernorHarness is TermFinanceGovernor {
     constructor(IVotes _token) TermFinanceGovernor(_token) {}

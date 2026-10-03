@@ -1,38 +1,12 @@
 /*
- * Property: executeNextTx and skipExpired, the two entry points anyone can
- * call, only ever act on queue entries that an enabled module or the owner
- * put there.
+ * Delay Modifier queue provenance: executeNextTx and skipExpired, the two
+ * functions anyone can call, only act on queue entries that an enabled module
+ * or the owner queued.
  *
- * queueOnlyGrowsThroughEnabledModules (moduleIntegrity.spec) shows each write
- * to the queue comes from an enabled module, and
- * executeNextTxConsumesOnlyTheEntryAtTxNonce (pauseGuardSufficient.spec) shows
- * executeNextTx runs the entry at txNonce. This file states the two together,
- * end to end, by recording who wrote each queue entry:
- *
- *   - `callerAuthorized` is fixed by the invariant's preserved block to
- *     whether the caller of the current call is the owner or an enabled module
- *     (the raw ring entry moduleOnly reads, as in moduleIntegrity.spec).
- *   - The hook on txHash records it against the entry being written.
- *   - everyQueuedEntryWasQueuedByModuleOrOwner: every entry below queueNonce
- *     was written by such a caller. It holds from deployment (the queue is
- *     empty) and is preserved by every write function.
- *
- * The two rules then show executeNextTx runs only such an entry, and
- * skipExpired only steps txNonce over such entries.
- *
- * The scene is moduleIntegrity.spec's: the real Delay through DelayHarness,
- * ReenteringAvatar as the target, and PauseGuard. The avatar calls back into
- * the Delay on every execution. A queue write made from inside such a
- * callback would be recorded against the outer caller, which can only make
- * the invariant fail, never pass wrongly.
- *
- * Modelling notes.
- *   - loop_iter 1 with optimistic_loop bounds skipExpired's loop to one
- *     iteration per call, as in moduleIntegrity.spec. skipExpiredSkipsOnly...
- *     is stated for every skipped index, so it does not depend on the count.
- *   - optimistic_hashing with hashing_length_bound 1024: the rules cover
- *     transactions whose `data` is at most 971 bytes, as in
- *     moduleIntegrity.spec.
+ * A hook on txHash records, for each queue entry, whether the call that wrote
+ * it came from the owner or an enabled module. The scene is
+ * moduleIntegrity.spec's: the real Delay under DelayHarness, ReenteringAvatar
+ * as the target, and PauseGuard.
  */
 
 using ReenteringAvatar as hostileAvatar;
@@ -49,8 +23,7 @@ methods {
 
     function hostileAvatar.delay() external returns (address) envfree;
 
-    // Module.exec's guard hooks, and Guardable.setGuard's ERC-165 probe of a
-    // new guard. PauseGuard is the only implementor in the scene.
+    // Guard calls resolve to PauseGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -59,7 +32,7 @@ methods {
     function _.supportsInterface(bytes4) external => DISPATCHER(true);
 }
 
-/// Modifier.sol:13 — `address internal constant`, so there is no getter.
+// SENTINEL_MODULES, an internal constant in Modifier.sol.
 definition SENTINEL_MODULES() returns address = 0x1;
 
 /// Whether the caller of the call being checked is the owner or an enabled module.
@@ -73,8 +46,7 @@ hook Sstore txHash[KEY uint256 n] bytes32 newHash {
 }
 
 /*
- * txNonce never passes queueNonce: executeNextTx and skipExpired only move it
- * while it is below queueNonce, and setTxNonce caps it there.
+ * txNonce never passes queueNonce.
  */
 invariant txNonceNeverPassesQueueNonce()
     txNonce() <= queueNonce();

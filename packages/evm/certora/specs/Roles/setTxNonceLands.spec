@@ -1,41 +1,12 @@
 /*
- * Property 1, continued — the setTxNonce that gets out of Roles LANDS on the
- * Delay exactly when the Delay would accept it.
+ * The Governor's setTxNonce lands on the Delay exactly when the Delay would
+ * accept it. In range, with the Roles Modifier's target owning the Delay, the
+ * call completes and txNonce becomes n; out of range, or with a target that
+ * does not own the Delay, txNonce does not move.
  *
- * 1.1 bounds what the Governor can attempt, at the Roles boundary: the
- * arguments handed to IAvatar(target).execTransactionFromModule. Every other
- * Roles scene links `target` to DummyAvatar, which returns true and forwards
- * nothing, so none of them can say whether the call then does anything. This
- * scene closes that gap. `target` is ForwardingAvatar, which forwards the way
- * the DelayOwnerSafe's module path does (ModuleManager.sol:61-73 over
- * Executor.execute), and the Delay is in scene as DelayTarget, so the rules
- * below observe the Delay's own state after a Governor call.
- *
- * The chain being followed:
- *
- *     Governor --execTransactionWithRole--> Roles (+ SetTxNonceGuard)
- *        --exec--> ForwardingAvatar (DelayOwnerSafe) --call--> Delay.setTxNonce
- *
- * Delay.setTxNonce (DelayTarget.sol, vendored from Delay.sol:114-122) accepts
- * only from its owner, and only a nonce with txNonce < n <= queueNonce. The
- * three rules pin down both sides of that:
- *
- *   1.4  in range, owner wired     -> the call completes and txNonce == n
- *   1.5  out of range              -> txNonce unchanged, and the rejection
- *                                     surfaces: a revert under shouldRevert,
- *                                     `false` otherwise
- *   1.6  target does not own Delay -> txNonce unchanged
- *
- * Wiring and configuration are the runbook's, as in
- * setTxNonceGuardAndRoleConfig.spec, with both gates installed.
- *
- * Modelling note. ForwardingAvatar forwards a plain Call of setTxNonce to
- * its linked Delay as a typed call, resolved statically through the
- * `ForwardingAvatar:delay` link; see the deviation note in
- * helpers/ForwardingAvatar.sol for why the low-level path could not be used.
- * Every other forward is Executor's low-level `call`, resolved with
- * `unresolved external ... => DISPATCH` defaulting to HAVOC_ALL, so an
- * unresolved call can only widen what the Prover explores, never narrow it.
+ * `target` is ForwardingAvatar, a stand-in for the DelayOwnerSafe's module
+ * path that forwards to the Delay (DelayTarget). SetTxNonceGuard and role 1's
+ * configuration are both installed, as in setTxNonceGuardAndRoleConfig.spec.
  */
 
 using SetTxNonceGuard as setTxNonceGuardContract;
@@ -80,9 +51,8 @@ definition ROLE() returns uint16 = 1;
 definition SENTINEL_MODULES() returns address = 0x1;
 
 /*
- * Both gates, the runbook configuration, and a setTxNonce(n) calldata. The
- * Delay's owner is deliberately NOT pinned here: 1.4 and 1.5 pin it to the
- * target, 1.6 pins it away.
+ * Both gates, role 1's configuration and a setTxNonce(n) calldata. Each rule
+ * pins the Delay's owner.
  */
 function governorWiredToDelay(env e, address governor, bytes data) {
     // SetTxNonceGuard installed and pinned to this Delay.
@@ -98,12 +68,7 @@ function governorWiredToDelay(env e, address governor, bytes data) {
     // ForwardingAvatar's typed setTxNonce path is keyed on its linked Delay.
     require avatarContract.delay() == delayMod;
 
-    // The DelayOwnerSafe has Roles enabled as a module (setup step 4). The
-    // Safe's module check also rejects the sentinel itself as a caller
-    // (ModuleManager.sol:68), and the Prover is free to place a scene
-    // contract at address(0x1) -- the second run of 1.4 did exactly that and
-    // failed on GS104 before reaching the Delay. No deployed Roles sits at
-    // the sentinel, so ruling it out narrows nothing real.
+    // The DelayOwnerSafe has the Roles Modifier enabled as a module.
     require currentContract != SENTINEL_MODULES();
     require avatarContract.modules(currentContract) != 0;
 
@@ -131,11 +96,9 @@ function governorWiredToDelay(env e, address governor, bytes data) {
 }
 
 /*
- * 1.4 — THE LIVENESS HALF. For every nonce the Delay would accept from its
- * owner, the Governor's call completes and that nonce is what the Delay now
- * holds. Stated with shouldRevert == true, so "completes" means the inner
- * call really succeeded rather than being swallowed as `false`. Nothing else
- * on the Delay's queue moves.
+ * For every nonce the Delay accepts from its owner, the Governor's call
+ * completes, with shouldRevert set, and the Delay then holds that nonce. The
+ * queue does not move.
  */
 rule governorSetTxNonceLandsWhenDelayAccepts(bytes data) {
     env e;
@@ -161,10 +124,8 @@ rule governorSetTxNonceLandsWhenDelayAccepts(bytes data) {
 }
 
 /*
- * 1.5 — THE EXACTNESS HALF. A nonce the Delay would refuse does not land,
- * whatever the Governor asks for, and the refusal is visible to the caller:
- * a revert when it asked for one, `false` otherwise. Nothing is silently
- * reported as done.
+ * A nonce the Delay refuses does not land, and the refusal reaches the
+ * caller: a revert when shouldRevert is set, `false` otherwise.
  */
 rule governorSetTxNonceOutsideDelayBoundsDoesNotLand(bytes data, bool shouldRevert) {
     env e;
@@ -190,10 +151,8 @@ rule governorSetTxNonceOutsideDelayBoundsDoesNotLand(bytes data, bool shouldReve
 }
 
 /*
- * 1.6 — WHY THE OWNER WIRING MATTERS. If the contract at Roles' `target` is
- * not the Delay's owner, nothing the Governor sends moves txNonce, in range
- * or not. The cancel power is the DelayOwnerSafe's ownership of the Delay;
- * Roles only lets the Governor borrow it.
+ * If the Roles Modifier's target does not own the Delay, nothing the Governor
+ * sends moves txNonce.
  */
 rule setTxNonceDoesNotLandUnlessTargetOwnsDelay(bytes data, bool shouldRevert) {
     env e;

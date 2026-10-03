@@ -1,14 +1,9 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 pragma solidity >=0.7.0 <0.9.0;
 
-/// @dev Reads calldata that a spec builds as `bytes`, for GV-3 in
-/// specs/SafeV141/vetoLandsOnDelay.spec, specs/Delay/vetoSignedPath.spec,
-/// specs/Delay/devopsEndToEnd.spec and the signed-settings specs (specs/Safe/signedSettings.spec,
-/// specs/SafeV141/signedSettings.spec, specs/Delay/delayOwnerSettings.spec,
-/// specs/Delay/proposerToOwnerlessSettings.spec). Those scenes have no
-/// harness exposing such a reader. The helper is kept out of
-/// GnosisSafeHarness and SafeV141Harness, which several other scenes share
-/// and whose entry points SE-1 and SE141-1 enumerate.
+/// @dev Reads calldata that a spec builds as `bytes`. Kept out of
+/// GnosisSafeHarness and SafeV141Harness, whose entry points
+/// safeEntryPointsAreAllAccountedFor enumerates.
 contract CalldataReader {
     /// The 32-byte word after the 4-byte selector. Reverts if `data` is
     /// shorter than 36 bytes.

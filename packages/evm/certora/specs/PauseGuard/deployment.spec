@@ -1,23 +1,9 @@
 /*
- * Property: what PauseGuard's constructor sets up holds for the life of the
- * contract. Each invariant's base case runs the real constructor, with any
- * arguments it accepts, so these are checked against it rather than read off
- * source:
+ * PauseGuard deployment: what PauseGuard's constructor sets up holds for the
+ * life of the contract. Each invariant's base case runs the real constructor,
+ * with any arguments it accepts.
  *
- *     defaultAdminRoleNeverHeld   nobody ever holds DEFAULT_ADMIN_ROLE
- *     roleAdminWiringIsFixed      ADMIN_ROLE and DEFAULT_ADMIN_ROLE are both
- *                                 administered by DEFAULT_ADMIN_ROLE, always
- *     exactlyOneAdminRoleHolder   ADMIN_ROLE has exactly one holder, always
- *     pauserNeverZero             the pauser is never the zero address
- *     setPauserRevertsOnZeroAddress
- *                                 setPauser(address(0)) always reverts
- *
- * Together with the deployed state (hasRole(ADMIN_ROLE, <Admin Safe>) and
- * pauser() read on chain), exactlyOneAdminRoleHolder makes the Admin Safe the
- * only ADMIN_ROLE holder there can ever be.
- *
- * PauseGuard is the only contract in the scene. Its behaviour with the Delay
- * is Delay-pauseGuardSufficient.conf.
+ * PauseGuard is the only contract in the scene.
  */
 
 methods {
@@ -47,8 +33,7 @@ hook Sstore _roles[KEY bytes32 role].members[KEY address account] bool newValue 
 }
 
 /*
- * The constructor grants DEFAULT_ADMIN_ROLE to nobody, and nothing grants it
- * later: its admin is itself, so grantRole needs a holder to begin with.
+ * From the constructor on, nobody holds DEFAULT_ADMIN_ROLE.
  */
 invariant defaultAdminRoleNeverHeld(address account)
     !hasRole(DEFAULT_ADMIN_ROLE(), account)
@@ -60,18 +45,15 @@ invariant defaultAdminRoleNeverHeld(address account)
     }
 
 /*
- * Both roles are administered by DEFAULT_ADMIN_ROLE from the constructor on.
- * Nothing calls _setRoleAdmin.
+ * From the constructor on, both ADMIN_ROLE and DEFAULT_ADMIN_ROLE are
+ * administered by DEFAULT_ADMIN_ROLE.
  */
 invariant roleAdminWiringIsFixed()
     getRoleAdmin(ADMIN_ROLE()) == DEFAULT_ADMIN_ROLE() &&
     getRoleAdmin(DEFAULT_ADMIN_ROLE()) == DEFAULT_ADMIN_ROLE();
 
 /*
- * The constructor grants ADMIN_ROLE to exactly one address, its nonzero
- * `_admin`, and membership never changes after that: grantRole and revokeRole
- * need DEFAULT_ADMIN_ROLE, which nobody holds, and renounceRole always
- * reverts.
+ * From the constructor on, ADMIN_ROLE has exactly one holder.
  */
 invariant exactlyOneAdminRoleHolder()
     adminRoleHolders == 1
@@ -83,8 +65,7 @@ invariant exactlyOneAdminRoleHolder()
     }
 
 /*
- * The constructor rejects a zero `_pauser`, and setPauser rejects a zero
- * account, so there is always an account that can pause.
+ * From the constructor on, pauser() is never the zero address.
  */
 invariant pauserNeverZero()
     pauser() != 0;

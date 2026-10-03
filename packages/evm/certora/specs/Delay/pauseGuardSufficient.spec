@@ -1,167 +1,14 @@
 /*
- * Property: PauseGuard can be installed on the Delay with Guardable.setGuard,
- * its two roles are enforced, and while it is paused no queue entry reaches
- * the Delay's target — while it is not paused, entries execute as before.
+ * PauseGuard on the Delay Modifier: it can be installed with
+ * Guardable.setGuard, only the pauser can pause, only an ADMIN_ROLE holder
+ * can unpause or replace the pauser, and while it is paused no queue entry
+ * reaches the Delay's target.
  *
- * "The guard" in this file always means PauseGuard, installed on the Delay
- * modifier with Guardable.setGuard. SetTxNonceGuard, installed on the Roles
- * module, is not in this scene and nothing here says anything about it.
- *
- * The scene is the real Delay, not a model: certora/helpers/Delay.sol is the
- * verified mastercopy source.
- *
- * Who may do what:
- *     pauser      pause — one account, checked directly against msg.sender
- *     ADMIN_ROLE  unpause, setPauser — a role, so it can have several members
- * DEFAULT_ADMIN_ROLE is never granted and administers ADMIN_ROLE, so the
- * inherited grantRole and revokeRole revert for every caller and renounceRole
- * is disabled: ADMIN_ROLE is fixed at deployment.
- *
- * Unlike the guard it replaced, PauseGuard reads only its own `paused` slot,
- * so checkTransaction never calls back into the Delay and the blocking
- * property can be stated end to end:
- *
- *     Delay.executeNextTx -> Module.exec -> guard.checkTransaction
- *                                              -> reverts while paused
- *
- * Rules, by property:
- *
- *   setGuard accepts the guard
- *     setGuardInstallsPauseGuard          the owner can install it, and the
- *                                         Delay's `guard` slot then holds it
- *     pauseGuardAnswersIGuardInterfaceId  supportsInterface(0xe6d7a83a) is
- *                                         true, which is the only thing
- *                                         Guardable.setGuard checks
- *
- *   who may pause
- *     pauseRevertsForAnyoneButThePauser   only the pauser can pause
- *     pauseSucceedsForThePauser           the pauser always can
- *     adminAloneCannotPause               ADMIN_ROLE does not carry the right
- *                                         to pause
- *
- *   roles on unpause
- *     unpauseRevertsWithoutAdminRole      no ADMIN_ROLE, no unpause
- *     unpauseSucceedsForAdminRole         ADMIN_ROLE is enough
- *     pauserAloneCannotUnpause            being the pauser does not let the
- *                                         caller lift a pause
- *     pausedOnlyChangesThroughPauseOrUnpause
- *                                         over every entry point of both
- *                                         contracts, nothing else moves the
- *                                         flag
- *
- *   roles on setPauser, and membership integrity
- *     setPauserRevertsWithoutAdminRole    no ADMIN_ROLE, no new pauser
- *     setPauserSetsThePauser              ADMIN_ROLE replaces the pauser
- *     inheritedGrantAndRevokeAlwaysRevert the inherited AccessControl entry
- *                                         points are dead, for every role
- *     renounceRoleAlwaysReverts           no holder can drop a role
- *     pauserOnlyChangesThroughSetPauser
- *     adminRoleNeverChanges               ADMIN_ROLE is fixed at deployment,
- *                                         given the constructor's role-admin
- *                                         wiring
- *     defaultAdminRoleNeverGranted        the unheld role stays unheld, which
- *                                         is what freezes ADMIN_ROLE
- *     roleAdminWiringNeverChanges         _setRoleAdmin is never called
- *
- *   pause blocks executeNextTx
- *     pausedBlocksExecuteNextTx           end to end: executeNextTx reverts
- *                                         and nothing reaches the target
- *     checkTransactionRevertsWhilePaused  guard half, called directly
- *     onlyExecuteNextTxReachesTheTarget   over every entry point of both
- *                                         contracts, executeNextTx is the only
- *                                         one that hands a transaction to the
- *                                         target, so it is the only one the
- *                                         guard needs to stop
- *
- *   unpause unblocks executeNextTx
- *     unpauseReopensExecuteNextTx         end to end: after the admin
- *                                         unpauses, an entry can execute
- *     checkTransactionAcceptsWhileNotPaused
- *                                         guard half: not paused, the guard
- *                                         accepts any arguments
- *
- *   a pause does not disarm the owner
- *     ownerCanSetTxNonceWhilePaused       setTxNonce is onlyOwner and never
- *                                         reaches Module.exec, so the guard
- *                                         never sees it
- *     pausedBlocksExecuteNextTxWhileOwnerCanStillSetTxNonce
- *                                         both halves in one state: the queue
- *                                         is held AND the owner can cancel
- *     executeNextTxStillBlockedAfterSetTxNonceDuringPause
- *                                         and the other order: after the
- *                                         cancellation the pause still stands
- *     executeNextTxAfterSetTxNonceReopensOnUnpause
- *                                         attribution witness for it
- *   a skipped entry stays skipped
- *     txNonceNeverDecreases               over every entry point of both
- *                                         contracts, txNonce only moves up
- *     executeNextTxConsumesOnlyTheEntryAtTxNonce
- *                                         a successful executeNextTx ran the
- *                                         entry stored at the current txNonce
- *                                         and advanced txNonce by exactly one
- *
- *   end to end: a queued entry executes, on time and only on time
- *     queuedTransactionExecutesAfterCooldown
- *                                         a module queues a transaction; once
- *                                         the cooldown has passed, before it
- *                                         expires and while not paused,
- *                                         anyone's executeNextTx runs it and
- *                                         it reaches the target
- *     executeNextTxRevertsDuringCooldown  before the cooldown has passed the
- *                                         head entry cannot run
- *     executeNextTxRevertsAfterExpiration after it has expired it cannot run
- *
- *   a vetoed entry cannot execute
- *     vetoedTransactionCannotExecute      end to end: a module queues, the
- *                                         owner moves txNonce past it, and
- *                                         executeNextTx with that transaction
- *                                         reverts
- *     entryPassedByTxNonceNeverExecutes
- *                                         from any state: once txNonce is past
- *                                         an entry, that entry's transaction
- *                                         cannot execute unless it was queued
- *                                         again as a new entry
- *
- * Non-vacuity witness: withoutPauseGuardExecuteNextTxForwardsUnchecked (with
- * no guard installed executeNextTx forwards without any check, so the guard is
- * what does the work in the rules above).
- *
- * Two links are read off Module.exec (@gnosis.pm/zodiac 1.0.1
- * core/Module.sol:43-77) rather than checked by the Prover:
- *   - the call is IGuard(guard).checkTransaction(...), i.e. it goes to the
- *     address in the Delay's `guard` slot — the installed guard;
- *   - it is a plain external call with no try/catch, so a revert inside
- *     checkTransaction reverts executeNextTx.
- *
- * Deliberately NOT claimed here:
- *   - Anything about who holds the roles. Membership is left unconstrained
- *     apart from the holder under test, so these rules hold for any admin and
- *     pauser, including Safes.
- *   - That the guard survives its own removal. Delay.setGuard is onlyOwner, so
- *     the Delay's owner can always detach the guard.
- *   - That the DelayOwnerSafe's signed transactions are unguarded in general.
- *     Section 7 depends on PauseGuard being installed on the DELAY only; were
- *     it also the Safe's own transaction guard, a pause would block that route
- *     too. See the note there.
- *   - Anything about queueing. execTransactionFromModule and
- *     execTransactionFromModuleReturnData never reach Module.exec.
- *
- * Modelling notes.
- *   - `target` is linked to DummyAvatar, whose execTransactionFromModule is
- *     summarised to record that the Delay forwarded a transaction.
- *   - checkTransaction, checkAfterExecution and supportsInterface are
- *     DISPATCHER(true), so inside executeNextTx and setGuard the real
- *     PauseGuard code runs: it is the only contract in the scene that
- *     implements them.
- *   - loop_iter 1 with optimistic_loop only bounds skipExpired's while loop,
- *     which never calls exec.
- *   - executeNextTx and the queueing entry points hash the whole transaction
- *     (keccak256(abi.encodePacked(to, value, data, operation)), 53 bytes plus
- *     `data`). Without a bound the Prover reports that hash as a violation of
- *     whichever rule is running. The conf sets optimistic_hashing with
- *     hashing_length_bound 1024, so the rules cover transactions whose `data`
- *     is at most 971 bytes. Nothing in these rules depends on `data` beyond
- *     that hash equality check, but longer payloads are outside what is proved.
+ * The scene is the real Delay (certora/helpers/Delay.sol) with the real
+ * PauseGuard. `target` is linked to DummyAvatar, whose
+ * execTransactionFromModule is summarized to record that the Delay forwarded
+ * a transaction. Role membership is left unconstrained apart from the caller
+ * under test, so the rules hold for any admin and pauser.
  */
 
 using PauseGuard as pauseGuardContract;
@@ -188,8 +35,7 @@ methods {
     function pauseGuardContract.getRoleAdmin(bytes32) external returns (bytes32) envfree;
     function pauseGuardContract.supportsInterface(bytes4) external returns (bool) envfree;
 
-    // Module.exec's guard hooks, and Guardable.setGuard's ERC-165 probe of the
-    // new guard. PauseGuard is the only implementation in the scene.
+    // Guard calls resolve to PauseGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -204,9 +50,8 @@ methods {
 }
 
 /*
- * Set when the Delay hands a transaction to its target, i.e. when a queue
- * entry actually executes. Persistent, so nothing on the path can havoc what
- * was recorded.
+ * Set when the Delay hands a transaction to its target. Persistent, so a
+ * revert does not clear it.
  */
 persistent ghost bool forwardedToTarget {
     init_state axiom !forwardedToTarget;
@@ -222,8 +67,8 @@ function recordForwardToTarget() returns bool {
  * --------------------------------------------------------------------- */
 
 /*
- * The Delay's owner can install the guard: setGuard does not revert on the
- * ERC-165 probe, and the `guard` slot ends up holding PauseGuard.
+ * The owner's setGuard(PauseGuard) succeeds and the Delay's `guard` slot then
+ * holds PauseGuard.
  */
 rule setGuardInstallsPauseGuard() {
     env e;
@@ -239,8 +84,8 @@ rule setGuardInstallsPauseGuard() {
 }
 
 /*
- * What setGuard's probe asks for: type(IGuard).interfaceId, 0xe6d7a83a.
- * ERC-165's own id is answered too.
+ * PauseGuard reports IGuard (0xe6d7a83a), the only check Guardable.setGuard
+ * makes, and ERC-165 (0x01ffc9a7).
  */
 rule pauseGuardAnswersIGuardInterfaceId() {
     assert pauseGuardContract.supportsInterface(to_bytes4(0xe6d7a83a)),
@@ -267,7 +112,7 @@ rule pauseRevertsForAnyoneButThePauser() {
 }
 
 /*
- * ADMIN_ROLE is not a superset: it opens unpause and setPauser, not pause.
+ * Holding ADMIN_ROLE does not let a caller pause.
  */
 rule adminAloneCannotPause() {
     env e;
@@ -281,8 +126,8 @@ rule adminAloneCannotPause() {
 }
 
 /*
- * The pauser always can: from unpaused, it pauses and the flag is set. Also the
- * non-vacuity witness for the two rules above.
+ * From an unpaused state, the pauser's pause() succeeds and `paused` is then
+ * true.
  */
 rule pauseSucceedsForThePauser() {
     env e;
@@ -316,8 +161,7 @@ rule unpauseRevertsWithoutAdminRole() {
 }
 
 /*
- * The asymmetry the design depends on: pausing is cheap, unpausing is not.
- * The pauser, without ADMIN_ROLE, cannot lift a pause.
+ * Being the pauser, without ADMIN_ROLE, does not let a caller lift a pause.
  */
 rule pauserAloneCannotUnpause() {
     env e;
@@ -332,8 +176,8 @@ rule pauserAloneCannotUnpause() {
 }
 
 /*
- * ADMIN_ROLE is sufficient: from paused, the holder unpauses and the flag is
- * cleared. Also the non-vacuity witness for the two rules above.
+ * From a paused state, an ADMIN_ROLE holder's unpause() succeeds and `paused`
+ * is then false.
  */
 rule unpauseSucceedsForAdminRole() {
     env e;
@@ -350,9 +194,8 @@ rule unpauseSucceedsForAdminRole() {
 }
 
 /*
- * No other way to move the flag. Over every state-changing entry point of the
- * Delay and of the guard: if `paused` changed, the entry point was pause or
- * unpause.
+ * Over every write function of both the Delay and PauseGuard, `paused`
+ * changes only through pause or unpause.
  */
 rule pausedOnlyChangesThroughPauseOrUnpause(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
@@ -389,8 +232,9 @@ rule setPauserRevertsWithoutAdminRole(address account) {
 }
 
 /*
- * ADMIN_ROLE replaces the pauser, and only the named account can pause
- * afterwards. Also the non-vacuity witness for the rule above.
+ * For any nonzero account, an ADMIN_ROLE holder's setPauser(account)
+ * succeeds, pauser() then returns account, and the previous pauser no longer
+ * holds the slot.
  */
 rule setPauserSetsThePauser(address account) {
     env e;
@@ -411,9 +255,8 @@ rule setPauserSetsThePauser(address account) {
 }
 
 /*
- * AccessControl lets a holder drop its own role; this guard does not, so the
- * pauser field cannot be left pointing at a non-holder and the last admin
- * cannot strand the guard.
+ * No holder can drop a role, so the last admin cannot strand the guard with
+ * nobody able to unpause.
  */
 rule renounceRoleAlwaysReverts(bytes32 role, address account) {
     env e;
@@ -425,9 +268,9 @@ rule renounceRoleAlwaysReverts(bytes32 role, address account) {
 }
 
 /*
- * Both roles are administered by DEFAULT_ADMIN_ROLE, which nobody holds, so
- * AccessControl's own entry points are dead for every role and every caller —
- * including admins. setPauser is the only way in.
+ * The inherited grantRole and revokeRole revert for every role and every
+ * caller, admins included, because both roles are administered by
+ * DEFAULT_ADMIN_ROLE, which nobody holds.
  */
 rule inheritedGrantAndRevokeAlwaysRevert(bytes32 role, address account) {
     env e;
@@ -447,7 +290,8 @@ rule inheritedGrantAndRevokeAlwaysRevert(bytes32 role, address account) {
 }
 
 /*
- * The pauser only ever changes through setPauser.
+ * Over every write function of both contracts, the pauser only changes
+ * through setPauser.
  */
 rule pauserOnlyChangesThroughSetPauser(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
@@ -463,23 +307,18 @@ rule pauserOnlyChangesThroughSetPauser(method f, calldataarg args)
 }
 
 /*
- * ADMIN_ROLE membership is fixed at deployment: its admin is DEFAULT_ADMIN_ROLE
- * which nobody holds, so grantRole and revokeRole revert, and renounceRole is
- * disabled.
+ * Over every write function of both contracts, ADMIN_ROLE membership never
+ * changes for any account.
  */
 rule adminRoleNeverChanges(method f, calldataarg args, address account)
     filtered { f -> !f.isView && !f.isPure }
 {
     env e;
-    // grantRole and revokeRole are gated on getRoleAdmin(role), not on
-    // DEFAULT_ADMIN_ROLE, so the wiring has to be pinned as well: the
-    // constructor leaves ADMIN_ROLE's admin at DEFAULT_ADMIN_ROLE and
-    // roleAdminWiringNeverChanges shows nothing can re-point it.
+    // ADMIN_ROLE is administered by DEFAULT_ADMIN_ROLE
+    // (roleAdminWiringIsFixed).
     require pauseGuardContract.getRoleAdmin(pauseGuardContract.ADMIN_ROLE()) ==
         pauseGuardContract.DEFAULT_ADMIN_ROLE();
-    // The constructor grants DEFAULT_ADMIN_ROLE to nobody, and
-    // defaultAdminRoleNeverGranted below shows nothing can grant it later, so
-    // no caller holds it.
+    // Nobody holds DEFAULT_ADMIN_ROLE (defaultAdminRoleNeverHeld).
     require !pauseGuardContract.hasRole(
         pauseGuardContract.DEFAULT_ADMIN_ROLE(), e.msg.sender
     );
@@ -492,25 +331,16 @@ rule adminRoleNeverChanges(method f, calldataarg args, address account)
 }
 
 /*
- * What freezes ADMIN_ROLE: an unheld DEFAULT_ADMIN_ROLE stays unheld, because
- * it administers itself and no code path grants it.
- *
- * This is the induction step only. The base case is the constructor, which
- * grants DEFAULT_ADMIN_ROLE to nobody; the Prover starts parametric rules from
- * arbitrary storage, so the pre-state is assumed here rather than proved.
+ * An unheld DEFAULT_ADMIN_ROLE stays unheld. The base case, that nobody holds
+ * it from the constructor on, is defaultAdminRoleNeverHeld.
  */
 rule defaultAdminRoleNeverGranted(method f, calldataarg args, address account)
     filtered { f -> !f.isView && !f.isPure }
 {
     env e;
-    // DEFAULT_ADMIN_ROLE administers itself, the value AccessControl starts
-    // from and that nothing here changes.
+    // DEFAULT_ADMIN_ROLE administers itself (roleAdminWiringIsFixed).
     require pauseGuardContract.getRoleAdmin(pauseGuardContract.DEFAULT_ADMIN_ROLE()) ==
         pauseGuardContract.DEFAULT_ADMIN_ROLE();
-    // Nobody holds it in the pre-state: not the caller, who would otherwise
-    // pass grantRole's check, and not the account under test, which would
-    // otherwise still hold it afterwards for reasons having nothing to do
-    // with f.
     require !pauseGuardContract.hasRole(
         pauseGuardContract.DEFAULT_ADMIN_ROLE(), e.msg.sender
     );
@@ -525,9 +355,7 @@ rule defaultAdminRoleNeverGranted(method f, calldataarg args, address account)
 }
 
 /*
- * Nothing calls _setRoleAdmin, so the wiring the rules above rely on —
- * ADMIN_ROLE administered by the unheld DEFAULT_ADMIN_ROLE — cannot be
- * re-pointed.
+ * Nothing re-points the admin of ADMIN_ROLE or DEFAULT_ADMIN_ROLE.
  */
 rule roleAdminWiringNeverChanges(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
@@ -552,9 +380,9 @@ rule roleAdminWiringNeverChanges(method f, calldataarg args)
  * --------------------------------------------------------------------- */
 
 /*
- * THE blocking property, end to end. With the guard installed and paused,
- * executeNextTx reverts and nothing reaches the target, whatever the
- * transaction arguments and whatever the queue looks like.
+ * With PauseGuard installed and paused, executeNextTx reverts and nothing
+ * reaches the Delay's target, for any transaction arguments and any queue
+ * state.
  */
 rule pausedBlocksExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -574,8 +402,8 @@ rule pausedBlocksExecuteNextTx(
 }
 
 /*
- * Guard half: called directly, with nothing running on the Delay, a paused
- * guard rejects every transaction and every caller.
+ * Called directly, a paused PauseGuard rejects every transaction from every
+ * caller.
  */
 rule checkTransactionRevertsWhilePaused(
     address to, uint256 value, bytes data, Enum.Operation operation,
@@ -599,8 +427,8 @@ rule checkTransactionRevertsWhilePaused(
  * --------------------------------------------------------------------- */
 
 /*
- * The other half of the blocking property: once the admin unpauses, a queue
- * entry can execute again through the installed guard.
+ * With PauseGuard installed and paused, after an ADMIN_ROLE holder unpauses,
+ * a following executeNextTx can succeed and reach the Delay's target.
  */
 rule unpauseReopensExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -625,8 +453,8 @@ rule unpauseReopensExecuteNextTx(
 }
 
 /*
- * Guard half: not paused, the guard accepts any transaction from any caller,
- * so it contributes no revert of its own to executeNextTx.
+ * While not paused, PauseGuard accepts any transaction from any caller, so it
+ * adds no revert of its own to executeNextTx.
  */
 rule checkTransactionAcceptsWhileNotPaused(
     address to, uint256 value, bytes data, Enum.Operation operation,
@@ -651,61 +479,8 @@ rule checkTransactionAcceptsWhileNotPaused(
  * --------------------------------------------------------------------- */
 
 /*
- * The point of pausing is to hold the queue while the owner cancels what is in
- * it. That is only worth anything if the pause does not also freeze the
- * cancellation, so the two halves have to hold in the SAME state:
- *
- *     paused  =>  executeNextTx blocked  AND  owner's setTxNonce still lands
- *
- * Why setTxNonce is untouched by the guard: it is a plain onlyOwner function
- * on the Delay (Delay.sol:136-143) that writes txNonce and returns. It never
- * calls Module.exec, so IGuard.checkTransaction is never reached and the
- * `paused` flag is never read on its path. executeNextTx, by contrast, ends in
- * exec(to, value, data, operation) (Delay.sol:224), which is where the guard
- * sits.
- *
- * ON THE TWO ROUTES IN THE SCENARIO. The Delay cannot tell them apart, and
- * neither rule below needs to:
- *
- *   signer/owner execution   the 9/9 DelayOwnerSafe signs a transaction whose
- *                            destination is the Delay
- *   via execTransactionFromModule
- *                            Governor -> Roles -> Module.exec ->
- *                            IAvatar(target).execTransactionFromModule, where
- *                            target IS the DelayOwnerSafe, which then calls
- *                            the Delay
- *
- * Both arrive at Delay.setTxNonce as an ordinary external call whose
- * msg.sender is the DelayOwnerSafe, i.e. owner(). `e.msg.sender == owner()`
- * is exactly that, and covers both. What happens UPSTREAM of the Safe on the
- * second route is a different scene and is not claimed here: that the Roles
- * module admits nothing but setTxNonce is Property 1, and that PauseGuard
- * being paused cannot interfere with it is immediate — PauseGuard is
- * installed on the Delay, SetTxNonceGuard on the Roles module, and neither
- * reads the other's storage.
- *
- * Deliberately NOT claimed here:
- *   - That the DelayOwnerSafe's own signed transactions are unguarded in
- *     general. This holds because PauseGuard is installed on the DELAY, with
- *     the Zodiac Modifier's Guardable.setGuard. If the same PauseGuard were
- *     also installed as the SAFE's transaction guard (Safe's own setGuard),
- *     the Safe's signed transactions WOULD go through checkTransaction and a
- *     pause would block this route too. That is a deployment constraint these
- *     rules depend on, not something they prove.
- *   - That the skipped entry can never execute afterwards. These rules show
- *     txNonce moves; they say nothing about the hash check that a later
- *     executeNextTx would run against the new txNonce.
- */
-
-/*
- * Half one, on its own: while the guard is installed AND paused, the owner's
- * setTxNonce succeeds and the new nonce lands.
- *
- * The two requires on `nonce` are setTxNonce's own preconditions
- * (Delay.sol:137-141), not concessions to the pause — without them the call
- * reverts for reasons that have nothing to do with the guard. Note they also
- * force txNonce() < queueNonce(), i.e. a non-empty queue: there is something
- * to cancel.
+ * While PauseGuard is installed and paused, the owner's setTxNonce succeeds
+ * and the new nonce lands.
  */
 rule ownerCanSetTxNonceWhilePaused(uint256 nonce) {
     env e;
@@ -726,18 +501,9 @@ rule ownerCanSetTxNonceWhilePaused(uint256 nonce) {
 }
 
 /*
- * The scenario itself, both halves in one state. A transaction is pending, the
- * guard is paused: executeNextTx reverts and nothing reaches the target, and
- * in that same state the owner can still bump txNonce past the pending entry.
- *
- * executeNextTx is called first and reverts, so storage rolls back and the
- * setTxNonce half runs against the same pre-state. forwardedToTarget is
- * persistent and therefore NOT rolled back, which is what makes the second
- * assert say something: had the Delay reached its target before reverting,
- * the ghost would still be set.
- *
- * The caller of executeNextTx is left unconstrained — it is a public function,
- * so this covers anyone trying to push the queue through during the pause.
+ * In one state, with an entry queued and PauseGuard paused: executeNextTx
+ * reverts and nothing reaches the target, and the owner's setTxNonce still
+ * succeeds.
  */
 rule pausedBlocksExecuteNextTxWhileOwnerCanStillSetTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation, uint256 nonce
@@ -749,9 +515,6 @@ rule pausedBlocksExecuteNextTxWhileOwnerCanStillSetTxNonce(
     require pauseGuardContract.paused();
     require !forwardedToTarget;
 
-    // Something is actually queued, so executeNextTx is not reverting merely
-    // because the queue is empty (Delay.sol:206) and there is an entry for the
-    // owner to skip.
     require txNonce() < queueNonce();
 
     executeNextTx@withrevert(eExec, to, value, data, operation);
@@ -775,20 +538,8 @@ rule pausedBlocksExecuteNextTxWhileOwnerCanStillSetTxNonce(
 }
 
 /*
- * The other order, and the one that matters for the veto: the owner cancels
- * FIRST, and the pause is still standing afterwards. Bumping txNonce must not
- * be a way to slip the next entry past a paused guard.
- *
- * `nonce < queueNonce()` is strict, where setTxNonce itself only requires
- * `<=` (Delay.sol:141). That is deliberate: it leaves the queue NON-EMPTY
- * after the bump, so the executeNextTx revert below cannot be blamed on the
- * empty-queue check at Delay.sol:206. Something is still queued and the guard
- * is what stops it.
- *
- * executeNextTxAfterSetTxNonceReopensOnUnpause is the other half of the
- * attribution: it exhibits the same post-bump state executing once the pause
- * is lifted, so the revert here really is the pause and not some leftover of
- * what setTxNonce did.
+ * While paused, after the owner's setTxNonce leaves an entry still queued,
+ * executeNextTx still reverts and nothing reaches the target.
  */
 rule executeNextTxStillBlockedAfterSetTxNonceDuringPause(
     address to, uint256 value, bytes data, Enum.Operation operation, uint256 nonce
@@ -821,13 +572,8 @@ rule executeNextTxStillBlockedAfterSetTxNonceDuringPause(
 }
 
 /*
- * Attribution witness for the rule above. Same sequence — paused, owner bumps
- * txNonce, queue still non-empty — and then the admin unpauses: now an entry
- * CAN execute.
- *
- * Without this, executeNextTxStillBlockedAfterSetTxNonceDuringPause is
- * consistent with a post-bump state that is stuck for some reason of its own,
- * which would make "still blocked BY THE PAUSE" an overstatement.
+ * The same sequence, then the admin unpauses: an entry can now execute. So
+ * the block in the rule above comes from the pause.
  */
 rule executeNextTxAfterSetTxNonceReopensOnUnpause(
     address to, uint256 value, bytes data, Enum.Operation operation, uint256 nonce
@@ -864,8 +610,8 @@ rule executeNextTxAfterSetTxNonceReopensOnUnpause(
  * --------------------------------------------------------------------- */
 
 /*
- * The guard is what does the work: with no guard installed, executeNextTx
- * forwards an entry without any check at all.
+ * With no guard installed, executeNextTx forwards without any check, so the
+ * pause rules are not achieved by nothing working.
  */
 rule withoutPauseGuardExecuteNextTxForwardsUnchecked(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -881,26 +627,12 @@ rule withoutPauseGuardExecuteNextTxForwardsUnchecked(
         "executeNextTx cannot forward without a guard, so the guard rules prove nothing about the guard";
 }
 
+/* ------------------------------------------------------------------------
+ * A skipped entry stays skipped
+ * --------------------------------------------------------------------- */
+
 /*
- * A SKIPPED ENTRY STAYS SKIPPED.
- *
- * 4.18-4.19 show the owner's setTxNonce lands during a pause. That moves
- * txNonce past the pending entry; these two rules are what make the skip
- * permanent. Together: once txNonce > k, txNonce never returns to k
- * (txNonceNeverDecreases), and executeNextTx only ever runs the entry stored
- * at txNonce (executeNextTxConsumesOnlyTheEntryAtTxNonce). So the entry at
- * index k can never be the one executed.
- *
- * What this does not say: that the same TRANSACTION can never run. The hash
- * check compares against txHash[txNonce], so an identical transaction queued
- * again at a later index is a new entry and can execute. That is a fresh
- * proposal through the queue, cooldown and pause, not the skipped entry
- * coming back.
- *
- * Every write to txNonce in Delay.sol is setTxNonce (:142, which requires the
- * new value to be strictly greater), executeNextTx (:223) or skipExpired
- * (:234), both increments under checked arithmetic. No guard or pause state is
- * assumed: both rules hold whatever is installed.
+ * Over every write function of both contracts, txNonce never decreases.
  */
 rule txNonceNeverDecreases(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
@@ -914,6 +646,10 @@ rule txNonceNeverDecreases(method f, calldataarg args)
         "txNonce moved backwards, so a skipped queue entry could become executable again";
 }
 
+/*
+ * A successful executeNextTx ran exactly the transaction queued at txNonce,
+ * and advanced txNonce by one.
+ */
 rule executeNextTxConsumesOnlyTheEntryAtTxNonce(
     address to, uint256 value, bytes data, Enum.Operation operation
 ) {
@@ -934,27 +670,9 @@ rule executeNextTxConsumesOnlyTheEntryAtTxNonce(
  * --------------------------------------------------------------------- */
 
 /*
- * The functional half of the design, stated end to end on the real Delay with
- * the real PauseGuard installed: an enabled module (the Proposer Safe) queues
- * a transaction, time passes, and once the cooldown is over — before the
- * entry expires, and while the guard is not paused — anyone's executeNextTx
- * runs it and it reaches the Delay's target (the Ownerless Safe).
- *
- * This is an assert, not a satisfy: it holds for every such transaction, not
- * just one the Prover picks. The queue starts empty so the new entry is the
- * one at the head; an entry behind others runs once those ahead of it have
- * run or been skipped, which 4.22 covers.
- *
- * Assumptions:
- *   - The target accepts the call. `target` is DummyAvatar, summarized to
- *     succeed. On chain the target is the Ownerless Safe, which returns the
- *     inner call's success, so a transaction that itself reverts on the
- *     Ownerless Safe makes executeNextTx revert. This rule is about the
- *     governance path, not about whether the proposal's own call succeeds.
- *   - Creation time + cooldown + expiration fits in a uint256. Delay adds
- *     them under checked arithmetic, so an overflow reverts; real
- *     timestamps and settings are nowhere near that bound.
- *   - `data` is at most 971 bytes (hashing_length_bound, see the header).
+ * Once a module has queued a transaction, the cooldown has passed, it has not
+ * expired and PauseGuard is not paused, anyone's executeNextTx runs it and it
+ * reaches the Delay's target. Assumes the target accepts the call.
  */
 rule queuedTransactionExecutesAfterCooldown(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -994,8 +712,8 @@ rule queuedTransactionExecutesAfterCooldown(
 }
 
 /*
- * The two timing conditions are real: outside them the head entry cannot run.
- * The pause condition is 4.15.
+ * The head entry cannot run before its cooldown has passed or after it has
+ * expired.
  */
 rule executeNextTxRevertsDuringCooldown(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -1030,11 +748,8 @@ rule executeNextTxRevertsAfterExpiration(
  * --------------------------------------------------------------------- */
 
 /*
- * The veto, end to end. A module queues a transaction; the Delay's owner (the
- * DelayOwnerSafe, on its own or driven by the Governor through Roles) calls
- * setTxNonce to move txNonce past it; after that, executeNextTx with that
- * transaction reverts. No assumption about the guard, the pause or the time:
- * it cannot run however long anyone waits.
+ * A module queues a transaction, the owner's setTxNonce moves txNonce past
+ * it, and executeNextTx with that transaction then reverts.
  */
 rule vetoedTransactionCannotExecute(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -1061,12 +776,9 @@ rule vetoedTransactionCannotExecute(
 }
 
 /*
- * The same from any state. Once txNonce has passed entry k, executeNextTx
- * only runs the entry at txNonce (4.22), so entry k's transaction reverts —
- * unless the identical transaction was queued again and now sits at the head.
- * That is a new proposal, which goes through the queue, cooldown, veto and
- * pause on its own; it is not the vetoed entry coming back. With
- * txNonceNeverDecreases (4.22), txNonce never returns to k.
+ * From any state: once txNonce is past entry k, executeNextTx with entry k's
+ * transaction reverts, unless the same transaction was queued again and now
+ * sits at txNonce.
  */
 rule entryPassedByTxNonceNeverExecutes(
     uint256 k, address to, uint256 value, bytes data, Enum.Operation operation
@@ -1087,13 +799,10 @@ rule entryPassedByTxNonceNeverExecutes(
  * --------------------------------------------------------------------- */
 
 /*
- * Over every state-changing entry point of the Delay and of the guard: if a
- * transaction reached the Delay's target, the entry point was executeNextTx.
- * With pausedBlocksExecuteNextTx, that means a pause stops every transaction
- * the Delay can send, not just the ones sent through executeNextTx. Queueing
- * (execTransactionFromModule, execTransactionFromModuleReturnData), the
- * owner's settings functions, skipExpired and the guard's own functions never
- * forward anything.
+ * Over every write function of both the Delay and PauseGuard, if a
+ * transaction reached the Delay's target, the function was executeNextTx.
+ * With pausedBlocksExecuteNextTx, a pause stops every transaction the Delay
+ * can send.
  */
 rule onlyExecuteNextTxReachesTheTarget(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }

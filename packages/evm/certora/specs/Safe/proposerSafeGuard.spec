@@ -1,104 +1,22 @@
 /*
- * Property: once the Proposer Safe (GnosisSafe v1.3.0) installs
- * ConfigLockGuard with its own setGuard, the Safe cannot remove or replace
- * the guard, cannot enable or disable a module, cannot change its fallback
- * handler, and cannot delegate call. Everything else still goes through:
- * plain calls to other contracts (queueing into the Delay among them) and the
- * Safe's owner and threshold management.
+ * ConfigLockGuard on the ProposerSafe (GnosisSafe v1.3.0): once installed
+ * with the Safe's own setGuard, the Safe cannot remove or replace the guard,
+ * enable or disable a module, change its fallback handler, or delegate call.
+ * Plain calls to other contracts and the Safe's owner and threshold
+ * management still go through.
  *
- * "The guard" in this file always means ConfigLockGuard, installed as the
- * Safe's transaction guard. PauseGuard and SetTxNonceGuard are not in this
- * scene. The Proposer Safe owns no modifier, so its ConfigLockGuard is built
- * with lockedModifier = address(0). The rules that the guard rejects a call
- * hold for any lockedModifier, since the Safe branch is checked first;
- * checkTransactionAcceptsEverythingElse assumes address(0). The guard then
- * also rejects the seven modifier selectors sent to address(0), which has no
- * code, so it locks nothing real outside the Safe.
+ * The ProposerSafe owns no modifier, so its ConfigLockGuard is built with
+ * lockedModifier = address(0). The rules that the guard rejects a call hold
+ * for any lockedModifier; only checkTransactionAcceptsEverythingElse assumes
+ * address(0).
  *
- * The scene is the real v1.3.0 code through GnosisSafeHarness (solc 0.7.6)
- * and the real ConfigLockGuard (solc 0.8.6).
- *
- * Why these locks are enough. Safe v1.3.0 consults its guard in
- * execTransaction (sections 3 and 4) but not in execTransactionFromModule or
- * execTransactionFromModuleReturnData (section 5), so:
- *   - a module would bypass the guard, hence enableModule is blocked;
- *   - a delegate call could write the guard, module or handler slots
- *     directly, hence delegate calls are blocked;
- *   - setGuard is the only function that moves the guard slot, and
- *     setFallbackHandler the only one that moves the handler slot, hence both
- *     are blocked.
- * disableModule is blocked too, so the module list does not change at all.
- * The Safe's settings only change when the Safe calls itself (SE-7), and it
- * calls itself only through execTransaction, a module, or fallback's call to
- * its handler, which comes from the handler, not the Safe (SE-15). So with no
- * modules enabled and the handler locked, execTransaction's calls to itself
- * are the only way in, and those are what the rules below cover.
- *
- * Rules, by property:
- *
- *   the guard, called directly
- *     checkTransactionRejectsDelegateCall            any delegate call reverts
- *     checkTransactionRejectsSelfSetGuard            the Safe's own setGuard
- *     checkTransactionRejectsSelfEnableModule        the Safe's own enableModule
- *     checkTransactionRejectsSelfDisableModule       the Safe's own disableModule
- *     checkTransactionRejectsSelfSetFallbackHandler  the Safe's own
- *                                                    setFallbackHandler
- *     checkTransactionAcceptsEverythingElse          every other plain call
- *                                                    passes
- *
- *   installing it
- *     ownersCanInstallConfigLockGuard                the owners' execTransaction
- *                                                    of setGuard(guard) on the
- *                                                    Safe succeeds and the slot
- *                                                    holds it
- *
- *   once installed, end to end through execTransaction
- *     guardedSafeCannotCallSetGuard
- *     guardedSafeCannotCallEnableModule
- *     guardedSafeCannotCallDisableModule
- *     guardedSafeCannotCallSetFallbackHandler
- *     guardedSafeCannotDelegateCall
- *     guardedSelfCallNeverChangesGuard               for any calldata, a call to
- *                                                    itself leaves the guard slot
- *     guardedSelfCallNeverChangesModules             ... leaves the module list
- *     guardedSelfCallNeverChangesFallbackHandler     ... leaves the handler slot
- *
- *   once installed, the Safe still works
- *     guardedOwnersCanStillCallOut                   a plain call to another
- *                                                    contract succeeds
- *     guardedOwnersCanStillChangeOtherSettings       each of the four unblocked
- *                                                    settings functions works
- *
- *   the module path does not consult the guard
- *     moduleCanDelegateCallPastTheGuard              with the guard installed, an
- *                                                    enabled module's delegate
- *                                                    call still succeeds
- *     moduleCanDelegateCallPastTheGuardWithReturnData
- *                                                    the same through the other
- *                                                    module entry point
- *     moduleCanRemoveTheGuard                        an enabled module can call
- *                                                    the Safe's own setGuard and
- *                                                    move the guard out; this is
- *                                                    why enableModule has to be
- *                                                    blocked
- *
- * Modelling notes.
- *   - checkSignatures is NONDET: the signature check passes. That only adds
- *     executions, so the revert and "never changes" rules are unaffected; the
- *     signature check itself is SE-5 and SE-12.
- *   - checkTransaction and checkAfterExecution are DISPATCHER(true), so inside
- *     execTransaction the real ConfigLockGuard code runs: it is the only
- *     contract in the scene that implements them.
- *   - The Safe's low-level call to `to` has a symbolic target. As in
- *     selfCalls.spec, it is DISPATCHed to the Safe's eight settings functions,
- *     from execTransaction and from execTransactionFromModule.
- *     DISPATCH runs the function on the Safe whatever `to` is, so the rules
- *     that rely on it pin `to` to the Safe itself. A call to any other address
- *     can only change the Safe's settings by calling back into the Safe, where
- *     msg.sender is not the Safe (SE-7).
- *   - A call whose selector is none of the eight is HAVOC_ECF: it leaves the
- *     Safe's storage alone. That includes the Safe calling its own
- *     execTransaction again; the nested call goes through the same guard.
+ * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
+ * ConfigLockGuard. The signature check is stubbed to pass
+ * (execTransactionRunsOnlyAfterTheSignatureCheck and
+ * eachSignatureAcceptsANewApprovingOwner cover it). The Safe's call to `to`
+ * is routed to its eight settings functions, so the rules that rely on it pin
+ * `to` to the Safe; a call whose selector is none of the eight leaves the
+ * Safe's storage alone.
  */
 
 using ConfigLockGuard as configLockGuard;
@@ -116,8 +34,7 @@ methods {
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
 
-    // execTransaction's guard hooks. ConfigLockGuard is the only
-    // implementation in the scene.
+    // Guard calls resolve to ConfigLockGuard, the only guard in the scene.
     function _.checkTransaction(
         address, uint256, bytes, Enum.Operation,
         uint256, uint256, uint256, address, address, bytes, address
@@ -291,11 +208,9 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
 }
 
 /*
- * Nothing else is rejected: with lockedModifier = address(0), a plain call
- * that is not the Safe calling one of its four locked settings functions
- * always passes, apart from the seven modifier selectors sent to address(0).
- * address(0) has no code, so those calls could never do anything. So the
- * five rules above are all the guard blocks that matters.
+ * With lockedModifier = address(0), every plain call passes the guard except
+ * the Safe calling one of its four locked settings functions, and the seven
+ * modifier selectors sent to address(0), which has no code.
  */
 rule checkTransactionAcceptsEverythingElse(
     address to, uint256 value, bytes data,
@@ -324,8 +239,7 @@ rule checkTransactionAcceptsEverythingElse(
 
 /*
  * With no guard yet, the owners' execTransaction of setGuard(ConfigLockGuard)
- * on the Safe succeeds and the guard slot then holds it. v1.3.0's setGuard
- * makes no ERC-165 check, so nothing about the guard can refuse it.
+ * on the Safe succeeds and the guard slot then holds it.
  */
 rule ownersCanInstallConfigLockGuard(
     bytes data, uint256 safeTxGas, uint256 baseGas,
@@ -522,9 +436,8 @@ rule guardedSelfCallNeverChangesFallbackHandler(
  * --------------------------------------------------------------------- */
 
 /*
- * A plain call to another contract, the shape of the Proposer Safe's queue
- * call into the Delay, still succeeds with the guard installed. Also the
- * non-vacuity witness for section 3: the guard does not block everything.
+ * A plain call to another contract, the shape of the ProposerSafe's queue
+ * call into the Delay, still succeeds with the guard installed.
  */
 rule guardedOwnersCanStillCallOut(
     address to, uint256 value, bytes data,
@@ -576,9 +489,7 @@ rule guardedOwnersCanStillChangeOtherSettings(
 /* ------------------------------------------------------------------------
  * 5. The module path does not consult the guard
  *
- * These are why enableModule is locked: with the guard installed, an enabled
- * module still does exactly what the guard forbids. The module is assumed
- * here; the Proposer Safe has none, and section 3 shows it cannot get one.
+ * The module is assumed here; the ProposerSafe has none.
  * --------------------------------------------------------------------- */
 
 /*
