@@ -468,6 +468,24 @@ rule onlyModulesOrOwnerCanCallDelay(method f, calldataarg args)
 }
 
 /*
+ * execTransactionFromModule and execTransactionFromModuleReturnData only
+ * succeed for an address in the module ring: moduleOnly (Modifier.sol:59-62)
+ * checks modules[msg.sender] before anything else. Mirrors the Roles'
+ * onlyEnabledModulesCanExec.
+ */
+rule onlyEnabledModulesCanCallExecFromModule(method f, calldataarg args)
+    filtered { f -> isQueueing(f) }
+{
+    env e;
+    bool senderWasModule = moduleEntry(e.msg.sender) != 0;
+
+    f@withrevert(e, args);
+
+    assert !lastReverted => senderWasModule,
+        "a caller that is not an enabled module successfully called execTransactionFromModule";
+}
+
+/*
  * An enabled module that is not the owner cannot call setTxNonce: the call
  * always reverts, whatever the nonce.
  */
