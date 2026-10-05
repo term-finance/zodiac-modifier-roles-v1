@@ -33,7 +33,7 @@ jobs:
           - "Safe-noStateChange.conf"
           - "Safe-fallbackHandler.conf"
           - "Safe-selfHandler.conf"
-          - "Safe-proposerSafeGuard.conf"
+          - "Safe-configLockGuard.conf"
           - "Safe-ownerlessSafeGuard.conf"
           - "Safe-v141-executionPaths.conf"
           - "Safe-v141-selfCalls.conf"
@@ -43,7 +43,7 @@ jobs:
           - "Safe-v141-fallbackHandler.conf"
           - "Safe-v141-selfHandler.conf"
           - "Safe-v141-vetoLandsOnDelay.conf"
-          - "Safe-v141-delayOwnerGuard.conf"
+          - "Safe-v141-configLockGuard.conf"
           - "Delay-delayOwnerGuard.conf"
           - "Governor-veto.conf"
           - "Governor-proposalThreshold.conf"
@@ -74,8 +74,9 @@ jobs:
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
       # singletons. Governor-veto mixes compilers through its `solc_map`,
       # which names solc8.20 (the deployed Governor and TERM) and solc8.6;
-      # Safe-v141-vetoLandsOnDelay's, Safe-proposerSafeGuard's, Safe-ownerlessSafeGuard's and both
-      # delayOwnerGuard confs name solc7.6 and solc8.6; and Governor-settings names solc8.20 through `solc`. So
+      # Safe-v141-vetoLandsOnDelay's, Safe-configLockGuard's, Safe-ownerlessSafeGuard's,
+      # Safe-v141-configLockGuard's and Delay-delayOwnerGuard's confs name solc7.6 and solc8.6; and
+      # Governor-settings names solc8.20 through `solc`. So
       # those names are put on PATH too.
       - run: |
           solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20

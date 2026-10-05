@@ -4,7 +4,7 @@
  *
  * ConfigLockGuard rejects seven calls to its lockedModifier
  * (transferOwnership, renounceOwnership, enableModule, disableModule,
- * setGuard, setAvatar and setTarget; OG-23) and every delegate call (OG-16).
+ * setGuard, setAvatar and setTarget; CL141-23) and every delegate call (CL141-16).
  * This file shows that no other Delay call, from any caller, changes the
  * Delay's owner, modules, guard, avatar or target.
  *

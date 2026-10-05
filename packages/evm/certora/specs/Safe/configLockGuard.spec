@@ -1,14 +1,13 @@
 /*
- * ConfigLockGuard on the ProposerSafe (GnosisSafe v1.3.0): once installed
- * with the Safe's own setGuard, the Safe cannot remove or replace the guard,
- * enable or disable a module, change its fallback handler, or delegate call.
- * Plain calls to other contracts and the Safe's owner and threshold
- * management still go through.
+ * ConfigLockGuard on a GnosisSafe v1.3.0 Safe (the ProposerSafe and the
+ * OwnerlessSafe): once installed with the Safe's own setGuard, the Safe
+ * cannot remove or replace the guard, enable or disable a module, change its
+ * fallback handler, or delegate call. Plain calls to other contracts and the
+ * Safe's owner and threshold management still go through.
  *
- * The ProposerSafe owns no modifier, so its ConfigLockGuard is built with
- * lockedModifier = address(0). The rules that the guard rejects a call hold
- * for any lockedModifier; only checkTransactionAcceptsEverythingElse assumes
- * address(0).
+ * The rules assume nothing about which Safe it is beyond its GnosisSafe
+ * v1.3.0 code. They hold for any lockedModifier; only
+ * checkTransactionAcceptsEverythingElse assumes address(0).
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
  * ConfigLockGuard. The signature check is stubbed to pass

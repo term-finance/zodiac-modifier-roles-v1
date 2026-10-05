@@ -241,26 +241,37 @@ The second line is the point of this section: NewRoles is wired but the Delay ha
 RPC=$RPC BATCH_CALLDATA=0x.. ./verify_ownerless_safe.sh F   # calldata re-derives the hash
 ```
 
+`N` is the Delay nonce the batch was queued at: 207 on mainnet (203 when the plan was written; earlier queue entries moved it on). The script reads it from `START_NONCE`, default 207.
+
 ```bash
-cast call $DELAY 'queueNonce()(uint256)' --rpc-url $RPC                  # 204
-cast call $DELAY 'txNonce()(uint256)' --rpc-url $RPC                     # 203 — nothing executed
-cast call $DELAY 'txHash(uint256)(bytes32)' 203 --rpc-url $RPC
-cast call $DELAY 'txCreatedAt(uint256)(uint256)' 203 --rpc-url $RPC      # t0
+N=207
+cast call $DELAY 'queueNonce()(uint256)' --rpc-url $RPC                  # N+1 = 208
+cast call $DELAY 'txNonce()(uint256)' --rpc-url $RPC                     # N = 207 — nothing executed
+cast call $DELAY 'txHash(uint256)(bytes32)' $N --rpc-url $RPC            # 0xc0eb0c23f319d151070028bd0433402acf55a4d9430a0f17f04882cd613b8528
+cast call $DELAY 'txCreatedAt(uint256)(uint256)' $N --rpc-url $RPC       # t0
 cast call $DELAY 'owner()(address)' --rpc-url $RPC                       # still 0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2 (old Roles)
+# the batch's last three calls act on these, so all three are still the Ownerless Safe until it runs
+cast call $OLDROLES 'owner()(address)' --rpc-url $RPC                    # 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
+cast call $OLDROLES 'avatar()(address)' --rpc-url $RPC                   # 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
+cast call $OLDROLES 'target()(address)' --rpc-url $RPC                   # 0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03
 ```
 
 Confirm the stored hash matches the calldata you intend to execute, before the cooldown elapses:
 
 ```bash
 cast call $DELAY 'getTransactionHash(address,uint256,bytes,uint8)(bytes32)' \
-  $MULTISEND 0 <batch-calldata> 1 --rpc-url $RPC      # must equal txHash(203)
+  $MULTISEND 0 <batch-calldata> 1 --rpc-url $RPC      # must equal txHash(N)
 ```
 
 | Check | Expected |
 |---|---|
 | Execution window | `t0 + 86400` to `t0 + 172800` |
-| `getTransactionHash(...)` | equal to `txHash(203)` |
+| `getTransactionHash(...)` | equal to `txHash(N)` |
+| Batch calls | 8, all plain `Call`s (operation `00`) to the old Roles `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2`, selectors in this order: `enableModule`, `assignRoles`, `callTargetFunctionWithRole`, `assignRoles`, `disableModule`, `setAvatar`, `setTarget`, `renounceOwnership` |
 | Old Roles modules | still `[]` — the grant is inside the batch, not yet applied |
+| Old Roles `owner`, `avatar`, `target` | all still `0xb8A1dF43c1c88b13937C0c5CEBbAd15830cAeC03` — the batch clears them |
+
+The script unpacks the batch itself when `BATCH_CALLDATA` is set, so a stale or truncated batch fails on call count or selector order as well as on the hash. Without `BATCH_CALLDATA` those three checks report `SKIP`.
 
 A mismatch here means the entry can never be executed. Let it expire and queue again; don't try to patch the arguments.
 
@@ -274,11 +285,14 @@ RPC=$RPC ./verify_ownerless_safe.sh G
 
 ```bash
 cast call $DELAY 'owner()(address)' --rpc-url $RPC                       # 0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3 (DelayOwnerSafe)
-cast call $DELAY 'txNonce()(uint256)' --rpc-url $RPC                     # 204 == queueNonce
+cast call $DELAY 'txNonce()(uint256)' --rpc-url $RPC                     # N+1 = 208 == queueNonce
 cast call $OWNERLESS 'getModulesPaginated(address,uint256)(address[],address)' $SENTINEL 10 --rpc-url $RPC  # [Delay] only
 cast call $OLDROLES 'getModulesPaginated(address,uint256)(address[],address)' $SENTINEL 10 --rpc-url $RPC   # []
 cast storage $OLDROLES 0x84f2af0e843bf5d088bc58e2ec3e637cc9a06f27000758f776cf7f0048bbf316 --rpc-url $RPC    # 0x0
 cast call $OWNERLESS 'nonce()(uint256)' --rpc-url $RPC                   # 16 — unchanged, the Safe never signed
+cast call $OLDROLES 'owner()(address)' --rpc-url $RPC                    # 0x0000000000000000000000000000000000000000 — renounced
+cast call $OLDROLES 'avatar()(address)' --rpc-url $RPC                   # 0x0000000000000000000000000000000000000000
+cast call $OLDROLES 'target()(address)' --rpc-url $RPC                   # 0x0000000000000000000000000000000000000000
 ```
 
 The temporary grant must be gone. Check the old Roles' membership slot for the Ownerless Safe directly:
@@ -294,6 +308,8 @@ cast storage $OLDROLES $(cast index address $OWNERLESS 0xa775687211c2b3346a0f5a2
 | Old Roles modules | `[]` | something can still call through the old Roles |
 | Old Roles role 1 members | `0x0` for the Ownerless Safe | the temporary grant was left open |
 | Ownerless Safe `nonce` | `16`, the pre-migration value | the rule was broken — the Safe signed something |
+| Old Roles `owner` | `0x0000000000000000000000000000000000000000` | the batch's last call didn't run: the old Roles can still be reconfigured |
+| Old Roles `avatar`, `target` | `0x0000000000000000000000000000000000000000` (both) | the old Roles can still pass transactions to the Ownerless Safe |
 
 ---
 
@@ -342,7 +358,7 @@ Run this once everything is done; it is the same list as the plan's tables, in o
 | Permissions library `0x543D1DE69b25420685Ef723842D0087d9b731B06` | codehash | `0x8855a716d8a3ff5fedf4be46bed673d391a183f54e406d702a9bafa767fc407a` |
 | DelayOwnerSafe `0x2a875746D0c88EBD2bbBfc8F8a773c58c3373ad3` | owners, threshold, modules | 11, `5`, `[NewRoles]` |
 | Ownerless Safe | modules, `nonce` | `[0x0C19d8A404079d71E5CA3e32fE3f758Ab543ACdf]` (Delay), unchanged at `16` |
-| Old Roles `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | Delay ownership, modules, role 1 members | none, `[]`, none |
+| Old Roles `0x405b47354CF06A25DE1DDb35EC65F03939E2e8D2` | `owner`, `avatar`, `target`, Delay ownership, modules, role 1 members | `0x0`, `0x0`, `0x0`, none, `[]`, none |
 | PauseGuard | `paused`, `pauser`, `admin` | `false`, `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472`, `0x73d1C7dc9CEb14660Cf1E9BB29F80ECF9E97D774` |
 | PauseSafe `0x74f3F3dEfdC563bbFC8637BaB2d30596D2817472` | owners, threshold | 9 owners — 8 Admin Safe signers plus `0xC3CbFc5DA4B3d4B1258D63cA7ba56518C33f28c7` — and `2` |
 | Governor `0x2B715634134220ffeEE9458b4e34E41A41418607` | `votingPeriod`, `quorum` | `79200`, `1e24` |

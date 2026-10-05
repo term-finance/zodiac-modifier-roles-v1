@@ -1,5 +1,5 @@
 /*
- * ConfigLockGuard on the DelayOwnerSafe (Safe v1.4.1): once installed with
+ * ConfigLockGuard on a Safe running v1.4.1 (the DelayOwnerSafe): once installed with
  * the Safe's own setGuard, the Safe cannot remove or replace the guard,
  * enable or disable a module, change its fallback handler, or delegate call.
  * Called directly, the guard rejects exactly those calls and the seven locked

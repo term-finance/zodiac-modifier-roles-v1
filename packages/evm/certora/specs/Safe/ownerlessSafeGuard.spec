@@ -2,7 +2,7 @@
  * ConfigLockGuard on the OwnerlessSafe (GnosisSafe v1.3.0), built with
  * lockedModifier = address(0): it leaves the governance path through the
  * module open, and has no function that can change what it checks. What the
- * guard blocks for the signers is proposerSafeGuard.spec's.
+ * guard blocks for the signers is configLockGuard.spec's.
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
  * ConfigLockGuard in its guard slot. The module's call to `to` is routed to

@@ -56,9 +56,9 @@ SETGUARD=${SETGUARD:-}
 NEWROLES=${NEWROLES:-}
 
 # point-in-time values, override if the chain has moved on
-START_NONCE=${START_NONCE:-203}
+START_NONCE=${START_NONCE:-207}      # the Delay nonce the migration batch is queued at (203 when the plan was written)
 OWNERLESS_NONCE=${OWNERLESS_NONCE:-16}
-BATCH_TXHASH=${BATCH_TXHASH:-0xb0ae0a2f2f777c3da8e4a22979038c7ab8e5a714a93479deffdb02434c91cb09}
+BATCH_TXHASH=${BATCH_TXHASH:-0xc0eb0c23f319d151070028bd0433402acf55a4d9430a0f17f04882cd613b8528}   # the 8-call batch
 BATCH_CALLDATA=${BATCH_CALLDATA:-}   # multiSend calldata, if you want the hash recomputed
 
 # storage slots (key-derived, from the plan)
@@ -100,6 +100,18 @@ modules() { # comma-joined, lowercased module ring of $1; "ERR" if the read fail
   printf '%s' "$out" | head -1 | tr -d '[] ' | tr 'A-F' 'a-f'
 }
 owners() { rd "$1" 'getOwners()(address[])' | tr -d '[]' | tr ',' '\n' | tr -d ' ' | tr 'A-F' 'a-f' | grep . | sort; }
+
+batch_calls() { # batch_calls <multiSend calldata> -> one "op to selector" line per packed call
+  local h i=0 len
+  h=$(cast decode-calldata 'multiSend(bytes)' "$1" 2>/dev/null | head -1) || return 1
+  h=${h#0x}
+  while (( i < ${#h} )); do
+    len=$(( 16#${h:i+106:64} ))
+    printf '%s %s %s\n' "${h:i:2}" "${h:i+2:40}" "${h:i+170:8}"
+    i=$(( i + 170 + len*2 ))
+  done
+}
+sel() { cast sig "$1" | cut -c3-; }
 
 expect_revert() { # expect_revert <label> <cast call args...>
   local label=$1; shift
@@ -215,6 +227,20 @@ section_F() {
   else
     note "getTransactionHash(batch)" "set \$BATCH_CALLDATA to re-derive the hash"
   fi
+  # the batch also strips the old Roles' own config, so all three are still the Ownerless Safe until it runs
+  check "old Roles owner == Ownerless Safe"  "$OWNERLESS" "$(rd $OLDROLES 'owner()(address)')"
+  check "old Roles avatar == Ownerless Safe" "$OWNERLESS" "$(rd $OLDROLES 'avatar()(address)')"
+  check "old Roles target == Ownerless Safe" "$OWNERLESS" "$(rd $OLDROLES 'target()(address)')"
+  if [[ -n "$BATCH_CALLDATA" ]]; then
+    local calls; calls=$(batch_calls "$BATCH_CALLDATA")
+    check "batch: 8 calls"                   "8" "$(printf '%s\n' "$calls" | grep -c .)"
+    check "batch: all plain Calls to old Roles" "8" "$(printf '%s\n' "$calls" | grep -c "^00 $(norm ${OLDROLES#0x}) ")"
+    check "batch: selectors in order" \
+      "$(sel 'enableModule(address)') $(sel 'assignRoles(address,uint16[],bool[])') $(sel 'callTargetFunctionWithRole(address,bytes,uint16)') $(sel 'assignRoles(address,uint16[],bool[])') $(sel 'disableModule(address,address)') $(sel 'setAvatar(address)') $(sel 'setTarget(address)') $(sel 'renounceOwnership()')" \
+      "$(printf '%s\n' "$calls" | awk '{print $3}' | tr '\n' ' ')"
+  else
+    note "batch: 8 calls, order, targets" "set \$BATCH_CALLDATA to unpack the batch"
+  fi
   local t0; t0=$(rd $DELAY 'txCreatedAt(uint256)(uint256)' $START_NONCE)
   t0=${t0%% *}
   when() { date -r "$1" '+%F %T %Z' 2>/dev/null || date -d "@$1" '+%F %T %Z' 2>/dev/null || echo "$1"; }
@@ -233,6 +259,9 @@ section_G() {
   check "old Roles grant to Ownerless closed" "$W_ZERO" \
     "$(st $OLDROLES "$(cast index address $OWNERLESS $S_MEMBERS_BASE)")"
   check "Ownerless nonce unchanged"       "$OWNERLESS_NONCE"   "$(rd $OWNERLESS 'nonce()(uint256)')"
+  check "old Roles owner == 0 (renounced)" "$ZERO"             "$(rd $OLDROLES 'owner()(address)')"
+  check "old Roles avatar == 0"           "$ZERO"              "$(rd $OLDROLES 'avatar()(address)')"
+  check "old Roles target == 0"           "$ZERO"              "$(rd $OLDROLES 'target()(address)')"
 }
 
 section_H() {
