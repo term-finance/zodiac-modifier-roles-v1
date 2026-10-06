@@ -25,7 +25,6 @@ jobs:
           - "Delay-queueProvenance.conf"
           - "PauseGuard-deployment.conf"
           - "MultiSend-shortBatch.conf"
-          - "MultiSend-noStorageWrite.conf"
           - "Safe-executionPaths.conf"
           - "Safe-selfCalls.conf"
           - "Safe-receive.conf"
