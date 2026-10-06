@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.6;
 
 import "@gnosis.pm/zodiac/contracts/core/Modifier.sol";
 import "./Permissions.sol";
@@ -20,8 +20,14 @@ contract Roles is Modifier {
     );
     event SetDefaultRole(address module, uint16 defaultRole);
 
+    /// `setUpModules` has already been called
+    error SetUpModulesAlreadyCalled();
+
     /// Arrays must be the same length
     error ArraysDifferentLength();
+
+    /// Sender is not a member of the role
+    error NoMembership();
 
     /// Sender is allowed to make this call, but the internal transaction failed
     error ModuleTransactionFailed();
@@ -29,14 +35,15 @@ contract Roles is Modifier {
     /// @param _owner Address of the owner
     /// @param _avatar Address of the avatar (e.g. a Gnosis Safe)
     /// @param _target Address of the contract that will call exec function
-    constructor(address _owner, address _avatar, address _target) {
+    constructor(
+        address _owner,
+        address _avatar,
+        address _target
+    ) {
         bytes memory initParams = abi.encode(_owner, _avatar, _target);
         setUp(initParams);
     }
 
-    /// @dev There is no zero address check as solidty will check for
-    /// missing arguments and the space of invalid addresses is too large
-    /// to check. Invalid avatar or target address can be reset by owner.
     function setUp(bytes memory initParams) public override {
         (address _owner, address _avatar, address _target) = abi.decode(
             initParams,
@@ -54,7 +61,9 @@ contract Roles is Modifier {
     }
 
     function setupModules() internal {
-        assert(modules[SENTINEL_MODULES] == address(0));
+        if (modules[SENTINEL_MODULES] != address(0)) {
+            revert SetUpModulesAlreadyCalled();
+        }
         modules[SENTINEL_MODULES] = SENTINEL_MODULES;
     }
 
@@ -83,10 +92,10 @@ contract Roles is Modifier {
     /// @notice Only callable by owner.
     /// @param role Role to set for
     /// @param targetAddress Address to be disallowed
-    function revokeTarget(
-        uint16 role,
-        address targetAddress
-    ) external onlyOwner {
+    function revokeTarget(uint16 role, address targetAddress)
+        external
+        onlyOwner
+    {
         Permissions.revokeTarget(roles[role], role, targetAddress);
     }
 
@@ -94,10 +103,10 @@ contract Roles is Modifier {
     /// @notice Only callable by owner.
     /// @param role Role to set for.
     /// @param targetAddress Address to be scoped.
-    function scopeTarget(
-        uint16 role,
-        address targetAddress
-    ) external onlyOwner {
+    function scopeTarget(uint16 role, address targetAddress)
+        external
+        onlyOwner
+    {
         Permissions.scopeTarget(roles[role], role, targetAddress);
     }
 
@@ -303,6 +312,52 @@ contract Roles is Modifier {
         emit SetDefaultRole(module, role);
     }
 
+    /// @dev Passes a transaction to the modifier.
+    /// @param to Destination address of module transaction
+    /// @param value Ether value of module transaction
+    /// @param data Data payload of module transaction
+    /// @param operation Operation type of module transaction
+    /// @notice Can only be called by enabled modules
+    function execTransactionFromModule(
+        address to,
+        uint256 value,
+        bytes calldata data,
+        Enum.Operation operation
+    ) public override moduleOnly returns (bool success) {
+        Permissions.check(
+            roles[defaultRoles[msg.sender]],
+            multisend,
+            to,
+            value,
+            data,
+            operation
+        );
+        return exec(to, value, data, operation);
+    }
+
+    /// @dev Passes a transaction to the modifier, expects return data.
+    /// @param to Destination address of module transaction
+    /// @param value Ether value of module transaction
+    /// @param data Data payload of module transaction
+    /// @param operation Operation type of module transaction
+    /// @notice Can only be called by enabled modules
+    function execTransactionFromModuleReturnData(
+        address to,
+        uint256 value,
+        bytes calldata data,
+        Enum.Operation operation
+    ) public override moduleOnly returns (bool, bytes memory) {
+        Permissions.check(
+            roles[defaultRoles[msg.sender]],
+            multisend,
+            to,
+            value,
+            data,
+            operation
+        );
+        return execAndReturnData(to, value, data, operation);
+    }
+
     /// @dev Passes a transaction to the modifier assuming the specified role.
     /// @param to Destination address of module transaction
     /// @param value Ether value of module transaction
@@ -346,29 +401,6 @@ contract Roles is Modifier {
         (success, returnData) = execAndReturnData(to, value, data, operation);
         if (shouldRevert && !success) {
             revert ModuleTransactionFailed();
-        }
-    }
-    /// @dev Passes a transaction to the modifier assuming the specified role.
-    /// @param to Destination address of module transaction
-    /// @param data Data payload of module transaction
-    /// @param role Identifier of the role to assume for this transaction
-    /// @notice Can only be called by enabled modules
-    function callTargetFunctionWithRole(
-        address to,
-        bytes memory data,
-        uint16 role
-    ) external moduleOnly returns (bool success) {
-        Permissions.check(
-            roles[role],
-            multisend,
-            to,
-            0,
-            data,
-            Enum.Operation.Call
-        );
-        uint256 txGas = type(uint256).max;
-        assembly {
-            success := call(txGas, to, 0, add(data, 0x20), mload(data), 0, 0)
         }
     }
 }

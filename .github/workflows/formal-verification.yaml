@@ -15,12 +15,40 @@ jobs:
     strategy:
       matrix:
         ruleset:
-          - "Roles-callTargetAccess.conf"
-          - "Roles-callTargetExecution.conf"
-          - "Roles-callTargetMultisend.conf"
-          - "Roles-callTargetParams.conf"
-          - "Roles-callTargetPermissions.conf"
-          - "Roles-remediation.conf"
+          - "Roles-setTxNonceGuardAndRoleConfig.conf"
+          - "Roles-setTxNonceLands.conf"
+          - "Roles-setTxNonceGuardSufficient.conf"
+          - "Roles-setTxNonceRoleConfigSufficient.conf"
+          - "Roles-configIntegrity.conf"
+          - "Delay-pauseGuardSufficient.conf"
+          - "Delay-moduleIntegrity.conf"
+          - "Delay-queueProvenance.conf"
+          - "PauseGuard-deployment.conf"
+          - "MultiSend-shortBatch.conf"
+          - "Safe-executionPaths.conf"
+          - "Safe-selfCalls.conf"
+          - "Safe-receive.conf"
+          - "Safe-fallbackStorage.conf"
+          - "Safe-noStateChange.conf"
+          - "Safe-fallbackHandler.conf"
+          - "Safe-selfHandler.conf"
+          - "Safe-configLockGuard.conf"
+          - "Safe-ownerlessSafeGuard.conf"
+          - "Safe-v141-executionPaths.conf"
+          - "Safe-v141-selfCalls.conf"
+          - "Safe-v141-receive.conf"
+          - "Safe-v141-fallbackStorage.conf"
+          - "Safe-v141-noStateChange.conf"
+          - "Safe-v141-fallbackHandler.conf"
+          - "Safe-v141-selfHandler.conf"
+          - "Safe-v141-vetoLandsOnDelay.conf"
+          - "Safe-v141-configLockGuard.conf"
+          - "Delay-delayOwnerGuard.conf"
+          - "Governor-veto.conf"
+          - "Governor-proposalThreshold.conf"
+          - "Governor-settings.conf"
+          - "Governor-voting.conf"
+          - "Governor-tallies.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -41,10 +69,22 @@ jobs:
         working-directory: ./packages/evm
       - run: pip3 install -r requirements.txt
         working-directory: ./packages/evm
-      - run: solc-select install ${SOLC_VERSION}
+      # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
+      # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
+      # singletons. Governor-veto mixes compilers through its `solc_map`,
+      # which names solc8.20 (the deployed Governor and TERM) and solc8.6;
+      # Safe-v141-vetoLandsOnDelay's, Safe-configLockGuard's, Safe-ownerlessSafeGuard's,
+      # Safe-v141-configLockGuard's and Delay-delayOwnerGuard's confs name solc7.6 and solc8.6; and
+      # Governor-settings names solc8.20 through `solc`. So
+      # those names are put on PATH too.
+      - run: |
+          solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20
+          mkdir -p "$HOME/solc-bin"
+          for v in 0.8.20 0.8.6 0.7.6; do
+            ln -sf "$HOME/.solc-select/artifacts/solc-$v/solc-$v" "$HOME/solc-bin/solc${v#0.}"
+          done
+          echo "$HOME/solc-bin" >> "$GITHUB_PATH"
         working-directory: ./packages/evm
-        env:
-          SOLC_VERSION: "0.8.6"
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \
             --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \
@@ -53,4 +93,4 @@ jobs:
         working-directory: ./packages/evm
         env:
           CERTORAKEY: ${{ secrets.CERTORAKEY }}
-          SOLC_VERSION: "0.8.6"
+          SOLC_VERSION: ${{ startsWith(matrix.ruleset, 'Safe-') && '0.7.6' || '0.8.6' }}

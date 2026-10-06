@@ -21,13 +21,23 @@ contract RolesHarness is Roles {
         return roles[roleId].members[member];
     }
 
-    /// @dev The raw module linked-list entry. This, not isModuleEnabled, is
-    /// what the moduleOnly modifier actually gates on (Modifier.sol:59-62).
-    /// The two diverge at SENTINEL_MODULES, which is self-linked by
-    /// setupModules (Roles.sol:56-59): moduleOnly accepts it, while
-    /// isModuleEnabled reports it as not enabled.
+    /// @dev The raw module linked-list entry, which is what moduleOnly gates
+    /// on.
     function moduleEntry(address module) external view returns (address) {
         return modules[module];
+    }
+
+    /// @dev Permissions.checkTransaction, the per-entry check that both the
+    /// direct path and checkMultisendTransaction's loop call. Declared
+    /// `view`, so the parametric rules over write functions skip it.
+    function checkEntry(
+        uint16 roleId,
+        address to,
+        uint256 value,
+        bytes memory data,
+        Enum.Operation operation
+    ) external view {
+        Permissions.checkTransaction(roles[roleId], to, value, data, operation);
     }
 
     function clearanceOf(
@@ -44,8 +54,8 @@ contract RolesHarness is Roles {
         return roles[roleId].targets[targetAddress].options;
     }
 
-    /// @dev Mirrors checkTransaction's own `bytes4(data)` truncation
-    /// (Permissions.sol:270) so specs never need to slice `data` themselves.
+    /// @dev The function scope config for `data`'s selector, as
+    /// checkTransaction keys it.
     function functionScopeConfigForData(
         uint16 roleId,
         address targetAddress,
@@ -54,6 +64,20 @@ contract RolesHarness is Roles {
         return
             roles[roleId].functions[
                 Permissions.keyForFunctions(targetAddress, bytes4(data))
+            ];
+    }
+
+    /// @dev functionScopeConfigForData, keyed on the selector directly.
+    /// uint32 so it takes selectorOf's return type and CVL's
+    /// `sig:C.f(...).selector` without a cast.
+    function functionScopeConfigForSelector(
+        uint16 roleId,
+        address targetAddress,
+        uint32 functionSig
+    ) external view returns (uint256) {
+        return
+            roles[roleId].functions[
+                Permissions.keyForFunctions(targetAddress, bytes4(functionSig))
             ];
     }
 
@@ -80,17 +104,27 @@ contract RolesHarness is Roles {
         return Permissions.unpackParameter(scopeConfig, index);
     }
 
-    /// @dev Mirrors checkParameters' own Static-value extraction
-    /// (Permissions.sol:346-349) so params.spec never reimplements the
-    /// calldata layout math. Reverts (CalldataOutOfBounds) exactly when the
-    /// real function would; a plain CVL call to this getter (without a
-    /// revert-tolerant modifier) therefore restricts a rule to the
-    /// in-bounds case for free.
+    /// @dev Permissions.pluckStaticValue: the static value of argument
+    /// `index`. Reverts exactly when the real function would.
     function pluckStaticValueAt(
         bytes memory data,
         uint256 index
     ) external pure returns (bytes32) {
         return Permissions.pluckStaticValue(data, index);
+    }
+
+    /// @dev The selector of `data`, as checkTransaction reads it, as a uint32
+    /// to compare against CVL's `sig:C.f(...).selector`.
+    function selectorOf(bytes memory data) external pure returns (uint32) {
+        return uint32(bytes4(data));
+    }
+
+    /// @dev pluckStaticValueAt, widened to uint256.
+    function pluckStaticUintAt(
+        bytes memory data,
+        uint256 index
+    ) external pure returns (uint256) {
+        return uint256(Permissions.pluckStaticValue(data, index));
     }
 
     function compValueOfForData(
@@ -127,12 +161,10 @@ contract RolesHarness is Roles {
                 .length;
     }
 
-    /// @dev Mirrors checkMultisendTransaction's own per-entry parsing
-    /// (Permissions.sol:220-235) exactly, including its zero-copy `out`
-    /// slice (a `bytes memory` pointer that reuses the just-read
-    /// `dataLength` word, sitting immediately before it in `data`, as its
-    /// own length prefix). Given `i`, the byte offset of one entry, returns
-    /// what checkTransaction would be called with for that entry.
+    /// @dev Parses the multisend entry at byte offset `i` exactly as
+    /// checkMultisendTransaction does, and returns what checkTransaction
+    /// would be called with for that entry. `out` reuses the entry's
+    /// dataLength word as its length prefix, as the original does.
     function multisendEntryAt(
         bytes memory data,
         uint256 i
