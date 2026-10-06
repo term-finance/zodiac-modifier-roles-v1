@@ -1,14 +1,16 @@
-# Configuration Proof
+# Governance Configuration Proof
 
 
 ## 1. High Level Conclusion
 
 ```
 Branch 1 (the slow path, for real proposals)
-  ProposerSafe (5/11) --module--> Delay Modifier (+ PauseGuard) --module--> OwnerlessSafe --DEVOPS_ROLE--> Term Protocol
+  ProposerSafe (5/11) ------module------> Delay Modifier ------module------> OwnerlessSafe ------DEVOPS_ROLE------> Term Protocol
+  (+ ConfigLockGuard)                     (+ PauseGuard)                  (+ ConfigLockGuard)
 
 Branch 2 (the token-vote path, whose only power is to veto)
-  Governor --module--> Roles Modifier (+ SetTxNonceGuard) --target--> DelayOwnerSafe --owner--> Delay Modifier
+  Governor ------module------> Roles Modifier ------target------> DelayOwnerSafe ------owner------> Delay Modifier
+                            (+ SetTxNonceGuard)                 (+ ConfigLockGuard)
 
 Pause controls
   PauseSafe (2/9) --pause-->               PauseGuard
