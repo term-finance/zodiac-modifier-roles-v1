@@ -55,6 +55,7 @@ rule shortBatchCompletesAsNoOp(bytes transactions) {
 
     multiSend@withrevert(e, transactions);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "every batch of at most 32 bytes reverts, so the no-op reading is wrong";
 }
@@ -71,6 +72,7 @@ rule longerBatchCanExecute(bytes transactions) {
 
     multiSend@withrevert(e, transactions);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && sawCall,
         "no batch of any length makes a call, so the CALL hook is not firing and shortBatchExecutesNothing is vacuous";
 }
@@ -87,6 +89,7 @@ rule oneByteAboveTheHoleExecutes(bytes transactions) {
 
     multiSend@withrevert(e, transactions);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && sawCall,
         "one byte past the threshold still executes nothing, so the cutoff is not where the arithmetic puts it";
 }

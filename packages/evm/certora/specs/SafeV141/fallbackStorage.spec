@@ -45,6 +45,7 @@ rule storageWriteHookFires(method f, calldataarg args)
     f@withrevert(e, args);
     bool reverted = lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !reverted && wroteStorage,
         "no successful approveHash wrote storage the hook could see";
 }
