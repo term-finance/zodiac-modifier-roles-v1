@@ -96,6 +96,7 @@ rule receiveCanRun(method f, calldataarg args)
     f@withrevert(e, args);
     bool reverted = lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !reverted && emittedSafeReceived,
         "no call to the Safe reached receive";
 }

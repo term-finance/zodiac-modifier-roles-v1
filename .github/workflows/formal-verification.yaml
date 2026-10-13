@@ -67,7 +67,9 @@ jobs:
       # packages/evm/node_modules, so the install has to land there.
       - run: yarn install --immutable
         working-directory: ./packages/evm
-      - run: pip3 install -r requirements.txt
+      - run: |
+          python3 certora/toolchain_test.py
+          pip3 install -r "$(python3 certora/toolchain.py '${{ matrix.ruleset }}' --field requirements)"
         working-directory: ./packages/evm
       # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1

@@ -136,6 +136,7 @@ rule noHandlerFallbackSucceeds(method f, calldataarg args)
     f@withrevert(e, args);
     bool reverted = lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !reverted && !emittedSafeReceived,
         "no fallback call with no handler succeeded";
 }
@@ -149,6 +150,7 @@ rule receiveRuns(method f, calldataarg args)
     f@withrevert(e, args);
     bool reverted = lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !reverted && emittedSafeReceived,
         "no call reached receive";
 }
@@ -166,6 +168,7 @@ rule storageHookFires(method f, calldataarg args)
     f@withrevert(e, args);
     bool reverted = lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !reverted && wroteStorage,
         "no successful approveHash wrote storage the hook could see";
 }
@@ -180,6 +183,7 @@ rule callHookFires(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy madeAnyCall,
         "fallback with a handler set made no call the hook could see";
 }
