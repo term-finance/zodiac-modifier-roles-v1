@@ -19,6 +19,7 @@ CERTORA_8_CONFIGS = frozenset({
     "Governor-settings.conf",
     "Governor-tallies.conf",
     "Governor-veto.conf",
+    "Governor-vetoEndToEnd.conf",
     "Governor-voting.conf",
     "MultiSend-shortBatch.conf",
     "PauseGuard-deployment.conf",
