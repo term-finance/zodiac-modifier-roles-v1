@@ -448,6 +448,7 @@ rule unpauseReopensExecuteNextTx(
 
     executeNextTx(eExec, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy forwardedToTarget,
         "no queue entry can execute after the admin unpaused, so the pause is not reversible";
 }
@@ -601,6 +602,7 @@ rule executeNextTxAfterSetTxNonceReopensOnUnpause(
 
     executeNextTx(eExec, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy forwardedToTarget,
         "nothing can execute after a bump-then-unpause, so the block in the previous rule is not the pause";
 }
@@ -623,6 +625,7 @@ rule withoutPauseGuardExecuteNextTxForwardsUnchecked(
 
     executeNextTx(e, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy forwardedToTarget,
         "executeNextTx cannot forward without a guard, so the guard rules prove nothing about the guard";
 }

@@ -195,6 +195,7 @@ rule proposerOwnersExecuteDevopsMethodThroughTheDelay(
     delayContract.executeNextTx@withrevert(eExec, protocol, 0, inner, Enum.Operation.Call);
     bool executed = !lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy executed &&
         to_mathint(delayContract.txNonce()) == slot + 1 &&
         protocol.lastValue() == v &&
@@ -236,6 +237,7 @@ rule ownerlessOwnersExecuteDevopsMethodThroughExecTransaction(
     execTransaction@withrevert(eExec,
         protocol, 0, data, Enum.Operation.Call, 0, 0, 0, 0, 0, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted &&
         protocol.lastValue() == v &&
         protocol.lastCaller() == currentContract,

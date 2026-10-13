@@ -93,6 +93,7 @@ rule ownersApprovalSetsTxCooldown(address owner, uint256 c, bytes data, bytes si
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.txCooldown() == c,
         "the owners' approved hash could not set the Delay's txCooldown";
 }
@@ -108,6 +109,7 @@ rule ownersApprovalSetsTxExpiration(address owner, uint256 x, bytes data, bytes 
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.txExpiration() == x,
         "the owners' approved hash could not set the Delay's txExpiration";
 }
@@ -127,6 +129,7 @@ rule ownersApprovalSetsTarget(address owner, address t, bytes data, bytes signat
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.target() == t,
         "the owners' approved hash could not set the Delay's target";
 }
@@ -142,6 +145,7 @@ rule ownersApprovalSetsGuard(address owner, address g, bytes data, bytes signatu
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.guard() == g,
         "the owners' approved hash could not set the Delay's guard";
 }
@@ -157,6 +161,7 @@ rule ownersApprovalTransfersOwnership(address owner, address o, bytes data, byte
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.owner() == o,
         "the owners' approved hash could not transfer the Delay's ownership";
 }
@@ -176,6 +181,7 @@ rule ownersApprovalEnablesModule(address owner, address m, bytes data, bytes sig
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && delayContract.isModuleEnabled(m),
         "the owners' approved hash could not enable a module on the Delay";
 }
@@ -194,6 +200,7 @@ rule ownersApprovalDisablesModule(
 
     bool landed = ownersApprovedCallLands(owner, data, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy landed && !delayContract.isModuleEnabled(m),
         "the owners' approved hash could not disable a module on the Delay";
 }

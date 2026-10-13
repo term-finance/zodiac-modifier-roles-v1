@@ -59,6 +59,7 @@ rule fallbackReachesTheHandler(method f, calldataarg args)
     f@withrevert(e, args);
     bool succeeded = !lastReverted;
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy succeeded && probe.hits() == 1,
         "no call to fallback reached the handler";
 }

@@ -182,6 +182,7 @@ rule guardedSafeCanStillVeto(
         delayContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && delayContract.txNonce() == n,
         "with ConfigLockGuard installed, the Safe could not veto with setTxNonce";
 }
@@ -207,6 +208,7 @@ rule guardedSafeCanStillSetTxCooldown(
         delayContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && delayContract.txCooldown() == c,
         "with ConfigLockGuard installed, the Safe could not set the Delay's cooldown";
 }
@@ -232,6 +234,7 @@ rule guardedSafeCanStillSetTxExpiration(
         delayContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && delayContract.txExpiration() == x,
         "with ConfigLockGuard installed, the Safe could not set the Delay's expiration";
 }

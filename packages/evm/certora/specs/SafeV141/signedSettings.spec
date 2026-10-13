@@ -97,6 +97,7 @@ rule ownersApprovalChangesSettings(
     execTransaction@withrevert(eExec,
         currentContract, 0, data, Enum.Operation.Call, 0, 0, 0, 0, 0, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||

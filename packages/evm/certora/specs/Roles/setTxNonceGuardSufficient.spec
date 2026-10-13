@@ -191,5 +191,6 @@ rule withoutSetTxNonceGuardPermissiveRolesAllowNonDelayCall(
 
     execTransactionWithRole(e, to, 0, data, Enum.Operation.Call, role, true);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy true, "even without SetTxNonceGuard this call cannot execute, so the SetTxNonceGuard rules prove nothing";
 }
