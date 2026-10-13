@@ -63,7 +63,7 @@ class ToolchainTests(unittest.TestCase):
             for name in ("run-certora.sh", "requirements.txt", "requirements-8.txt"):
                 shutil.copyfile(evm / name, root / name)
             shutil.copyfile(toolchain.CERTORA_DIR / "toolchain.py", certora / "toolchain.py")
-            for name in ("Safe-receive.conf", "Roles-configIntegrity.conf"):
+            for name in ("Safe-receive.conf", "Roles-setTxNonceGuardAndRoleConfig.conf"):
                 (certora / "confs" / name).write_text("{}\n")
             binary = root / "certoraRun"
             binary.write_text(
@@ -81,7 +81,7 @@ class ToolchainTests(unittest.TestCase):
                    "STUB_CALL_LOG": str(log)}
             script = ["bash", str(root / "run-certora.sh")]
             for config, version, compiler in (("Safe-receive.conf", "8.19.2", "0.7.6"),
-                                               ("Roles-configIntegrity.conf", "7.31.0", "0.8.6")):
+                                               ("Roles-setTxNonceGuardAndRoleConfig.conf", "7.31.0", "0.8.6")):
                 with self.subTest(config=config):
                     env["STUB_CLI_VERSION"] = version
                     result = subprocess.run(script + [config, "proof message"], cwd=root.parent,
