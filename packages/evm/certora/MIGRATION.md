@@ -1,6 +1,6 @@
 # Certora 8.19.2 migration
 
-36 of 41 existing configurations now select Certora 8.19.2 in CI and the local runner. The [second batch](migration/8.19.2-second-batch.md) validates 28 additional configurations after the eight below. The CI matrix still runs the same 34 configurations: 30 on 8.19.2 and four on 7.31.0. Six of the seven manual configurations use 8.19.2.
+39 of 41 existing configurations now select Certora 8.19.2 in CI and the local runner. The [second batch](migration/8.19.2-second-batch.md) validates 31 additional configurations after the eight below. The CI matrix still runs the same 34 configurations: 33 on 8.19.2 and 1 on 7.31.0. 6 of the seven manual configurations use 8.19.2.
 
 ## First verified batch
 
@@ -54,4 +54,4 @@ The local runner checks the installed CLI before submission, runs from the packa
 
 ## Remaining
 
-Five configurations remain on 7.31.0: Governor veto and its end-to-end context, plus Roles configuration integrity, guard-and-role configuration, and role-configuration sufficiency. Their unfinished proofs and diagnostic review are detailed in the [second batch](migration/8.19.2-second-batch.md#remaining-on-7310). Historical records retain the selections as they stood for each batch; the [second record](migration/8.19.2-second-batch.json) contains the current selection for all 41 configurations.
+2 configurations remain on 7.31.0: `Governor-vetoEndToEnd.conf`, `Roles-setTxNonceGuardAndRoleConfig.conf`. Their remaining validation and diagnostic review are detailed in the [second batch](migration/8.19.2-second-batch.md#remaining-on-7310). Historical records retain the selections as they stood for each batch; the [second record](migration/8.19.2-second-batch.json) contains the current selection for all 41 configurations.
