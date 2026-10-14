@@ -254,6 +254,7 @@ rule ownerCanCallEachDelaySetting(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "the owner cannot successfully call this onlyOwner function";
 }
@@ -309,6 +310,7 @@ rule avatarEnableModuleAttemptIsReachable(
 
     executeNextTx(e, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy hostileAvatar.attempts() > attemptsBefore,
         "no queue entry reaches the avatar at all, so the claim-4 rule is vacuous";
 }
@@ -395,6 +397,7 @@ rule outsiderCanExecuteNextTx(
 
     executeNextTx@withrevert(e, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && to_mathint(txNonce()) == nonceBefore + 1,
         "a caller that is neither the owner nor a module cannot execute a queue entry";
 }
@@ -410,6 +413,7 @@ rule outsiderCanSkipExpired() {
 
     skipExpired@withrevert(e);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && txNonce() > nonceBefore,
         "a caller that is neither the owner nor a module cannot skip an expired entry";
 }
@@ -511,6 +515,7 @@ rule ownerCanSetTxNonce(uint256 nonce) {
 
     setTxNonce@withrevert(e, nonce);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && txNonce() == nonce,
         "the owner could not set txNonce";
 }

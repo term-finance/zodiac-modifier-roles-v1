@@ -121,6 +121,7 @@ rule termHolderVoteCounts(uint256 proposalId, uint8 support) {
 
     castVote@withrevert(e, proposalId, support);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && tally(proposalId) > tallyBefore,
         "a caller with votes at the snapshot cannot vote";
 }

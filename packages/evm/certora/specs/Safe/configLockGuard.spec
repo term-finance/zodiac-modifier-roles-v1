@@ -253,6 +253,7 @@ rule ownersCanInstallConfigLockGuard(
         currentContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && guardAddress() == configLockGuard,
         "the owners could not install ConfigLockGuard with setGuard";
 }
@@ -452,6 +453,7 @@ rule guardedOwnersCanStillCallOut(
         to, value, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "with ConfigLockGuard installed, the Safe could not make a plain call to another contract";
 }
@@ -479,6 +481,7 @@ rule guardedOwnersCanStillChangeOtherSettings(
         currentContract, 0, data, Enum.Operation.Call,
         safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore),
@@ -504,6 +507,7 @@ rule moduleCanDelegateCallPastTheGuard(address to, uint256 value, bytes data) {
 
     execTransactionFromModule@withrevert(e, to, value, data, Enum.Operation.DelegateCall);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "an enabled module could not delegate call with ConfigLockGuard installed";
 }
@@ -517,6 +521,7 @@ rule moduleCanDelegateCallPastTheGuardWithReturnData(address to, uint256 value, 
 
     execTransactionFromModuleReturnData@withrevert(e, to, value, data, Enum.Operation.DelegateCall);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "an enabled module could not delegate call through execTransactionFromModuleReturnData with ConfigLockGuard installed";
 }
@@ -535,6 +540,7 @@ rule moduleCanRemoveTheGuard(bytes data) {
 
     execTransactionFromModule@withrevert(e, currentContract, 0, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && guardAddress() != configLockGuard,
         "an enabled module could not move ConfigLockGuard out of the guard slot";
 }

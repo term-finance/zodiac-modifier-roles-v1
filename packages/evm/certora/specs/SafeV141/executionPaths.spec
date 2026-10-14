@@ -234,6 +234,7 @@ rule enabledModuleCanMakeTheSafeAct(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && safeActed,
         "an enabled module cannot make the Safe act";
 }
@@ -286,6 +287,7 @@ rule ownersCanMakeTheSafeAct(
     execTransaction@withrevert(e,
         to, value, data, operation, safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && safeActed,
         "with the signature check passed, execTransaction still could not make the Safe act";
 }

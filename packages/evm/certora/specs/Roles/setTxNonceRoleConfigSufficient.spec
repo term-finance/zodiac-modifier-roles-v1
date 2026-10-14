@@ -238,6 +238,7 @@ rule withoutSetTxNonceGuardMultisendTargetEscapesRoleConfig(bytes data, uint16 r
 
     execTransactionWithRole(e, multisend(), 0, data, Enum.Operation.DelegateCall, role, true);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy true, "the multisend branch is unreachable, so the caveat in this file's header overstates the gap";
 }
 
@@ -308,6 +309,7 @@ rule shortMultisendBlobSkipsEveryEntryCheck(bytes data, uint256 value, uint16 ro
         e, multisend(), value, data, Enum.Operation.DelegateCall, role, true
     );
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "a multisend blob of at most 100 bytes cannot complete, so the 100-byte caveat in this file's header overstates the gap";
 }
@@ -372,6 +374,7 @@ rule checkTransactionStillAdmitsDelaySetTxNonce(bytes data) {
 
     checkEntry(e, ROLE(), delayMod, 0, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy true, "checkTransaction rejects even the intended setTxNonce entry";
 }
 
@@ -395,6 +398,7 @@ rule roleConfigDoesNotStopValueLeavingOnMultisendBranch(
         e, multisend(), value, data, Enum.Operation.Call, role, true
     );
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "the role configuration does constrain the outer value on the multisend branch, so the guard is redundant after all";
 }
@@ -448,6 +452,7 @@ rule optionsSendLetsValueThrough(bytes data, uint256 value) {
         e, delayMod, value, data, Enum.Operation.Call, ROLE(), true
     );
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "with options Send a valued setTxNonce still cannot complete, so the value == 0 half does not rest on the options pin";
 }
@@ -461,6 +466,7 @@ rule optionsDelegateCallLetsDelegateCallThrough(bytes data) {
         e, delayMod, 0, data, Enum.Operation.DelegateCall, ROLE(), true
     );
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "with options DelegateCall a delegatecall setTxNonce still cannot complete, so the Operation.Call half does not rest on the options pin";
 }
@@ -475,6 +481,7 @@ rule optionsBothLetsValueAndDelegateCallThrough(bytes data, uint256 value) {
         e, delayMod, value, data, Enum.Operation.DelegateCall, ROLE(), true
     );
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "with options Both a valued delegatecall setTxNonce still cannot complete, so neither half rests on the options pin";
 }

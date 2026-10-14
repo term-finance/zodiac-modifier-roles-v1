@@ -124,6 +124,7 @@ rule executeNextTxCanRunAQueuedEntry(
 
     executeNextTx@withrevert(e, to, value, data, operation);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && to_mathint(txNonce()) == n + 1,
         "executeNextTx cannot run any queue entry";
 }
@@ -137,6 +138,7 @@ rule skipExpiredCanSkipAQueuedEntry() {
 
     skipExpired@withrevert(e);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && txNonce() > nonceBefore,
         "skipExpired cannot skip any queue entry";
 }

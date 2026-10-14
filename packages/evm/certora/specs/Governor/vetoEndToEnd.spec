@@ -150,6 +150,7 @@ rule termHoldersVetoThroughTheGovernor(uint256 n, string proposalText) {
     // Anyone executes it.
     executeVeto(eExecute, roles, delay, n, descriptionHash);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy passed == IGovernor.ProposalState.Succeeded && delay.txNonce() == n,
         "a TERM holder's veto could not be proposed, voted through and executed to move the Delay's txNonce";
 }

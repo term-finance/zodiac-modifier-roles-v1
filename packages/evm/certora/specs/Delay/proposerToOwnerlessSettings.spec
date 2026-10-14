@@ -219,6 +219,7 @@ rule queueCallLayoutIsSatisfiable(method f, bytes inner, bytes queueData)
     require queueData.length == queueCallLength(f);
     require isQueueCall(queueData, currentContract, inner, settingCallLength(f));
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy true, "the queue call's layout cannot exist";
 }
 
@@ -248,6 +249,7 @@ rule proposerApprovalQueuesAnEntry(
 
     ownerQueuesTheProposal(owner, queueData, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy to_mathint(delayContract.queueNonce()) == slot + 1,
         "the ProposerSafe's owner could not get the Delay to queue anything";
 }
@@ -275,6 +277,7 @@ rule proposerApprovalQueuesTheProposal(
 
     ownerQueuesTheProposal(owner, queueData, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy to_mathint(delayContract.queueNonce()) == slot + 1 &&
         delayContract.txHash(slot) == delayContract.getTransactionHash(currentContract, 0, inner, Enum.Operation.Call),
         "the ProposerSafe's owner could not get the Delay to queue the OwnerlessSafe's settings call";
@@ -303,6 +306,7 @@ rule queuedProposalChangesOwnerlessSettings(method f, address a, bytes inner)
 
     bool executed = anyoneExecutes(inner, delayContract.txCreatedAt(n));
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy executed && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||
@@ -341,6 +345,7 @@ rule proposerApprovalChangesOwnerlessSettings(
 
     bool executed = anyoneExecutes(inner, delayContract.txCreatedAt(delayContract.txNonce()));
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy executed && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||

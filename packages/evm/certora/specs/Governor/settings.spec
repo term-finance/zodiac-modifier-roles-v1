@@ -219,6 +219,7 @@ rule proposerCanCancel(
 
     cancel@withrevert(e, targets, values, calldatas, descriptionHash);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted, "the proposer cannot cancel";
 }
 
@@ -291,6 +292,7 @@ rule receiveRuns(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted, "no call reaches receive";
 }
 
@@ -364,6 +366,7 @@ rule relayCanRun(address target, uint256 value, bytes data) {
 
     relay@withrevert(e, target, value, data);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted, "the Governor cannot relay";
 }
 
@@ -396,5 +399,6 @@ rule tokenReceiptRuns(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted, "no call reaches the token-receipt hook";
 }
