@@ -2,32 +2,8 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@gnosis.pm/zodiac/contracts/guard/BaseGuard.sol";
-
-interface ISafeAdmin {
-    function setGuard(address guard) external;
-
-    function enableModule(address module) external;
-
-    function disableModule(address prevModule, address module) external;
-
-    function setFallbackHandler(address handler) external;
-}
-
-interface IModifierAdmin {
-    function transferOwnership(address newOwner) external;
-
-    function renounceOwnership() external;
-
-    function enableModule(address module) external;
-
-    function disableModule(address prevModule, address module) external;
-
-    function setGuard(address guard) external;
-
-    function setAvatar(address avatar) external;
-
-    function setTarget(address target) external;
-}
+import "../interfaces/ISafeAdmin.sol";
+import "../interfaces/IModifierAdmin.sol";
 
 /// @title ConfigLockGuard - Locks a Safe's configuration, and that of a Zodiac modifier it owns.
 /// @dev Attach with `setGuard` on the Safe. Safe v1.3.0 and v1.4.1 call
