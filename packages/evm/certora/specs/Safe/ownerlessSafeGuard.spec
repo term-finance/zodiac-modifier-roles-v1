@@ -1,6 +1,6 @@
 /*
  * ConfigLockGuard on the OwnerlessSafe (GnosisSafe v1.3.0), built with
- * lockedModifier = address(0): it leaves the governance path through the
+ * lockedDelay = address(0): it leaves the governance path through the
  * module open, and has no function that can change what it checks. What the
  * guard blocks for the signers is configLockGuard.spec's.
  *
@@ -20,7 +20,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedModifier() external returns (address) envfree;
+    function configLockGuard.lockedDelay() external returns (address) envfree;
 
     // Guard calls resolve to ConfigLockGuard, the only guard in the scene.
     function _.checkTransaction(
@@ -69,7 +69,7 @@ definition isSettingsFunction(method f) returns bool =
 /*
  * ConfigLockGuard has no fallback, its functions are exactly
  * checkTransaction, checkAfterExecution, supportsInterface and
- * lockedModifier, and none of them writes state. lockedModifier is immutable
+ * lockedDelay, and none of them writes state. lockedDelay is immutable
  * and the guard has no admin, so what it checks is fixed at deployment.
  */
 rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
@@ -105,7 +105,7 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
 {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedModifier() == 0;
+    require configLockGuard.lockedDelay() == 0;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require selectorOf(data) == f.selector;
@@ -135,7 +135,7 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
 rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedModifier() == 0;
+    require configLockGuard.lockedDelay() == 0;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require to != currentContract;
