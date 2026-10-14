@@ -36,9 +36,10 @@ interface IModifierAdmin {
 /// nothing a module sends. On the Safe itself it blocks setGuard, enableModule,
 /// disableModule and setFallbackHandler, and it blocks delegate calls, which
 /// could otherwise write the guard, module or handler storage directly. Once
-/// set, the guard cannot be removed or replaced. The Safe is taken from
-/// msg.sender rather than pinned, so the guard never rejects a Safe it was
-/// installed on by mistake with no way to take it off again.
+/// set, only a module can remove or replace the guard, so on a Safe with no
+/// module it is permanent. The Safe is taken from msg.sender rather than
+/// pinned, so any Safe that installs it keeps its plain calls and owner
+/// management instead of having every transaction rejected.
 ///
 /// `lockedModifier` -- the Safe also cannot change that modifier's
 /// owner, modules, guard, avatar or target. Its other owner functions (for the
