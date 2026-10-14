@@ -27,6 +27,10 @@ interface IModifierAdmin {
     function setAvatar(address avatar) external;
 
     function setTarget(address target) external;
+
+    function setTxCooldown(uint256 cooldown) external;
+
+    function setTxExpiration(uint256 expiration) external;
 }
 
 /// @title ConfigLockGuard - Locks a Safe's configuration, and that of a Zodiac modifier it owns.
@@ -41,8 +45,10 @@ interface IModifierAdmin {
 /// installed on by mistake with no way to take it off again.
 ///
 /// `lockedModifier` -- the Safe also cannot change that modifier's
-/// owner, modules, guard, avatar or target. Its other owner functions (for the
-/// Delay: setTxNonce, setTxCooldown, setTxExpiration) stay open. Pass
+/// owner, modules, guard, avatar or target, and cannot call setTxCooldown or
+/// setTxExpiration, so the Delay's timing is fixed and the cooldown cannot be
+/// lowered to skip the window for vetoes. Its other owner function (for the
+/// Delay: setTxNonce, which is the veto) stays open.
 contract ConfigLockGuard is BaseGuard {
     /// @dev Zodiac modifier whose ownership, modules, guard, avatar and target
     /// are locked.
@@ -71,6 +77,9 @@ contract ConfigLockGuard is BaseGuard {
 
     /// The modifier's avatar and target cannot be changed
     error ModifierAvatarLocked();
+
+    /// The modifier's cooldown and expiration cannot be changed
+    error ModifierTimingLocked();
 
     constructor(address _lockedModifier) {
         lockedModifier = _lockedModifier;
@@ -137,6 +146,12 @@ contract ConfigLockGuard is BaseGuard {
                 selector == IModifierAdmin.setTarget.selector
             ) {
                 revert ModifierAvatarLocked();
+            }
+            if (
+                selector == IModifierAdmin.setTxCooldown.selector ||
+                selector == IModifierAdmin.setTxExpiration.selector
+            ) {
+                revert ModifierTimingLocked();
             }
         }
     }
