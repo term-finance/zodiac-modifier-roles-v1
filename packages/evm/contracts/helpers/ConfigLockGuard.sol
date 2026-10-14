@@ -51,6 +51,9 @@ contract ConfigLockGuard is BaseGuard {
     /// Only plain calls are allowed, not delegate calls
     error UnexpectedOperation();
 
+    /// The locked modifier address cannot be zero
+    error InvalidLockedModifier();
+
     /// The Safe's guard cannot be removed or replaced
     error GuardLocked();
 
@@ -73,6 +76,9 @@ contract ConfigLockGuard is BaseGuard {
     error ModifierAvatarLocked();
 
     constructor(address _lockedModifier) {
+        if (_lockedModifier == address(0)) {
+            revert InvalidLockedModifier();
+        }
         lockedModifier = _lockedModifier;
     }
 
