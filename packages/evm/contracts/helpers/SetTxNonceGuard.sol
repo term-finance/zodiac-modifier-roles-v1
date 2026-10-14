@@ -25,10 +25,16 @@ contract SetTxNonceGuard is BaseGuard {
     /// Only zero value transactions are allowed
     error UnexpectedValue();
 
+    /// The delay modifier address cannot be zero
+    error InvalidDelayModifier();
+
     /// Payload is not an abi encoded setTxNonce(uint256)
     error UnexpectedCalldata();
 
     constructor(address _delay) {
+        if (_delay == address(0)) {
+            revert InvalidDelayModifier();
+        }
         delay = _delay;
     }
 
