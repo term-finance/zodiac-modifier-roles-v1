@@ -2,14 +2,14 @@
  * The Delay's half of the ConfigLockGuard lock on the DelayOwnerSafe, plus
  * witnesses that the guarded Safe can still run the Delay.
  *
- * ConfigLockGuard rejects seven calls to its lockedModifier
+ * ConfigLockGuard rejects seven calls to its lockedDelay
  * (transferOwnership, renounceOwnership, enableModule, disableModule,
  * setGuard, setAvatar and setTarget; CL141-23) and every delegate call (CL141-16).
  * This file shows that no other Delay call, from any caller, changes the
  * Delay's owner, modules, guard, avatar or target.
  *
  * The scene is the real Delay (certora/helpers/Delay.sol), the real
- * ConfigLockGuard with its lockedModifier linked to the Delay, and, for the
+ * ConfigLockGuard with its lockedDelay linked to the Delay, and, for the
  * witnesses, the real Safe v1.4.1 (SafeV141Harness). In the witnesses the
  * signature check is stubbed to pass (SE141-5 and SE141-12 cover it), and the
  * Safe's call to `to` is routed to the Delay function each witness names,
@@ -25,7 +25,7 @@ methods {
     function thresholdValue() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedModifier() external returns (address) envfree;
+    function configLockGuard.lockedDelay() external returns (address) envfree;
 
     function delayContract.owner() external returns (address) envfree;
     function delayContract.guard() external returns (address) envfree;
@@ -77,7 +77,7 @@ definition isLockedOrSetUp(method f) returns bool =
 /// not the Safe, and the Safe owns the Delay.
 definition guardedOwner() returns bool =
     guardAddress() == configLockGuard &&
-    configLockGuard.lockedModifier() == delayContract &&
+    configLockGuard.lockedDelay() == delayContract &&
     delayContract != currentContract &&
     delayContract.owner() == currentContract;
 

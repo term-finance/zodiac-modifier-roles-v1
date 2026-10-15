@@ -6,7 +6,7 @@
  * Safe's owner and threshold management still go through.
  *
  * The rules assume nothing about which Safe it is beyond its GnosisSafe
- * v1.3.0 code. They hold for any lockedModifier; only
+ * v1.3.0 code. They hold for any lockedDelay; only
  * checkTransactionAcceptsEverythingElse assumes address(0).
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
@@ -28,7 +28,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedModifier() external returns (address) envfree;
+    function configLockGuard.lockedDelay() external returns (address) envfree;
 
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
@@ -78,7 +78,7 @@ definition isLockedSelfSelector(uint32 sel) returns bool =
     sel == SET_GUARD() || sel == ENABLE_MODULE() ||
     sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
 
-// What the guard rejects on calls to lockedModifier. setGuard(address),
+// What the guard rejects on calls to lockedDelay. setGuard(address),
 // enableModule(address) and disableModule(address,address) share the Safe's
 // selectors; the other four are Ownable's and Module's.
 definition TRANSFER_OWNERSHIP() returns uint32 = 0xf2fde38b;
@@ -207,7 +207,7 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
 }
 
 /*
- * With lockedModifier = address(0), every plain call passes the guard except
+ * With lockedDelay = address(0), every plain call passes the guard except
  * the Safe calling one of its four locked settings functions, and the seven
  * modifier selectors sent to address(0), which has no code.
  */
@@ -218,7 +218,7 @@ rule checkTransactionAcceptsEverythingElse(
 ) {
     env e;
     require e.msg.value == 0;
-    require configLockGuard.lockedModifier() == 0;
+    require configLockGuard.lockedDelay() == 0;
     uint32 sel = selectorOf(data);
     require !(to == e.msg.sender && isLockedSelfSelector(sel));
     require !(to != e.msg.sender && to == 0 && isLockedModifierSelector(sel));
