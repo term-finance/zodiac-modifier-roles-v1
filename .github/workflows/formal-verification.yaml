@@ -87,6 +87,12 @@ jobs:
           done
           echo "$HOME/solc-bin" >> "$GITHUB_PATH"
         working-directory: ./packages/evm
+      - name: Replay packed permission keys in a native EVM
+        if: matrix.ruleset == 'Roles-setTxNonceGuardAndRoleConfig.conf'
+        run: node certora/check-packed-function-keys.cjs
+        working-directory: ./packages/evm
+        env:
+          SOLC_BINARY: solc8.6
       - run: |
           certoraRun "./certora/confs/${{ matrix.ruleset }}" \
             --msg "${{ github.ref_name }} - ${{ matrix.ruleset }} - ${{ github.sha }}" \

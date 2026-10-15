@@ -1,0 +1,44 @@
+--- a/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
++++ b/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
+@@ -25 +25,6 @@
+-    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor"
++    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor",
++    "prover_args": [],
++    "rule": [
++        "packedFunctionKeyMatchesEvm",
++        "packedDataFunctionKeyMatchesEvm"
++    ]
+--- a/packages/evm/certora/harness/RolesHarness.sol
++++ b/packages/evm/certora/harness/RolesHarness.sol
+@@ -206,0 +207,8 @@
++
++    function packedFunctionKey(address targetAddress, uint32 selector) external pure returns (uint256) {
++        return uint256(Permissions.keyForFunctions(targetAddress, bytes4(selector)));
++    }
++
++    function packedDataFunctionKey(address targetAddress, bytes memory data) external pure returns (uint256) {
++        return uint256(Permissions.keyForFunctions(targetAddress, bytes4(data)));
++    }
+--- a/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
++++ b/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
+@@ -15,0 +16,2 @@
++    function packedDataFunctionKey(address, bytes) external returns (uint256) envfree;
++    function packedFunctionKey(address, uint32) external returns (uint256) envfree;
+@@ -216,0 +219 @@
++    assert true; // Check pessimistic assertions alongside the existential witness.
+@@ -218,0 +222,15 @@
++
++rule packedFunctionKeyMatchesEvm(address targetAddress, uint32 selector) {
++    uint256 actual = packedFunctionKey(targetAddress, selector);
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    assert to_mathint(actual) == expected, "the packed key must retain the target address and four selector bytes";
++}
++
++rule packedDataFunctionKeyMatchesEvm(address targetAddress, bytes data) {
++    uint256 actual = packedDataFunctionKey(targetAddress, data);
++    uint32 selector = selectorOf(data);
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    assert to_mathint(actual) == expected, "the packed data key must retain the target address and four selector bytes";
++}

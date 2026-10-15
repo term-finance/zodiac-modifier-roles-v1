@@ -1,0 +1,69 @@
+--- a/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
++++ b/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
+@@ -7 +7,2 @@
+-        "certora/helpers/DelayTarget.sol"
++        "certora/helpers/DelayTarget.sol",
++        "certora/helpers/PackedPermissionKeyModel.sol"
+@@ -25 +26,2 @@
+-    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor"
++    "msg": "Isolated exact pure-key summary candidate - full original suite and key regressions - adoption requires equivalence evidence",
++    "precise_bitwise_ops": true
+--- /dev/null
++++ b/packages/evm/certora/helpers/PackedPermissionKeyModel.sol
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: LGPL-3.0-only
++pragma solidity ^0.8.6;
++
++// Exact arithmetic candidate for the two pure packed-key functions. Its use as
++// a summary requires independent equivalence proofs against Permissions.
++library PackedPermissionKeyModel {
++    function keyForFunctions(address targetAddress, bytes4 functionSig) external pure returns (bytes32) {
++        return bytes32((uint256(uint160(targetAddress)) << 96) | (uint256(uint32(functionSig)) << 64));
++    }
++
++    function keyForCompValues(address targetAddress, bytes4 functionSig, uint256 index) external pure returns (bytes32) {
++        return bytes32((uint256(uint160(targetAddress)) << 96) | (uint256(uint32(functionSig)) << 64) | (uint256(uint8(index)) << 56));
++    }
++}
+--- a/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
++++ b/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
+@@ -11,0 +12 @@
++using Permissions as permissionLibrary;
+@@ -15,0 +17,6 @@
++    function permissionLibrary.keyForFunctions(address targetAddress, bytes4 functionSig)
++        internal returns (bytes32) => PackedPermissionKeyModel.keyForFunctions(targetAddress, functionSig);
++    function permissionLibrary.keyForCompValues(address targetAddress, bytes4 functionSig, uint256 index)
++        internal returns (bytes32) => PackedPermissionKeyModel.keyForCompValues(targetAddress, functionSig, index);
++
++    function functionScopeConfigForSelector(uint16, address, uint32) external returns (uint256) envfree;
+@@ -216,0 +224 @@
++    assert true; // Check pessimistic assertions alongside the existential witness.
+@@ -218,0 +227,28 @@
++
++// Observe the actual permission-map key without constraining contract storage.
++persistent ghost bytes32 loadedFunctionKey;
++persistent ghost bool functionKeyLoaded;
++
++hook Sload uint256 scopeConfig roles[KEY uint16 role].functions[KEY bytes32 key] {
++    loadedFunctionKey = key;
++    functionKeyLoaded = true;
++}
++
++rule functionDataGetterUsesPackedKey(uint16 role, address targetAddress, bytes data) {
++    uint32 selector = selectorOf(data);
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    functionKeyLoaded = false;
++    functionScopeConfigForData(role, targetAddress, data);
++    assert functionKeyLoaded && loadedFunctionKey == to_bytes32(assert_uint256(expected)),
++        "the calldata getter must read the packed address and selector key";
++}
++
++rule functionSelectorGetterUsesPackedKey(uint16 role, address targetAddress, uint32 selector) {
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    functionKeyLoaded = false;
++    functionScopeConfigForSelector(role, targetAddress, selector);
++    assert functionKeyLoaded && loadedFunctionKey == to_bytes32(assert_uint256(expected)),
++        "the selector getter must read the packed address and selector key";
++}

@@ -1,0 +1,528 @@
+{
+  "recorded_at": "2026-10-15T10:22:25.103147+00:00",
+  "base_commit": "b1b643961147b202d0d5d9bf16c0475d548ce58d",
+  "active_pin": "7.31.0",
+  "adopted": false,
+  "cloud_submitted": false,
+  "semantic_closure_certified": false,
+  "scope": "Pure return-value equivalence and successful static calls on arbitrary scalar inputs. Internal caller-memory preservation and full-suite Certora behavior remain open.",
+  "tools": {
+    "forge": {
+      "sha256": "75ee0ee288f26b1de6646b0ac323aa5a938f145a0685bf051fd0cc3c4abbe39c",
+      "version": "forge Version: 1.8.5-Homebrew\nCommit SHA: 51a52c59cffd940f76eddd0b4bb1791aa4b5ac7f\nBuild Timestamp: 2026-10-05T16:19:21.000000000Z (1791217161)\nBuild Profile: release"
+    },
+    "halmos": {
+      "sha256": "cf0555695d494a2299b7046dca853e3cdc74437615c67f3350fa0948c0f1c935",
+      "version": "halmos 0.3.3"
+    },
+    "solc": {
+      "sha256": "500d4ac7efef80477ec72f3bd8fd35a6ca4eea1cbd9e4959d270c60f4889a25a",
+      "version": "solc, the solidity compiler commandline interface\nVersion: 0.8.6+commit.11564f7e.Darwin.appleclang"
+    },
+    "solver": {
+      "sha256": "6a445d914dce13d8bc6ef0d7c39fb88582ff2258a28e031975b798cd62cf7af5",
+      "version": "Z3 version 4.12.6 - 64 bit"
+    }
+  },
+  "reproduction_files_sha256": {
+    "packed-key-model-equivalence.patch": "49936b7af2f4ccf9304ce713b02ea710f99bf1ddd6c80df0d369e5a5b493f807",
+    "packed-key-model-negative-control.patch": "8ce73a82759beca91a691eb0aba275817bef2ddc3858052d7ef1f4d3ce562122",
+    "packed-key-model-full-suite.patch": "7c95ad1b9eac16f05ce41e43376f93b052bea9aaa4f2a274340dd8298ea7e422",
+    "packed-key-value-lemma.sol": "619e9ec5ee3e69653ae8fdcd6b404a66e9258cb93da230a8a2ead5f1179b5997"
+  },
+  "compilation": {
+    "key-equivalence": {
+      "cli_version": "8.19.2",
+      "compiler_version": "0.8.6",
+      "compiler_sha256": "500d4ac7efef80477ec72f3bd8fd35a6ca4eea1cbd9e4959d270c60f4889a25a",
+      "submission_exit": 0,
+      "receipt_sha256": "70a31786342d201649c4cfe6d762f485f3ccb38feee179743b562f6924faeecd",
+      "patch": "packed-key-model-equivalence.patch"
+    },
+    "key-equivalence-negative-control": {
+      "cli_version": "8.19.2",
+      "compiler_version": "0.8.6",
+      "compiler_sha256": "500d4ac7efef80477ec72f3bd8fd35a6ca4eea1cbd9e4959d270c60f4889a25a",
+      "submission_exit": 0,
+      "receipt_sha256": "78beaf13ce306d02a9b124dd5a0c890d85fdc185fa1d526c027265763beb6e47",
+      "patch": "packed-key-model-negative-control.patch"
+    },
+    "exact-key-summary": {
+      "cli_version": "8.19.2",
+      "compiler_version": "0.8.6",
+      "compiler_sha256": "500d4ac7efef80477ec72f3bd8fd35a6ca4eea1cbd9e4959d270c60f4889a25a",
+      "submission_exit": 0,
+      "receipt_sha256": "2369d22ab9bd1605d2513e9896fa962f07df6ec1af2a80a293de0285f4e8a7ea",
+      "patch": "packed-key-model-full-suite.patch"
+    }
+  },
+  "symbolic_checks": {
+    "disabled-inliner": {
+      "exit_code": 0,
+      "solver_timeout_assertion": "120s",
+      "solver_timeout_branching": "100ms",
+      "loop_bound": 16,
+      "arbitrary_inputs": [
+        "address target",
+        "uint32 selector",
+        "uint256 index"
+      ],
+      "compiler_settings": {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1,
+          "details": {
+            "inliner": false
+          }
+        },
+        "evmVersion": "berlin",
+        "viaIR": false
+      },
+      "source_sha256": {
+        "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+        "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+        "certora/lemmas/PackedKeyEquivalence.t.sol": "619e9ec5ee3e69653ae8fdcd6b404a66e9258cb93da230a8a2ead5f1179b5997",
+        "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+        "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+      },
+      "checks": [
+        {
+          "name": "check_compValueKey(address,uint32,uint256)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        },
+        {
+          "name": "check_functionKey(address,uint32)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        }
+      ],
+      "artifacts_sha256": {
+        "result.json": "c4b5dbbe9c163b4b22a9a59b52e09ec0a5d2cecc4e44327bfaf97afe5991ee12",
+        "halmos.log": "90bba31e2ab57a8d931a46a6b29f5dc31da59e046aec08ac0e1158e7fcd37f1b",
+        "compiler.json.gz": "bba3323e3343d7950d9463f0b31f023dcf9885d193c4deaa751d0679609274ea",
+        "foundry.toml": "d94c90ac324b2b7246b5065267c3604a6deba2c1d5c3e592e58521e53404bdaa"
+      }
+    },
+    "standard-optimizer": {
+      "exit_code": 0,
+      "solver_timeout_assertion": "120s",
+      "solver_timeout_branching": "100ms",
+      "loop_bound": 16,
+      "arbitrary_inputs": [
+        "address target",
+        "uint32 selector",
+        "uint256 index"
+      ],
+      "compiler_settings": {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1
+        },
+        "evmVersion": "berlin",
+        "viaIR": false
+      },
+      "source_sha256": {
+        "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+        "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+        "certora/lemmas/PackedKeyEquivalence.t.sol": "619e9ec5ee3e69653ae8fdcd6b404a66e9258cb93da230a8a2ead5f1179b5997",
+        "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+        "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+      },
+      "checks": [
+        {
+          "name": "check_compValueKey(address,uint32,uint256)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        },
+        {
+          "name": "check_functionKey(address,uint32)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        }
+      ],
+      "artifacts_sha256": {
+        "result.json": "9c868dac78ff6578fcbdc2fa481f91bd0dfc58609d119ad70a07f57a5472354b",
+        "halmos.log": "d11a26b0c2cc9a02035d82e868cdf8fa5cd9ffb9f6b6e455d88e7e3a66f0cbed",
+        "compiler.json.gz": "52f16e4a6206efff25ca35ed36c13a8f38079170b15c7480d61261bad0ea3d99",
+        "foundry.toml": "8f85867a38d43d1701e71f8d2ef3bacf9f252ee6b9a4f0719a762a07874d84fc"
+      }
+    },
+    "unoptimized": {
+      "exit_code": 0,
+      "solver_timeout_assertion": "120s",
+      "solver_timeout_branching": "100ms",
+      "loop_bound": 16,
+      "arbitrary_inputs": [
+        "address target",
+        "uint32 selector",
+        "uint256 index"
+      ],
+      "compiler_settings": {
+        "optimizer": {
+          "enabled": false,
+          "runs": 1
+        },
+        "evmVersion": "berlin",
+        "viaIR": false
+      },
+      "source_sha256": {
+        "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+        "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+        "certora/lemmas/PackedKeyEquivalence.t.sol": "619e9ec5ee3e69653ae8fdcd6b404a66e9258cb93da230a8a2ead5f1179b5997",
+        "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+        "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+      },
+      "checks": [
+        {
+          "name": "check_compValueKey(address,uint32,uint256)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        },
+        {
+          "name": "check_functionKey(address,uint32)",
+          "exitcode": 0,
+          "num_models": 0,
+          "num_paths": [
+            3,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        }
+      ],
+      "artifacts_sha256": {
+        "result.json": "47e80eb562857f44dc6e8ad5e6eb0e764b37d4e79df04e504ec5479be69c237c",
+        "halmos.log": "b49f34a0294e9f518835ee027b0acd09602d5bb547aed41297d71ce34af13c9f",
+        "compiler.json.gz": "0095ca62a377cb8206e752b836608af2447d59dc41fa0e0b1c6980c79d3886f6",
+        "foundry.toml": "c6f2325119bcaa52e91390a954711953eea19cbf7d3953fa165ebdd18dcee3de"
+      }
+    },
+    "selector-erased-negative-control": {
+      "exit_code": 1,
+      "solver_timeout_assertion": "120s",
+      "solver_timeout_branching": "100ms",
+      "loop_bound": 16,
+      "arbitrary_inputs": [
+        "address target",
+        "uint32 selector",
+        "uint256 index"
+      ],
+      "compiler_settings": {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1,
+          "details": {
+            "inliner": false
+          }
+        },
+        "evmVersion": "berlin",
+        "viaIR": false
+      },
+      "source_sha256": {
+        "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+        "certora/helpers/PackedPermissionKeyModel.sol": "a3433ae9b6c7c6c69956c1c19435fe1058b9720f4ede8c5d233b9ad142b35a08",
+        "certora/lemmas/PackedKeyEquivalence.t.sol": "619e9ec5ee3e69653ae8fdcd6b404a66e9258cb93da230a8a2ead5f1179b5997",
+        "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+        "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+      },
+      "checks": [
+        {
+          "name": "check_compValueKey(address,uint32,uint256)",
+          "exitcode": 1,
+          "num_models": 1,
+          "num_paths": [
+            4,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        },
+        {
+          "name": "check_functionKey(address,uint32)",
+          "exitcode": 1,
+          "num_models": 1,
+          "num_paths": [
+            4,
+            1,
+            0
+          ],
+          "num_bounded_loops": 0
+        }
+      ],
+      "artifacts_sha256": {
+        "result.json": "f877cfceab8efdb3826d7ed6c6bbf97b88c5f3be6ec81ab9e30363539f10d6a8",
+        "halmos.log": "d7584e6802fac48668c0c4fff101a6de7e7c316c512d6895d6eaf2a83fad4fba",
+        "compiler.json.gz": "879d62e1835892b359129b21950284334d09af41c1a7aed63b47f5fd17dce1ba",
+        "foundry.toml": "d94c90ac324b2b7246b5065267c3604a6deba2c1d5c3e592e58521e53404bdaa"
+      }
+    }
+  },
+  "native_checks": {
+    "reports": [
+      {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1,
+          "details": {
+            "inliner": false
+          }
+        },
+        "cases": 192,
+        "negative_control_replay": false,
+        "all_original_and_model_results_match_expected": true,
+        "state_unchanged": true,
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      },
+      {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1
+        },
+        "cases": 192,
+        "negative_control_replay": false,
+        "all_original_and_model_results_match_expected": true,
+        "state_unchanged": true,
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      },
+      {
+        "optimizer": {
+          "enabled": false
+        },
+        "cases": 192,
+        "negative_control_replay": false,
+        "all_original_and_model_results_match_expected": true,
+        "state_unchanged": true,
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "1d82ae67b9a9e90d7adaed7459fc5dbe3f4a8907128505d9f93164c02f83ec12",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      }
+    ]
+  },
+  "native_counterexample_replays": {
+    "reports": [
+      {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1,
+          "details": {
+            "inliner": false
+          }
+        },
+        "cases": 2,
+        "negative_control_replay": true,
+        "all_original_and_model_results_match_expected": false,
+        "state_unchanged": true,
+        "counterexampleReplays": [
+          {
+            "method": "actualFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "actualCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          }
+        ],
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "a3433ae9b6c7c6c69956c1c19435fe1058b9720f4ede8c5d233b9ad142b35a08",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      },
+      {
+        "optimizer": {
+          "enabled": true,
+          "runs": 1
+        },
+        "cases": 2,
+        "negative_control_replay": true,
+        "all_original_and_model_results_match_expected": false,
+        "state_unchanged": true,
+        "counterexampleReplays": [
+          {
+            "method": "actualFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "actualCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          }
+        ],
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "a3433ae9b6c7c6c69956c1c19435fe1058b9720f4ede8c5d233b9ad142b35a08",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      },
+      {
+        "optimizer": {
+          "enabled": false
+        },
+        "cases": 2,
+        "negative_control_replay": true,
+        "all_original_and_model_results_match_expected": false,
+        "state_unchanged": true,
+        "counterexampleReplays": [
+          {
+            "method": "actualFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelFunctionKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "actualCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000ffffffff0000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          },
+          {
+            "method": "modelCompValueKey",
+            "args": [
+              "0x0000000000000000000000000000000000000000",
+              "4294967295",
+              "0"
+            ],
+            "observed": "0x0000000000000000000000000000000000000000000000000000000000000000",
+            "originalExpected": "0x0000000000000000000000000000000000000000ffffffff0000000000000000"
+          }
+        ],
+        "sources_sha256": {
+          "certora/harness/PermissionsKeyHarness.sol": "5789d361f0867d75765e7d2ee0b1413cbba63d9fbcf90d242e6449442299da82",
+          "certora/helpers/PackedPermissionKeyModel.sol": "a3433ae9b6c7c6c69956c1c19435fe1058b9720f4ede8c5d233b9ad142b35a08",
+          "contracts/Permissions.sol": "37048e6a2ceb7f2013320573f20a2bf5b0a806c93ca8fae04b4596cd3d8cdbaf",
+          "node_modules/@gnosis.pm/safe-contracts/contracts/common/Enum.sol": "9beffe49e2ddcc6548f16883c9333daa607a7d21eda1cc5b7af8cefef034f64c"
+        }
+      }
+    ]
+  },
+  "open_obligations": [
+    "No new Certora cloud run has been submitted; all three candidates only compile locally.",
+    "For internal rerouting, establish preservation of observable caller-memory behavior; return equality and storage frames alone are insufficient.",
+    "Validate exact summary attachment and every original rule, witness, sanity result and storage-key regression.",
+    "Any adoption of the two new summaries requires review and approval of the changed assumptions.",
+    "No deployed-code binding, full specification-adequacy proof or semantic dependency-closure certificate is established."
+  ],
+  "native_runner_sha256": "27ec787a5d84ce57cb187213de20f4594595e5908a2be176ae24b36d5b1a1060",
+  "symbolic_runner_sha256": "0cd4d1f38eb2abeb68108bd3744194a28a37297074e51f909dcb1e0ff4d761b9"
+}
