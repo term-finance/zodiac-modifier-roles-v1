@@ -29,6 +29,9 @@ contract ConfigLockGuard is BaseGuard {
     /// Only plain calls are allowed, not delegate calls
     error UnexpectedOperation();
 
+    /// The locked Delay modifier address cannot be zero
+    error InvalidLockedDelay();
+
     /// The Safe's guard cannot be removed or replaced
     error GuardLocked();
 
@@ -51,6 +54,9 @@ contract ConfigLockGuard is BaseGuard {
     error DelayAvatarLocked();
 
     constructor(address _lockedDelay) {
+        if (_lockedDelay == address(0)) {
+            revert InvalidLockedDelay();
+        }
         lockedDelay = _lockedDelay;
     }
 
