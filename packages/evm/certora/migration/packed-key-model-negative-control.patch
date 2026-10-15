@@ -1,0 +1,106 @@
+--- a/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
++++ b/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
+@@ -3 +3 @@
+-        "certora/harness/RolesHarness.sol",
++        "certora/harness/PermissionsKeyHarness.sol",
+@@ -5,3 +5 @@
+-        "contracts/helpers/SetTxNonceGuard.sol",
+-        "certora/helpers/DummyAvatar.sol",
+-        "certora/helpers/DelayTarget.sol"
++        "certora/helpers/PackedPermissionKeyModel.sol"
+@@ -13,3 +10,0 @@
+-    "link": [
+-        "RolesHarness:target=DummyAvatar"
+-    ],
+@@ -18 +13 @@
+-    "optimistic_loop": true,
++    "optimistic_loop": false,
+@@ -20 +15 @@
+-        "RolesHarness"
++        "PermissionsKeyHarness"
+@@ -24,2 +19,8 @@
+-    "verify": "RolesHarness:certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec",
+-    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor"
++    "verify": "PermissionsKeyHarness:certora/specs/permissionsKeyEquivalence.spec",
++    "msg": "Permissions pure key equivalence key-equivalence-negative-control - no summaries or input restrictions - pessimistic loop bound",
++    "precise_bitwise_ops": true,
++    "prover_args": [
++        "-smt_preciseBytemaps true",
++        "-exactByteMaps true",
++        "-smt_liaBeforeBv false"
++    ]
+--- /dev/null
++++ b/packages/evm/certora/harness/PermissionsKeyHarness.sol
+@@ -0,0 +1,19 @@
++// SPDX-License-Identifier: LGPL-3.0-only
++pragma solidity ^0.8.6;
++import "../../contracts/Permissions.sol";
++import "../helpers/PackedPermissionKeyModel.sol";
++
++contract PermissionsKeyHarness {
++    function actualFunctionKey(address targetAddress, uint32 selector) external pure returns (bytes32) {
++        return Permissions.keyForFunctions(targetAddress, bytes4(selector));
++    }
++    function modelFunctionKey(address targetAddress, uint32 selector) external pure returns (bytes32) {
++        return PackedPermissionKeyModel.keyForFunctions(targetAddress, bytes4(selector));
++    }
++    function actualCompValueKey(address targetAddress, uint32 selector, uint256 index) external pure returns (bytes32) {
++        return Permissions.keyForCompValues(targetAddress, bytes4(selector), index);
++    }
++    function modelCompValueKey(address targetAddress, uint32 selector, uint256 index) external pure returns (bytes32) {
++        return PackedPermissionKeyModel.keyForCompValues(targetAddress, bytes4(selector), index);
++    }
++}
+--- /dev/null
++++ b/packages/evm/certora/helpers/PackedPermissionKeyModel.sol
+@@ -0,0 +1,14 @@
++// SPDX-License-Identifier: LGPL-3.0-only
++pragma solidity ^0.8.6;
++
++// Exact arithmetic candidate for the two pure packed-key functions. Its use as
++// a summary requires independent equivalence proofs against Permissions.
++library PackedPermissionKeyModel {
++    function keyForFunctions(address targetAddress, bytes4 functionSig) external pure returns (bytes32) {
++        return bytes32((uint256(uint160(targetAddress)) << 96) | uint256(0));
++    }
++
++    function keyForCompValues(address targetAddress, bytes4 functionSig, uint256 index) external pure returns (bytes32) {
++        return bytes32((uint256(uint160(targetAddress)) << 96) | uint256(0) | (uint256(uint8(index)) << 56));
++    }
++}
+--- /dev/null
++++ b/packages/evm/certora/specs/permissionsKeyEquivalence.spec
+@@ -0,0 +1,33 @@
++methods {
++    function actualFunctionKey(address, uint32) external returns (bytes32) envfree;
++    function modelFunctionKey(address, uint32) external returns (bytes32) envfree;
++    function actualCompValueKey(address, uint32, uint256) external returns (bytes32) envfree;
++    function modelCompValueKey(address, uint32, uint256) external returns (bytes32) envfree;
++}
++
++rule functionKeyModelIsExact(address targetAddress, uint32 selector) {
++    storage before = lastStorage;
++    bytes32 actual = actualFunctionKey(targetAddress, selector);
++    assert lastStorage == before, "the original key function has no storage effects";
++    bytes32 modeled = modelFunctionKey(targetAddress, selector);
++    assert lastStorage == before, "the model has no storage effects";
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    assert actual == to_bytes32(assert_uint256(expected)), "the original must match the packed-key requirement";
++    assert modeled == to_bytes32(assert_uint256(expected)), "the model must match the packed-key requirement";
++    assert actual == modeled, "the model must preserve every address and selector";
++}
++
++rule compValueKeyModelIsExact(address targetAddress, uint32 selector, uint256 index) {
++    storage before = lastStorage;
++    bytes32 actual = actualCompValueKey(targetAddress, selector, index);
++    assert lastStorage == before, "the original key function has no storage effects";
++    bytes32 modeled = modelCompValueKey(targetAddress, selector, index);
++    assert lastStorage == before, "the model has no storage effects";
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000
++                     + (to_mathint(index) % 256) * 0x100000000000000;
++    assert actual == to_bytes32(assert_uint256(expected)), "the original must match the packed-index requirement";
++    assert modeled == to_bytes32(assert_uint256(expected)), "the model must match the packed-index requirement";
++    assert actual == modeled, "the model must preserve the low index byte for every uint256 index";
++}

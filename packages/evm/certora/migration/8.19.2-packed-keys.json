@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-10-15T00:20:16.747273+00:00",
+  "recorded_at": "2026-10-15T10:06:30.920850+00:00",
   "base_commit": "b1b643961147b202d0d5d9bf16c0475d548ce58d",
   "config": "Roles-setTxNonceGuardAndRoleConfig.conf",
   "existing_configs_on_8": 40,
@@ -1056,11 +1056,11 @@
       "backend_version": null,
       "report_url": "https://prover.certora.com/output/99679/143cde50c70f4032a55b106f472f1db3",
       "submitted_at_unix": 1792021881,
-      "status_checked_at_unix": 1792023513,
-      "job_status": "RUNNING",
-      "job_ended": false,
-      "cli_result_passed": null,
-      "report_verdict": "pending",
+      "status_checked_at_unix": 1792058523,
+      "job_status": "HALTED",
+      "job_ended": true,
+      "cli_result_passed": false,
+      "report_verdict": "completed_without_usable_results",
       "accepted_for_migration": false,
       "root_statuses": {},
       "report_node_statuses": {},
@@ -1085,8 +1085,10 @@
       "compiler_version": "0.8.6",
       "compiler_sha256": "500d4ac7efef80477ec72f3bd8fd35a6ca4eea1cbd9e4959d270c60f4889a25a",
       "archive_sha256": null,
-      "progress_sha256": "1095d90afa9841cd62743571c4dcd5bbdf7bd09303e3511af75fb25d95b9970c",
+      "progress_sha256": "62076015b5818b690f3e5aa3194f5dc70ce6c2eff62be05e04fb626deacd7778",
       "output_sha256": null,
+      "terminal_evidence": "Cloud progress reports HALTED and jobEnded=true with no rule results; jsonOutput returned HTTP 404. Halt cause is not established.",
+      "json_output_http_status": 404,
       "source_hashes_overrides": {
         "certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec": "e3f74c8a8656cb3720ecad0c039c7e3dd0ec005b2ae13a3d0385609cef5b3bb5",
         "certora/harness/RolesHarness.sol": "ea5268fe008eb88222c5daee35b621075722687f3cbd325ac441c00375afc2a7",
@@ -1530,9 +1532,63 @@
       }
     ]
   },
+  "ci_observation": {
+    "run_id": 38659694847,
+    "commit": "b6ffb9b83944107a3524a2f27cde0ae363f980ee",
+    "url": "https://github.com/term-finance/zodiac-modifier-roles-v1/actions/runs/38659694847",
+    "failed_jobs": 34,
+    "failure": "CERTORAKEY environment variable was empty; no cloud proof was submitted",
+    "jobs": [
+      "formal-verification (Delay-delayOwnerGuard.conf)",
+      "formal-verification (Delay-moduleIntegrity.conf)",
+      "formal-verification (Delay-pauseGuardSufficient.conf)",
+      "formal-verification (Delay-queueProvenance.conf)",
+      "formal-verification (Governor-proposalThreshold.conf)",
+      "formal-verification (Governor-settings.conf)",
+      "formal-verification (Governor-tallies.conf)",
+      "formal-verification (Governor-veto.conf)",
+      "formal-verification (Governor-voting.conf)",
+      "formal-verification (MultiSend-shortBatch.conf)",
+      "formal-verification (PauseGuard-deployment.conf)",
+      "formal-verification (Roles-configIntegrity.conf)",
+      "formal-verification (Roles-setTxNonceGuardAndRoleConfig.conf)",
+      "formal-verification (Roles-setTxNonceGuardSufficient.conf)",
+      "formal-verification (Roles-setTxNonceLands.conf)",
+      "formal-verification (Roles-setTxNonceRoleConfigSufficient.conf)",
+      "formal-verification (Safe-configLockGuard.conf)",
+      "formal-verification (Safe-executionPaths.conf)",
+      "formal-verification (Safe-fallbackHandler.conf)",
+      "formal-verification (Safe-fallbackStorage.conf)",
+      "formal-verification (Safe-noStateChange.conf)",
+      "formal-verification (Safe-ownerlessSafeGuard.conf)",
+      "formal-verification (Safe-receive.conf)",
+      "formal-verification (Safe-selfCalls.conf)",
+      "formal-verification (Safe-selfHandler.conf)",
+      "formal-verification (Safe-v141-configLockGuard.conf)",
+      "formal-verification (Safe-v141-executionPaths.conf)",
+      "formal-verification (Safe-v141-fallbackHandler.conf)",
+      "formal-verification (Safe-v141-fallbackStorage.conf)",
+      "formal-verification (Safe-v141-noStateChange.conf)",
+      "formal-verification (Safe-v141-receive.conf)",
+      "formal-verification (Safe-v141-selfCalls.conf)",
+      "formal-verification (Safe-v141-selfHandler.conf)",
+      "formal-verification (Safe-v141-vetoLandsOnDelay.conf)"
+    ],
+    "native_regression_output": [
+      "2026-10-15T00:24:12.6226210Z certora-default: both getters passed 168 storage-key cases; 5 library-call counterexamples replayed correctly.",
+      "2026-10-15T00:24:14.8772913Z standard-optimizer: both getters passed 168 storage-key cases; 5 library-call counterexamples replayed correctly.",
+      "2026-10-15T00:24:16.1827712Z unoptimized: both getters passed 168 storage-key cases; 5 library-call counterexamples replayed correctly."
+    ]
+  },
   "reproduction_files_sha256": {
     "packages/evm/certora/check-packed-function-keys.cjs": "73f2d33ba6c142cd921262827bf005d0d32b6d548e2df39e30780cd1d2d4be85",
     "packages/evm/certora/migration/packed-key-diagnostic.patch": "1f4f2de533cac9c8350c23fac05b2fd572dcab342e6a8c0f4591a57f4cc0385a",
     "packages/evm/certora/migration/packed-key-full-suite.patch": "ffa4596c6240de3bfa432546846d96fbe3861139ef48148991a32b6737beaae6"
+  },
+  "local_candidate": {
+    "record": "8.19.2-key-model-candidate.json",
+    "sha256": "0fed1d8d6c0988848beebf651adf99851da97d6c6e4b392d29b98d495f68e510",
+    "accepted_for_migration": false,
+    "cloud_submitted": false
   }
 }
