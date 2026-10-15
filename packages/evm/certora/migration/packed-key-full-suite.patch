@@ -1,0 +1,47 @@
+--- a/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
++++ b/packages/evm/certora/confs/Roles-setTxNonceGuardAndRoleConfig.conf
+@@ -25 +25,7 @@
+-    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor"
++    "msg": "Roles: SetTxNonceGuard and the setTxNonce role configuration together admit only Delay.setTxNonce from the Governor",
++    "prover_args": [
++        "-smt_preciseBytemaps true",
++        "-exactByteMaps true",
++        "-smt_liaBeforeBv false"
++    ],
++    "precise_bitwise_ops": true
+--- a/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
++++ b/packages/evm/certora/specs/Roles/setTxNonceGuardAndRoleConfig.spec
+@@ -15,0 +16 @@
++    function functionScopeConfigForSelector(uint16, address, uint32) external returns (uint256) envfree;
+@@ -216,0 +218 @@
++    assert true; // Check pessimistic assertions alongside the existential witness.
+@@ -218,0 +221,29 @@
++
++
++// Observe the actual permission-map key without constraining contract storage.
++persistent ghost bytes32 loadedFunctionKey;
++persistent ghost bool functionKeyLoaded;
++
++hook Sload uint256 scopeConfig roles[KEY uint16 role].functions[KEY bytes32 key] {
++    loadedFunctionKey = key;
++    functionKeyLoaded = true;
++}
++
++rule functionDataGetterUsesPackedKey(uint16 role, address targetAddress, bytes data) {
++    uint32 selector = selectorOf(data);
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    functionKeyLoaded = false;
++    functionScopeConfigForData(role, targetAddress, data);
++    assert functionKeyLoaded && loadedFunctionKey == to_bytes32(assert_uint256(expected)),
++        "the calldata getter must read the packed address and selector key";
++}
++
++rule functionSelectorGetterUsesPackedKey(uint16 role, address targetAddress, uint32 selector) {
++    mathint expected = to_mathint(targetAddress) * 0x1000000000000000000000000
++                     + to_mathint(selector) * 0x10000000000000000;
++    functionKeyLoaded = false;
++    functionScopeConfigForSelector(role, targetAddress, selector);
++    assert functionKeyLoaded && loadedFunctionKey == to_bytes32(assert_uint256(expected)),
++        "the selector getter must read the packed address and selector key";
++}

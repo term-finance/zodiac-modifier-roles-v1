@@ -54,4 +54,4 @@ The local runner checks the installed CLI before submission, runs from the packa
 
 ## Remaining
 
-One configuration remains on 7.31.0: `Roles-setTxNonceGuardAndRoleConfig.conf`. Their remaining validation and diagnostic review are detailed in the [second batch](migration/8.19.2-second-batch.md#remaining-on-7310). Historical records retain the selections as they stood for each batch; the [second record](migration/8.19.2-second-batch.json) contains the current selection for all 41 configurations.
+One configuration remains on 7.31.0: `Roles-setTxNonceGuardAndRoleConfig.conf`. The [packed-key investigation](migration/8.19.2-packed-keys.md) adds native EVM regression checks and reproducible cloud diagnostics: precise settings pass the isolated packing checks, but the full suite still lacks an accepted result. No additional configuration is promoted. Historical records retain the selections as they stood for each batch; the [second record](migration/8.19.2-second-batch.json) contains the current selection for all 41 configurations.
