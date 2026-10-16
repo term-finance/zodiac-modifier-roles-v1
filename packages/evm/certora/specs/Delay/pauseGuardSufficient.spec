@@ -817,3 +817,28 @@ rule onlyExecuteNextTxReachesTheTarget(method f, calldataarg args)
         f.selector == sig:executeNextTx(address, uint256, bytes, Enum.Operation).selector,
         "an entry point other than executeNextTx handed a transaction to the Delay's target";
 }
+
+/* ------------------------------------------------------------------------
+ * 11. The owner's veto does not depend on the time
+ * --------------------------------------------------------------------- */
+
+/*
+ * Whatever the time, txCooldown, txExpiration and pause state, the owner's
+ * setTxNonce succeeds for any nonce past txNonce and up to queueNonce, and
+ * the new nonce lands. So the owner can veto at any point in the cooldown.
+ */
+rule ownerCanSetTxNonceAtAnyTime(uint256 nonce) {
+    env e;
+    require e.msg.sender == owner();
+    require e.msg.value == 0;
+
+    require nonce > txNonce();
+    require nonce <= queueNonce();
+
+    setTxNonce@withrevert(e, nonce);
+
+    assert !lastReverted,
+        "the Delay owner could not set txNonce";
+    assert txNonce() == nonce,
+        "setTxNonce returned without recording the new nonce";
+}
