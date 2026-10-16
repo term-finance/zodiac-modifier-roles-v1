@@ -101,9 +101,8 @@ contract ConfigLockGuard is BaseGuard {
         if (data.length < 4) {
             return;
         }
-        bytes4 selector = bytes4(data);
-
         if (to == msg.sender) {
+            bytes4 selector = bytes4(data);
             if (selector == ISafeAdmin.setGuard.selector) {
                 revert GuardLocked();
             }
@@ -117,6 +116,7 @@ contract ConfigLockGuard is BaseGuard {
                 revert FallbackHandlerLocked();
             }
         } else if (to == lockedModifier) {
+            bytes4 selector = bytes4(data);
             if (
                 selector == IModifierAdmin.transferOwnership.selector ||
                 selector == IModifierAdmin.renounceOwnership.selector
