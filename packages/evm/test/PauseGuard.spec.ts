@@ -14,16 +14,13 @@ import { PauseGuard } from "../typechain-types";
  * specs/Delay/pauseGuardSufficient.spec) cover what the constructor sets up
  * and the guard on the real Delay, but with the Delay's target a DummyAvatar
  * and rules that assert only whether a call reverts. These tests check the
- * exact errors and events, the AccessControl revert strings, and real block
+ * exact errors and events, that nothing can change the admin, and real block
  * time for cooldowns and expirations across a pause, on the real Delay v1.0.1
  * forwarding to a real GnosisSafe v1.3.0 (the OwnerlessSafe's version,
  * contracts/test/*Imports.sol).
  */
 
 const { AddressZero, HashZero } = ethers.constants;
-
-const ADMIN_ROLE = ethers.utils.id("ADMIN_ROLE");
-const DEFAULT_ADMIN_ROLE = HashZero;
 
 const CALL = 0;
 const DELEGATE_CALL = 1;
@@ -44,9 +41,8 @@ const customError = (name: string, ...args: string[]) =>
 const notPauser = (caller: string) =>
   customError("NotPauser", ethers.utils.getAddress(caller));
 
-// OpenZeppelin 4.9 AccessControl's revert string.
-const missingRole = (account: string, role: string) =>
-  `AccessControl: account ${account.toLowerCase()} is missing role ${role}`;
+const notAdmin = (caller: string) =>
+  customError("NotAdmin", ethers.utils.getAddress(caller));
 
 describe("PauseGuard", async () => {
   const setup = deployments.createFixture(async () => {
@@ -97,7 +93,7 @@ describe("PauseGuard", async () => {
     it("sets up the admin, the pauser and an unpaused state, and emits PauserSet(0, pauser)", async () => {
       const { guard, admin, pauser } = await setup();
 
-      expect(await guard.hasRole(ADMIN_ROLE, admin.address)).to.equal(true);
+      expect(await guard.admin()).to.equal(admin.address);
       expect(await guard.pauser()).to.equal(pauser.address);
       expect(await guard.paused()).to.equal(false);
       await expect(guard.deployTransaction)
@@ -105,39 +101,19 @@ describe("PauseGuard", async () => {
         .withArgs(AddressZero, pauser.address);
     });
 
-    it("ADMIN_ROLE is keccak256('ADMIN_ROLE')", async () => {
-      const { guard } = await setup();
-
-      expect(await guard.ADMIN_ROLE()).to.equal(ADMIN_ROLE);
-    });
-
-    it("nobody holds DEFAULT_ADMIN_ROLE, which administers ADMIN_ROLE", async () => {
-      const { guard, deployer, admin, pauser } = await setup();
-
-      for (const account of [deployer, admin, pauser]) {
-        expect(
-          await guard.hasRole(DEFAULT_ADMIN_ROLE, account.address)
-        ).to.equal(false);
-      }
-      expect(await guard.getRoleAdmin(ADMIN_ROLE)).to.equal(DEFAULT_ADMIN_ROLE);
-      expect(await guard.getRoleAdmin(DEFAULT_ADMIN_ROLE)).to.equal(
-        DEFAULT_ADMIN_ROLE
-      );
-    });
-
-    it("the deployer gets no role and cannot pause, unpause or set the pauser", async () => {
+    it("the deployer is not the admin and cannot pause, unpause or set the pauser", async () => {
       const { guard, deployer, stranger } = await setup();
 
-      expect(await guard.hasRole(ADMIN_ROLE, deployer.address)).to.equal(false);
+      expect(await guard.admin()).to.not.equal(deployer.address);
       await expect(guard.connect(deployer).pause()).to.be.revertedWith(
         notPauser(deployer.address)
       );
       await expect(guard.connect(deployer).unpause()).to.be.revertedWith(
-        missingRole(deployer.address, ADMIN_ROLE)
+        notAdmin(deployer.address)
       );
       await expect(
         guard.connect(deployer).setPauser(stranger.address)
-      ).to.be.revertedWith(missingRole(deployer.address, ADMIN_ROLE));
+      ).to.be.revertedWith(notAdmin(deployer.address));
     });
 
     it("admin and pauser may be one account, which can then pause and unpause", async () => {
@@ -213,23 +189,23 @@ describe("PauseGuard", async () => {
       );
     });
 
-    it("anyone without ADMIN_ROLE gets the AccessControl error, the pauser included", async () => {
+    it("anyone else gets NotAdmin(caller), the pauser included", async () => {
       const { guard, deployer, pauser, stranger } = await setup();
 
       await guard.connect(pauser).pause();
       for (const caller of [pauser, deployer, stranger]) {
         await expect(guard.connect(caller).unpause()).to.be.revertedWith(
-          missingRole(caller.address, ADMIN_ROLE)
+          notAdmin(caller.address)
         );
       }
       expect(await guard.paused()).to.equal(true);
     });
 
-    it("checks the role first: anyone else gets the AccessControl error while not paused", async () => {
+    it("checks the admin first: anyone else gets NotAdmin while not paused", async () => {
       const { guard, stranger } = await setup();
 
       await expect(guard.connect(stranger).unpause()).to.be.revertedWith(
-        missingRole(stranger.address, ADMIN_ROLE)
+        notAdmin(stranger.address)
       );
     });
   });
@@ -259,15 +235,23 @@ describe("PauseGuard", async () => {
       expect(await guard.pauser()).to.equal(pauser.address);
     });
 
-    it("anyone without ADMIN_ROLE gets the AccessControl error, the pauser included", async () => {
+    it("anyone else gets NotAdmin(caller), the pauser included", async () => {
       const { guard, deployer, pauser, nextPauser, stranger } = await setup();
 
       for (const caller of [pauser, deployer, stranger]) {
         await expect(
           guard.connect(caller).setPauser(nextPauser.address)
-        ).to.be.revertedWith(missingRole(caller.address, ADMIN_ROLE));
+        ).to.be.revertedWith(notAdmin(caller.address));
       }
       expect(await guard.pauser()).to.equal(pauser.address);
+    });
+
+    it("checks the admin first: anyone else gets NotAdmin for address(0) too", async () => {
+      const { guard, stranger } = await setup();
+
+      await expect(
+        guard.connect(stranger).setPauser(AddressZero)
+      ).to.be.revertedWith(notAdmin(stranger.address));
     });
 
     it("works while paused and leaves the pause in place", async () => {
@@ -291,52 +275,66 @@ describe("PauseGuard", async () => {
     });
   });
 
-  describe("the AccessControl functions", async () => {
-    it("renounceRole always reverts with RenounceDisabled", async () => {
-      const { guard, admin, stranger } = await setup();
+  describe("a fixed admin", async () => {
+    it("has only the guard's own functions", async () => {
+      const { guard } = await setup();
 
-      for (const role of [
-        ADMIN_ROLE,
-        DEFAULT_ADMIN_ROLE,
-        ethers.utils.id("X"),
-      ]) {
-        for (const caller of [admin, stranger]) {
-          for (const account of [caller.address, admin.address]) {
-            await expect(
-              guard.connect(caller).renounceRole(role, account)
-            ).to.be.revertedWith(customError("RenounceDisabled"));
-          }
-        }
-      }
-      expect(await guard.hasRole(ADMIN_ROLE, admin.address)).to.equal(true);
+      expect(
+        guard.interface.fragments
+          .filter((f) => f.type === "function")
+          .map((f) => f.name)
+          .sort()
+      ).to.deep.equal([
+        "admin",
+        "checkAfterExecution",
+        "checkTransaction",
+        "pause",
+        "paused",
+        "pauser",
+        "setPauser",
+        "supportsInterface",
+        "unpause",
+      ]);
     });
 
-    it("grantRole and revokeRole revert, the admin's included, since nobody holds DEFAULT_ADMIN_ROLE", async () => {
+    it("has no AccessControl functions left that could add, move or drop the admin", async () => {
       const { guard, admin, stranger } = await setup();
+
+      const accessControl = new ethers.utils.Interface([
+        "function ADMIN_ROLE()",
+        "function DEFAULT_ADMIN_ROLE()",
+        "function hasRole(bytes32, address)",
+        "function getRoleAdmin(bytes32)",
+        "function grantRole(bytes32, address)",
+        "function revokeRole(bytes32, address)",
+        "function renounceRole(bytes32, address)",
+      ]);
+      const role = ethers.utils.id("ADMIN_ROLE");
+      const calls = [
+        accessControl.encodeFunctionData("ADMIN_ROLE"),
+        accessControl.encodeFunctionData("DEFAULT_ADMIN_ROLE"),
+        accessControl.encodeFunctionData("hasRole", [role, admin.address]),
+        accessControl.encodeFunctionData("getRoleAdmin", [role]),
+        accessControl.encodeFunctionData("grantRole", [role, stranger.address]),
+        accessControl.encodeFunctionData("revokeRole", [role, admin.address]),
+        accessControl.encodeFunctionData("renounceRole", [role, admin.address]),
+      ];
 
       for (const caller of [admin, stranger]) {
-        const g = guard.connect(caller);
-        for (const call of [
-          () => g.grantRole(ADMIN_ROLE, stranger.address),
-          () => g.revokeRole(ADMIN_ROLE, admin.address),
-          () => g.grantRole(DEFAULT_ADMIN_ROLE, caller.address),
-          () => g.revokeRole(DEFAULT_ADMIN_ROLE, caller.address),
-        ]) {
-          await expect(call()).to.be.revertedWith(
-            missingRole(caller.address, DEFAULT_ADMIN_ROLE)
-          );
+        for (const data of calls) {
+          await expect(caller.sendTransaction({ to: guard.address, data })).to
+            .be.reverted;
         }
       }
-      expect(await guard.hasRole(ADMIN_ROLE, admin.address)).to.equal(true);
-      expect(await guard.hasRole(ADMIN_ROLE, stranger.address)).to.equal(false);
+      expect(await guard.admin()).to.equal(admin.address);
     });
 
-    it("supportsInterface answers for IGuard, IERC165 and IAccessControl only", async () => {
+    it("supportsInterface answers for IGuard and IERC165 only, no longer IAccessControl", async () => {
       const { guard } = await setup();
 
       expect(await guard.supportsInterface("0xe6d7a83a")).to.equal(true);
       expect(await guard.supportsInterface("0x01ffc9a7")).to.equal(true);
-      expect(await guard.supportsInterface("0x7965db0b")).to.equal(true);
+      expect(await guard.supportsInterface("0x7965db0b")).to.equal(false);
       expect(await guard.supportsInterface("0xffffffff")).to.equal(false);
     });
   });
@@ -400,8 +398,8 @@ describe("PauseGuard", async () => {
 
   /*
    * A seeded random sequence of calls checked against a model of PauseGuard's
-   * state (paused, pauser) and of which error each call should raise. A
-   * failure reproduces.
+   * state (paused, pauser, and the admin, which never changes) and of which
+   * error each call should raise. A failure reproduces.
    */
   describe("against a model of PauseGuard", async () => {
     // mulberry32
@@ -424,8 +422,7 @@ describe("PauseGuard", async () => {
         p.then(
           () => "ok",
           (e: Error) =>
-            /custom error '(\w+)\(/.exec(e.message)?.[1] ??
-            (e.message.includes("is missing role") ? "MissingRole" : e.message)
+            /custom error '(\w+)\(/.exec(e.message)?.[1] ?? e.message
         );
 
       const model = { paused: false, pauser: pauser.address };
@@ -438,8 +435,7 @@ describe("PauseGuard", async () => {
           "unpause",
           "unpause",
           "setPauser",
-          "renounceRole",
-          "grantRole",
+          "setPauser",
           "checkTransaction",
         ]);
         const account = pick([...callers.map((c) => c.address), AddressZero]);
@@ -458,7 +454,7 @@ describe("PauseGuard", async () => {
         } else if (action === "unpause") {
           expected =
             caller.address !== admin.address
-              ? "MissingRole"
+              ? "NotAdmin"
               : !model.paused
               ? "NotPaused"
               : "ok";
@@ -467,22 +463,12 @@ describe("PauseGuard", async () => {
         } else if (action === "setPauser") {
           expected =
             caller.address !== admin.address
-              ? "MissingRole"
+              ? "NotAdmin"
               : account === AddressZero
               ? "ZeroAddress"
               : "ok";
           actual = await outcome(guard.connect(caller).setPauser(account));
           if (expected === "ok") model.pauser = account;
-        } else if (action === "renounceRole") {
-          expected = "RenounceDisabled";
-          actual = await outcome(
-            guard.connect(caller).renounceRole(ADMIN_ROLE, caller.address)
-          );
-        } else if (action === "grantRole") {
-          expected = "MissingRole";
-          actual = await outcome(
-            guard.connect(caller).grantRole(ADMIN_ROLE, caller.address)
-          );
         } else {
           expected = model.paused ? "ExecutionPaused" : "ok";
           actual = await outcome(checkTransaction(guard, caller));
@@ -492,6 +478,7 @@ describe("PauseGuard", async () => {
         expect(actual, at).to.equal(expected);
         expect(await guard.paused(), at).to.equal(model.paused);
         expect(await guard.pauser(), at).to.equal(model.pauser);
+        expect(await guard.admin(), at).to.equal(admin.address);
       }
     });
   });
