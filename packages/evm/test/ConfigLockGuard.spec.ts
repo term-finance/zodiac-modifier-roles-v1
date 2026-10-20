@@ -125,6 +125,16 @@ const MODIFIER_LOCKED: LockedCall[] = [
     data: delayAbi.encodeFunctionData("setTarget", [SOMEONE]),
     error: "ModifierAvatarLocked",
   },
+  {
+    name: "setTxCooldown",
+    data: delayAbi.encodeFunctionData("setTxCooldown", [0]),
+    error: "ModifierTimingLocked",
+  },
+  {
+    name: "setTxExpiration",
+    data: delayAbi.encodeFunctionData("setTxExpiration", [0]),
+    error: "ModifierTimingLocked",
+  },
 ];
 
 // Safe settings the guard leaves open.
@@ -143,8 +153,6 @@ const SAFE_OPEN = [
 // Delay functions the guard leaves open.
 const MODIFIER_OPEN = [
   delayAbi.encodeFunctionData("setTxNonce", [1]),
-  delayAbi.encodeFunctionData("setTxCooldown", [60]),
-  delayAbi.encodeFunctionData("setTxExpiration", [120]),
   delayAbi.encodeFunctionData("executeNextTx", [SOMEONE, 0, "0x", CALL]),
   delayAbi.encodeFunctionData("skipExpired"),
   delayAbi.encodeFunctionData("execTransactionFromModule", [
@@ -717,6 +725,8 @@ describe("ConfigLockGuard", async () => {
     avatar: await delay.avatar(),
     target: await delay.target(),
     modules: [...(await delay.getModulesPaginated(SENTINEL, 10))[0]],
+    txCooldown: (await delay.txCooldown()).toString(),
+    txExpiration: (await delay.txExpiration()).toString(),
   });
 
   for (const version of SAFE_VERSIONS) {
@@ -1122,6 +1132,16 @@ describe("ConfigLockGuard", async () => {
             data: (s) =>
               delayAbi.encodeFunctionData("setTarget", [s.newOwner.address]),
           },
+          {
+            name: "setTxCooldown(0), skipping the veto window",
+            error: "ModifierTimingLocked",
+            data: () => delayAbi.encodeFunctionData("setTxCooldown", [0]),
+          },
+          {
+            name: "setTxExpiration",
+            error: "ModifierTimingLocked",
+            data: () => delayAbi.encodeFunctionData("setTxExpiration", [120]),
+          },
         ];
 
         for (const c of cases) {
@@ -1149,23 +1169,17 @@ describe("ConfigLockGuard", async () => {
           });
         }
 
-        it("the owners can still veto and tune the queue", async () => {
+        it("the owners can still veto", async () => {
           const s = await setupGuarded();
-          const call = (fn: string, args: unknown[]) =>
-            exec(
-              s.safe,
-              s.owner,
-              s.delay.address,
-              delayAbi.encodeFunctionData(fn, args)
-            );
 
-          await call("setTxNonce", [1]);
-          await call("setTxCooldown", [60]);
-          await call("setTxExpiration", [120]);
+          await exec(
+            s.safe,
+            s.owner,
+            s.delay.address,
+            delayAbi.encodeFunctionData("setTxNonce", [1])
+          );
 
           expect(await s.delay.txNonce()).to.equal(1);
-          expect(await s.delay.txCooldown()).to.equal(60);
-          expect(await s.delay.txExpiration()).to.equal(120);
         });
 
         it("a second Delay owned by the same Safe is not locked", async () => {
