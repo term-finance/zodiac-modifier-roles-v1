@@ -3,12 +3,12 @@
  * the Safe's own setGuard, the Safe cannot remove or replace the guard,
  * enable or disable a module, change its fallback handler, or delegate call.
  * Called directly, the guard rejects exactly those calls and the seven locked
- * calls to its lockedDelay (the Delay on chain), and lets everything else
+ * calls to its lockedModifier (the Delay on chain), and lets everything else
  * through. The module path never reaches the guard. What the guard does to
  * calls into the Delay, end to end, is specs/Delay/delayOwnerGuard.spec.
  *
  * The scene is the real Safe v1.4.1 (SafeV141Harness) with the real
- * ConfigLockGuard. The guard's lockedDelay is left unconstrained, so the
+ * ConfigLockGuard. The guard's lockedModifier is left unconstrained, so the
  * rules hold for whatever modifier it was built with, address(0) included.
  * The signature check is stubbed to pass
  * (execTransactionRunsOnlyAfterTheSignatureCheck and
@@ -28,7 +28,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedDelay() external returns (address) envfree;
+    function configLockGuard.lockedModifier() external returns (address) envfree;
 
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
@@ -213,7 +213,7 @@ rule checkTransactionRejectsModifierOwnershipChange(
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address m = configLockGuard.lockedDelay();
+    address m = configLockGuard.lockedModifier();
     require m != e.msg.sender;
     uint32 sel = selectorOf(data);
     require sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP();
@@ -237,7 +237,7 @@ rule checkTransactionRejectsModifierModuleChange(
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address m = configLockGuard.lockedDelay();
+    address m = configLockGuard.lockedModifier();
     require m != e.msg.sender;
     uint32 sel = selectorOf(data);
     require sel == ENABLE_MODULE() || sel == DISABLE_MODULE();
@@ -261,7 +261,7 @@ rule checkTransactionRejectsModifierSetGuard(
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address m = configLockGuard.lockedDelay();
+    address m = configLockGuard.lockedModifier();
     require m != e.msg.sender;
     require selectorOf(data) == SET_GUARD();
 
@@ -283,7 +283,7 @@ rule checkTransactionRejectsModifierSetAvatarOrTarget(
     address gasToken, address refundReceiver, bytes signatures, address msgSender
 ) {
     env e;
-    address m = configLockGuard.lockedDelay();
+    address m = configLockGuard.lockedModifier();
     require m != e.msg.sender;
     uint32 sel = selectorOf(data);
     require sel == SET_AVATAR() || sel == SET_TARGET();
@@ -310,7 +310,7 @@ rule checkTransactionAcceptsEverythingElse(
 ) {
     env e;
     require e.msg.value == 0;
-    require !isLockedCall(to, e.msg.sender, configLockGuard.lockedDelay(), selectorOf(data));
+    require !isLockedCall(to, e.msg.sender, configLockGuard.lockedModifier(), selectorOf(data));
 
     configLockGuard.checkTransaction@withrevert(
         e, to, value, data, Enum.Operation.Call,
@@ -538,7 +538,7 @@ rule guardedOwnersCanStillCallOut(
     require thresholdValue() > 0;
     require guardAddress() == configLockGuard;
     require to != currentContract;
-    require to != configLockGuard.lockedDelay();
+    require to != configLockGuard.lockedModifier();
 
     execTransaction@withrevert(e,
         to, value, data, Enum.Operation.Call,
@@ -623,7 +623,7 @@ rule guardedSafeCannotCallLockedModifierFunctions(
 ) {
     env e;
     require guardAddress() == configLockGuard;
-    address m = configLockGuard.lockedDelay();
+    address m = configLockGuard.lockedModifier();
     require m != currentContract;
     require isLockedModifierSelector(selectorOf(data));
 

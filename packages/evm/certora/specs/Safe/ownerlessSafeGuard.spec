@@ -1,6 +1,6 @@
 /*
  * ConfigLockGuard on the OwnerlessSafe (GnosisSafe v1.3.0), built with
- * lockedDelay = address(0): it leaves the governance path through the
+ * lockedModifier = address(0): it leaves the governance path through the
  * module open, and has no function that can change what it checks. What the
  * guard blocks for the signers is configLockGuard.spec's.
  *
@@ -20,7 +20,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedDelay() external returns (address) envfree;
+    function configLockGuard.lockedModifier() external returns (address) envfree;
 
     // Guard calls resolve to ConfigLockGuard, the only guard in the scene.
     function _.checkTransaction(
@@ -49,7 +49,7 @@ definition SENTINEL() returns address = 0x1;
 definition CHECK_TRANSACTION() returns uint32 = 0x75f0bb52;
 definition CHECK_AFTER_EXECUTION() returns uint32 = 0x93271368;
 definition SUPPORTS_INTERFACE() returns uint32 = 0x01ffc9a7;
-definition LOCKED_DELAY() returns uint32 = 0x4ce677a8;
+definition LOCKED_MODIFIER() returns uint32 = 0x97e50690;
 
 /// The Safe's eight settings functions.
 definition isSettingsFunction(method f) returns bool =
@@ -69,7 +69,7 @@ definition isSettingsFunction(method f) returns bool =
 /*
  * ConfigLockGuard has no fallback, its functions are exactly
  * checkTransaction, checkAfterExecution, supportsInterface and
- * lockedDelay, and none of them writes state. lockedDelay is immutable
+ * lockedModifier, and none of them writes state. lockedModifier is immutable
  * and the guard has no admin, so what it checks is fixed at deployment.
  */
 rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
@@ -84,7 +84,7 @@ rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
     assert f.selector == CHECK_TRANSACTION() ||
            f.selector == CHECK_AFTER_EXECUTION() ||
            f.selector == SUPPORTS_INTERFACE() ||
-           f.selector == LOCKED_DELAY(),
+           f.selector == LOCKED_MODIFIER(),
         "ConfigLockGuard has a function this file does not account for";
     assert f.isView || f.isPure,
         "ConfigLockGuard has a function that can write state";
@@ -105,7 +105,7 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
 {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedDelay() == 0;
+    require configLockGuard.lockedModifier() == 0;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require selectorOf(data) == f.selector;
@@ -135,7 +135,7 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
 rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedDelay() == 0;
+    require configLockGuard.lockedModifier() == 0;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require to != currentContract;
