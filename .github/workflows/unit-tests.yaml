@@ -22,6 +22,12 @@ jobs:
           cache-dependency-path: packages/evm/yarn.lock
       - run: yarn install --immutable
         working-directory: ./packages/evm
+      # Compile in its own process first, so typechain-types exists before
+      # `hardhat test` starts. When `hardhat test` generates it itself, ts-node
+      # has already looked for the folder and the tests fail with TS2307 on
+      # `../typechain-types`.
+      - run: yarn build
+        working-directory: ./packages/evm
       # `yarn test` is `hardhat test --deploy-fixture`, so src/deploy runs first
       # on the in-process Hardhat network. deploy_module.ts takes DAO_SAFE as the
       # Roles owner, avatar and target and falls back to "0x", which is not an
