@@ -1,0 +1,32 @@
+name: Unit Tests
+on: [push]
+permissions:
+  contents: read
+concurrency:
+  # Per-commit group on main so every commit that lands gets its own run.
+  # Elsewhere, a new push cancels the previous run for that branch.
+  group: unit-tests-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: nodeversion
+        run: echo "version=$(grep nodejs .tool-versions | sed -e 's/[^[:space:]]*[[:space:]]*//')" >> $GITHUB_OUTPUT
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.nodeversion.outputs.version }}
+          cache: yarn
+          cache-dependency-path: packages/evm/yarn.lock
+      - run: yarn install --immutable
+        working-directory: ./packages/evm
+      # `yarn test` is `hardhat test --deploy-fixture`, so src/deploy runs first
+      # on the in-process Hardhat network. deploy_module.ts takes DAO_SAFE as the
+      # Roles owner, avatar and target and falls back to "0x", which is not an
+      # address; any non-zero address works for the tests.
+      - run: yarn test
+        working-directory: ./packages/evm
+        env:
+          DAO_SAFE: "0x0000000000000000000000000000000000000002"
