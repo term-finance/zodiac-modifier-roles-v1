@@ -49,6 +49,10 @@ jobs:
           - "Governor-settings.conf"
           - "Governor-voting.conf"
           - "Governor-tallies.conf"
+          - "Delay-devopsEndToEnd.conf"
+          - "Delay-vetoSignedPath.conf"
+          - "Delay-proposerToOwnerlessSettings.conf"
+          - "Governor-vetoEndToEnd.conf"
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -73,10 +77,13 @@ jobs:
         working-directory: ./packages/evm
       # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
-      # singletons. Governor-veto mixes compilers through its `solc_map`,
-      # which names solc8.20 (the deployed Governor and TERM) and solc8.6;
-      # Safe-v141-vetoLandsOnDelay's, Safe-configLockGuard's, Safe-ownerlessSafeGuard's,
-      # Safe-v141-configLockGuard's and Delay-delayOwnerGuard's confs name solc7.6 and solc8.6; and
+      # singletons. Governor-veto and Governor-vetoEndToEnd mix compilers
+      # through their `solc_map`, which names solc8.20 (the deployed Governor
+      # and TERM) and solc8.6; Delay-devopsEndToEnd's names solc7.6, solc8.6
+      # and solc8.20; Safe-v141-vetoLandsOnDelay's, Safe-configLockGuard's,
+      # Safe-ownerlessSafeGuard's, Safe-v141-configLockGuard's,
+      # Delay-delayOwnerGuard's, Delay-vetoSignedPath's and
+      # Delay-proposerToOwnerlessSettings's confs name solc7.6 and solc8.6; and
       # Governor-settings names solc8.20 through `solc`. So
       # those names are put on PATH too.
       - run: |
