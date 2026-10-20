@@ -49,7 +49,7 @@ definition SENTINEL() returns address = 0x1;
 definition CHECK_TRANSACTION() returns uint32 = 0x75f0bb52;
 definition CHECK_AFTER_EXECUTION() returns uint32 = 0x93271368;
 definition SUPPORTS_INTERFACE() returns uint32 = 0x01ffc9a7;
-definition LOCKED_MODIFIER() returns uint32 = 0x97e50690;
+definition LOCKED_DELAY() returns uint32 = 0x4ce677a8;
 
 /// The Safe's eight settings functions.
 definition isSettingsFunction(method f) returns bool =
@@ -84,7 +84,7 @@ rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
     assert f.selector == CHECK_TRANSACTION() ||
            f.selector == CHECK_AFTER_EXECUTION() ||
            f.selector == SUPPORTS_INTERFACE() ||
-           f.selector == LOCKED_MODIFIER(),
+           f.selector == LOCKED_DELAY(),
         "ConfigLockGuard has a function this file does not account for";
     assert f.isView || f.isPure,
         "ConfigLockGuard has a function that can write state";
