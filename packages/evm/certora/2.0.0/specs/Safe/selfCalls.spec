@@ -112,6 +112,7 @@ rule moduleCanChangeSettings(method f, bytes data, address a)
 
     execTransactionFromModule@withrevert(e, currentContract, 0, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||
@@ -139,6 +140,7 @@ rule moduleCanChangeSettingsWithReturnData(method f, bytes data, address a)
 
     execTransactionFromModuleReturnData@withrevert(e, currentContract, 0, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||
@@ -170,6 +172,7 @@ rule ownersCanChangeSettings(
     execTransaction@withrevert(e,
         currentContract, 0, data, Enum.Operation.Call, safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||

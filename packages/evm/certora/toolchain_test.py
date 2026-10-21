@@ -74,7 +74,7 @@ class ToolchainTests(unittest.TestCase):
                 shutil.copyfile(evm / name, root / name)
             for name in ("toolchain.py", "pull_guards.py"):
                 shutil.copyfile(toolchain.CERTORA_DIR / name, certora / name)
-            for name in ("Safe-receive.conf", "Roles-configIntegrity.conf"):
+            for name in ("Safe-receive.conf", "Roles-setTxNonceGuardAndRoleConfig.conf"):
                 (confs / name).write_text('{"files": []}\n')
             # The runner pulls the guards at tag 2.0.0 before it calls the prover.
             (root / "contracts/helpers").mkdir(parents=True)
@@ -98,7 +98,7 @@ class ToolchainTests(unittest.TestCase):
                    "STUB_CALL_LOG": str(log)}
             script = ["bash", str(root / "run-certora.sh")]
             for config, version, compiler in (("Safe-receive.conf", "8.19.2", "0.7.6"),
-                                               ("Roles-configIntegrity.conf", "7.31.0", "0.8.6")):
+                                               ("Roles-setTxNonceGuardAndRoleConfig.conf", "7.31.0", "0.8.6")):
                 with self.subTest(config=config):
                     env["STUB_CLI_VERSION"] = version
                     result = subprocess.run(script + ["2.0.0/" + config, "proof message"], cwd=root.parent,

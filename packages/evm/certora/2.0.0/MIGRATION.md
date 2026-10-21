@@ -1,8 +1,8 @@
 # Certora 8.19.2 migration
 
-Eight existing configurations now select Certora 8.19.2 in CI and the local runner. The other 33 stay on 7.31.0 until validated. The CI matrix still runs the same 34 configurations; seven additional configurations remain outside that matrix.
+40 of 41 existing configurations now select Certora 8.19.2 in CI and the local runner. The [second batch](migration/8.19.2-second-batch.md) validates 32 additional configurations after the eight below. The CI matrix still runs the same 34 configurations: 33 on 8.19.2 and 1 on 7.31.0. All seven manual configurations use 8.19.2.
 
-## Verified batch
+## First verified batch
 
 The baseline is the passing [main CI run](https://github.com/term-finance/zodiac-modifier-roles-v1/actions/runs/37650684284) at `b78b57ea6e37c3eee48e265acb3c3dca4f76d5ff`. The uncached candidate cloud jobs below match the Solidity, dependency, configuration and CVL bytes in `2309fd508494e83dc22e014e3d5a2aa88937be8d`. Archive hashes, source hashes and all 41 CLI selections are retained in [the migration record](migration/8.19.2-first-batch.json).
 
@@ -29,7 +29,7 @@ No contract, harness, property assertion, witness predicate, precondition, metho
 - **MultiSend:** short inputs execute no call; the existing witnesses exercise the no-op, longer input, threshold boundary and CALL hook; the entry-point rule remains. The short-input bound is at most 32 transaction bytes, with an existing 33-byte boundary witness. Loop bound 2 and optimistic loop/fallback handling remain.
 - **Safe 1.3.0 and 1.4.1:** receive logging, fallback storage effects, and state effects with no handler, plus the existing hook/path witnesses. Method filters still select receive/fallback and, where applicable, `approveHash`. External handlers are outside the scene; the existing non-self-handler and empty-handler preconditions retain their scope. Loop bound 1, optimistic loop/fallback/hashing, hashing length 1024 and disabled storage splitting remain. Ghost resets measure effects during the selected call.
 
-This migration does not prove arbitrary external-handler behavior, all Safe execution paths, unbounded loops, or a deployment configuration. The separate inventory check accounts for all 41 specs/contexts and issues **zero semantic dependency-closure certificates**. Specification completeness, abstraction refinement and deployment bindings remain separate obligations; upgrading the prover does not discharge them. No contract flaw was identified by these compatibility runs.
+This first batch does not prove arbitrary external-handler behavior, all Safe execution paths, unbounded loops, or a deployment configuration. The separate inventory check accounts for all 41 specs/contexts and issues **zero semantic dependency-closure certificates**. Specification completeness, abstraction refinement and deployment bindings remain separate obligations; upgrading the prover does not discharge them. No contract flaw was identified by these compatibility runs.
 
 ## Diagnostics retained for review
 
@@ -54,4 +54,4 @@ The local runner checks the installed CLI before submission, runs from the packa
 
 ## Remaining
 
-33 configurations still use 7.31.0: five Roles, eight Delay, six Governor and fourteen Safe configurations. Of those, 26 run in CI and seven do not. Their current selection is listed in the migration record. This PR does not certify those suites on 8.x.
+One configuration remains on 7.31.0: `Roles-setTxNonceGuardAndRoleConfig.conf`. Their remaining validation and diagnostic review are detailed in the [second batch](migration/8.19.2-second-batch.md#remaining-on-7310). Historical records retain the selections as they stood for each batch; the [second record](migration/8.19.2-second-batch.json) contains the current selection for all 41 configurations.

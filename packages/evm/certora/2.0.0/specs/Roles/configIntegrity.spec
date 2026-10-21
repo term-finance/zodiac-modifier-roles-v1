@@ -221,6 +221,7 @@ rule ownerCanCallEachRolesSetting(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "the owner cannot successfully call this settings function";
 }
@@ -334,6 +335,7 @@ rule roleMemberModuleCanExecFromModule(method f, calldataarg args)
 
     f@withrevert(e, args);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "an enabled module holding its default role cannot successfully call this execution function";
 }
@@ -349,6 +351,7 @@ rule roleMemberModuleCanExecTransactionWithRole(
 
     execTransactionWithRole@withrevert(e, to, value, data, operation, role, shouldRevert);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "an enabled module holding the role it names cannot successfully call execTransactionWithRole";
 }
@@ -364,6 +367,7 @@ rule roleMemberModuleCanExecTransactionWithRoleReturnData(
 
     execTransactionWithRoleReturnData@withrevert(e, to, value, data, operation, role, shouldRevert);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted,
         "an enabled module holding the role it names cannot successfully call execTransactionWithRoleReturnData";
 }
@@ -456,6 +460,7 @@ rule renounceOwnershipLeavesNoOwner() {
 
     renounceOwnership@withrevert(e);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && owner() == 0,
         "the owner cannot renounce ownership";
 }
@@ -555,6 +560,7 @@ rule ownerCanChangeMembershipThroughAssignRoles(
 
     assignRoles@withrevert(e, module, rolesArg, memberOfArg);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && memberOf(roleId, module) != memberBefore,
         "the owner cannot change a role membership through assignRoles";
 }

@@ -126,6 +126,7 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
     bool success = execTransactionFromModule@withrevert(
         e, currentContract, 0, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && success && (
         thresholdValue() != thresholdBefore ||
         ownerEntry(a) != ownerBefore ||
@@ -151,6 +152,7 @@ rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
     bool success = execTransactionFromModule@withrevert(
         e, to, value, data, Enum.Operation.Call);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && success,
         "with ConfigLockGuard installed, the Delay, as an enabled module, could not make a plain call to another contract";
 }

@@ -71,6 +71,7 @@ rule approvedOwnersVetoThroughExecTransaction(
     execTransaction@withrevert(e,
         delayContract, 0, data, Enum.Operation.Call, 0, 0, 0, 0, 0, signatures);
 
+    assert true; // Check pessimistic assertions alongside the existential witness.
     satisfy !lastReverted && delayContract.txNonce() == n,
         "an owner-approved veto could not land through execTransaction";
 }
