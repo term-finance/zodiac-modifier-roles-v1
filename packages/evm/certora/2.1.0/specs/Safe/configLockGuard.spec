@@ -6,8 +6,8 @@
  * Safe's owner and threshold management still go through.
  *
  * The rules assume nothing about which Safe it is beyond its GnosisSafe
- * v1.3.0 code. They hold for any lockedModifier; only
- * checkTransactionAcceptsEverythingElse assumes address(0).
+ * v1.3.0 code. The guard's lockedModifier is left unconstrained, so the rules
+ * hold for whatever modifier it was built with, address(0) included.
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
  * ConfigLockGuard. The signature check is stubbed to pass
@@ -207,9 +207,9 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
 }
 
 /*
- * With lockedModifier = address(0), every plain call passes the guard except
- * the Safe calling one of its four locked settings functions, and the seven
- * modifier selectors sent to address(0), which has no code.
+ * Whatever lockedModifier is, every plain call passes the guard except the
+ * Safe calling one of its four locked settings functions, and the seven
+ * locked modifier calls sent to lockedModifier.
  */
 rule checkTransactionAcceptsEverythingElse(
     address to, uint256 value, bytes data,
@@ -218,10 +218,9 @@ rule checkTransactionAcceptsEverythingElse(
 ) {
     env e;
     require e.msg.value == 0;
-    require configLockGuard.lockedModifier() == 0;
     uint32 sel = selectorOf(data);
     require !(to == e.msg.sender && isLockedSelfSelector(sel));
-    require !(to != e.msg.sender && to == 0 && isLockedModifierSelector(sel));
+    require !(to != e.msg.sender && to == configLockGuard.lockedModifier() && isLockedModifierSelector(sel));
 
     configLockGuard.checkTransaction@withrevert(
         e, to, value, data, Enum.Operation.Call,

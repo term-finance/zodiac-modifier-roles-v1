@@ -1,16 +1,22 @@
 /*
  * ConfigLockGuard on the OwnerlessSafe (GnosisSafe v1.3.0), built with
- * lockedModifier = address(0): it leaves the governance path through the
- * module open, and has no function that can change what it checks. What the
- * guard blocks for the signers is configLockGuard.spec's.
+ * lockedModifier = the Delay Modifier, the OwnerlessSafe's module: it leaves
+ * the governance path through the module open, and has no function that can
+ * change what it checks. What the guard blocks for the signers is
+ * configLockGuard.spec's.
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
- * ConfigLockGuard in its guard slot. The module's call to `to` is routed to
- * the Safe's eight settings functions, so moduleCanStillChangeEachSetting
- * pins `to` to the Safe.
+ * ConfigLockGuard in its guard slot, its lockedModifier linked to the real
+ * Delay (certora/helpers/Delay.sol). In the module rules the Delay is the
+ * enabled module that calls execTransactionFromModule. The Delay's owner is
+ * left unconstrained (on chain it is the DelayOwnerSafe, not the
+ * OwnerlessSafe). The module's call to `to` is routed to the Safe's eight
+ * settings functions, so moduleCanStillChangeEachSetting pins `to` to the
+ * Safe.
  */
 
 using ConfigLockGuard as configLockGuard;
+using Delay as delayContract;
 
 methods {
     function guardAddress() external returns (address) envfree;
@@ -96,16 +102,17 @@ rule configLockGuardFunctionsAreTheKnownFour(method f, calldataarg args)
 
 /*
  * For each of the Safe's eight settings functions, including the four the
- * guard blocks for the signers, an enabled module's execTransactionFromModule
- * addressed to the Safe with a call to it succeeds and a setting changes. `f`
- * picks the selector the call carries.
+ * guard blocks for the signers, the Delay's execTransactionFromModule, as an
+ * enabled module, addressed to the Safe with a call to it succeeds and a
+ * setting changes. `f` picks the selector the call carries.
  */
 rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
     filtered { f -> f.contract == currentContract && isSettingsFunction(f) }
 {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedModifier() == 0;
+    require configLockGuard.lockedModifier() == delayContract;
+    require e.msg.sender == delayContract;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require selectorOf(data) == f.selector;
@@ -125,17 +132,18 @@ rule moduleCanStillChangeEachSetting(method f, bytes data, address a)
         moduleEntry(a) != moduleBefore ||
         guardAddress() != guardBefore ||
         fallbackHandlerSlotWord() != handlerBefore),
-        "with ConfigLockGuard installed, an enabled module could not use this settings function";
+        "with ConfigLockGuard installed, the Delay, as an enabled module, could not use this settings function";
 }
 
 /*
- * With the guard installed, an enabled module's plain
- * execTransactionFromModule to another contract succeeds.
+ * With the guard installed, the Delay's plain execTransactionFromModule, as an
+ * enabled module, to another contract succeeds.
  */
 rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
     env e;
     require guardAddress() == configLockGuard;
-    require configLockGuard.lockedModifier() == 0;
+    require configLockGuard.lockedModifier() == delayContract;
+    require e.msg.sender == delayContract;
     require e.msg.sender != SENTINEL();
     require moduleEntry(e.msg.sender) != 0;
     require to != currentContract;
@@ -144,5 +152,5 @@ rule moduleCanStillCallOut(address to, uint256 value, bytes data) {
         e, to, value, data, Enum.Operation.Call);
 
     satisfy !lastReverted && success,
-        "with ConfigLockGuard installed, an enabled module could not make a plain call to another contract";
+        "with ConfigLockGuard installed, the Delay, as an enabled module, could not make a plain call to another contract";
 }
