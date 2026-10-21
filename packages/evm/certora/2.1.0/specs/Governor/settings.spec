@@ -324,6 +324,39 @@ rule executeOnlyRunsSucceededProposals(
         "execute ran a proposal that had not succeeded";
 }
 
+/*
+ * A proposal is Succeeded only once its For and Abstain votes together reach
+ * the quorum at its snapshot (GovernorCountingSimple.sol:61). With
+ * executeOnlyRunsSucceededProposals, execute only runs a proposal that reached
+ * the quorum.
+ */
+rule succeededProposalReachedQuorum(uint256 proposalId) {
+    env e;
+    uint256 againstVotes;
+    uint256 forVotes;
+    uint256 abstainVotes;
+    againstVotes, forVotes, abstainVotes = proposalVotes(proposalId);
+
+    IGovernor.ProposalState proposalState = state(e, proposalId);
+    mathint quorumAtSnapshot = quorum(e, proposalSnapshot(e, proposalId));
+
+    assert proposalState == IGovernor.ProposalState.Succeeded => forVotes + abstainVotes >= quorumAtSnapshot,
+        "a proposal succeeded without its For and Abstain votes reaching the quorum";
+}
+
+/*
+ * A proposal can be Succeeded with a quorum above zero to reach, so the rule
+ * above is not vacuous.
+ */
+rule proposalCanSucceedWithAPositiveQuorum(uint256 proposalId) {
+    env e;
+    IGovernor.ProposalState proposalState = state(e, proposalId);
+    mathint quorumAtSnapshot = quorum(e, proposalSnapshot(e, proposalId));
+
+    satisfy proposalState == IGovernor.ProposalState.Succeeded && quorumAtSnapshot > 0,
+        "no proposal can succeed with a quorum above zero";
+}
+
 definition isExecute(method f) returns bool =
     f.selector == sig:execute(address[], uint256[], bytes[], bytes32).selector;
 

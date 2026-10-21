@@ -29,6 +29,22 @@ The repo copy in `term-finance-ops-contracts` is not the
 deployed Governor: it returns `7 days` from `votingPeriod()`, while the
 deployed Governor returns `22 hours`.
 
+## TermToken from term-token PR #24
+
+`TermToken/src-pr24/TermToken.sol` is not deployed. It is `src/TermToken.sol`
+from [term-token PR #24](https://github.com/term-finance/term-token/pull/24) at
+its head commit `a4d418b351ce5a0e9348a1378ad65c04168499af`, for
+`confs/TermToken-supply.conf`. It has the same import-path edit as
+`TermToken/src/TermToken.sol`, so it compiles against the same vendored
+OpenZeppelin in `TermToken/lib`: the PR branch pins the same
+`openzeppelin-contracts` and `openzeppelin-contracts-upgradeable` submodules as
+term-token `main`.
+
+It differs from the deployed TermToken only in `mint` and `burn`. Both are
+`onlyRole(DEFAULT_ADMIN_ROLE)` and require their flag, `mintingNotPaused` or
+`burningNotPaused`. The deployed code admits a caller when the flag is on or
+the caller holds DEFAULT_ADMIN_ROLE.
+
 ## How the scene compiles them
 
 `confs/Governor-veto.conf` compiles both for EVM paris, and TermToken with
