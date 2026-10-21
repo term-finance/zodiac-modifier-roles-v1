@@ -33,8 +33,8 @@ deployed Governor returns `22 hours`.
 
 `TermToken/src-triage/TermToken.sol` is not deployed yet. It is term-token's
 `src/TermToken.sol` for the implementation the TERM proxy is to be upgraded
-to. The Governor confs and
-`confs/TermToken-supply.conf` compile it in place of `src/TermToken.sol`. It
+to. The Governor confs in `2.0.0/confs/` and
+`2.0.0/confs/TermToken-supply.conf` compile it in place of `src/TermToken.sol`. It
 has the same import-path edit as `TermToken/src/TermToken.sol`, so it compiles
 against the same vendored OpenZeppelin in `TermToken/lib`: term-token pins
 `openzeppelin-contracts` at `8b2f29ceb0db64957a49deb63af7792772bd7a5d` and
