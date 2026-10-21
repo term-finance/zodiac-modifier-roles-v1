@@ -4,8 +4,11 @@
 
 ```
 Branch 1 (the slow path, for real proposals)
-  ProposerSafe (5/11) ------module------> Delay Modifier ------module------> OwnerlessSafe ------DEVOPS_ROLE------> Term Protocol
+  ProposerSafe (5/11) ------module------> Delay Modifier ------module------> OwnerlessSafe (9/9) ------DEVOPS_ROLE------> Term Protocol
   (+ ConfigLockGuard)                     (+ PauseGuard)                  (+ ConfigLockGuard)
+
+Direct path (all nine OwnerlessSafe signers together: no delay, veto or pause)
+  OwnerlessSafe (9/9) ------DEVOPS_ROLE------> Term Protocol
 
 Branch 2 (the token-vote path, whose only power is to veto)
   Governor ------module------> Roles Modifier ------target------> DelayOwnerSafe ------owner------> Delay Modifier
@@ -15,6 +18,8 @@ Pause controls
   PauseSafe (2/9) --pause-->               PauseGuard
   AdminSafe      --unpause / setPauser-->  PauseGuard
 ```
+
+**Trust assumption:** Despite its name, the OwnerlessSafe has nine Term multisig holders as owners and a threshold of 9 (P1.4).
 
 The conclusions drawn from these proofs establish the following propositions:
 
