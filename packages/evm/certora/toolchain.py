@@ -7,7 +7,7 @@ import re
 
 CERTORA_DIR = Path(__file__).resolve().parent
 # One folder per release, named after its git tag.
-RELEASES = ("2.0.0", "2.1.0")
+RELEASES = ("2.0.0",)
 CERTORA_8_CONFIGS = dict.fromkeys(RELEASES, frozenset({
     "MultiSend-shortBatch.conf",
     "PauseGuard-deployment.conf",

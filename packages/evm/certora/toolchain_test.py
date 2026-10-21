@@ -13,6 +13,9 @@ import pull_guards
 import toolchain
 
 
+GIT = ["git", "-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false"]
+
+
 class ToolchainTests(unittest.TestCase):
     def test_every_configuration_has_the_expected_pin_and_compiler(self):
         self.assertEqual(set(toolchain.CERTORA_8_CONFIGS), set(toolchain.RELEASES))
@@ -64,7 +67,7 @@ class ToolchainTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
             certora = root / "certora"
-            confs = certora / "2.1.0/confs"
+            confs = certora / "2.0.0/confs"
             confs.mkdir(parents=True)
             evm = toolchain.CERTORA_DIR.parent
             for name in ("run-certora.sh", "requirements.txt", "requirements-8.txt"):
@@ -73,6 +76,12 @@ class ToolchainTests(unittest.TestCase):
                 shutil.copyfile(toolchain.CERTORA_DIR / name, certora / name)
             for name in ("Safe-receive.conf", "Roles-configIntegrity.conf"):
                 (confs / name).write_text('{"files": []}\n')
+            # The runner pulls the guards at tag 2.0.0 before it calls the prover.
+            (root / "contracts/helpers").mkdir(parents=True)
+            for path in pull_guards.GUARDS:
+                (root / "contracts" / path).write_text("// guard\n")
+            for command in (["init", "-q"], ["add", "contracts"], ["commit", "-q", "-m", "release"], ["tag", "2.0.0"]):
+                subprocess.run(GIT + command, cwd=root, check=True, capture_output=True)
             binary = root / "certoraRun"
             binary.write_text(
                 "#!/usr/bin/env python3\n"
@@ -92,7 +101,7 @@ class ToolchainTests(unittest.TestCase):
                                                ("Roles-configIntegrity.conf", "7.31.0", "0.8.6")):
                 with self.subTest(config=config):
                     env["STUB_CLI_VERSION"] = version
-                    result = subprocess.run(script + ["2.1.0/" + config, "proof message"], cwd=root.parent,
+                    result = subprocess.run(script + ["2.0.0/" + config, "proof message"], cwd=root.parent,
                                             env=env, capture_output=True, text=True)
                     self.assertEqual(result.returncode, 0, result.stderr)
                     call = json.loads(log.read_text())
@@ -101,15 +110,14 @@ class ToolchainTests(unittest.TestCase):
                         "--wait_for_results", "all", "--rule_sanity", "basic"]})
                     log.unlink()
                     env["STUB_CLI_VERSION"] = "7.31.0" if version == "8.19.2" else "8.19.2"
-                    result = subprocess.run(script + ["2.1.0/" + config], cwd=root.parent,
+                    result = subprocess.run(script + ["2.0.0/" + config], cwd=root.parent,
                                             env=env, capture_output=True, text=True)
                     self.assertNotEqual(result.returncode, 0)
                     self.assertIn("This proof requires certora-cli " + version, result.stderr)
                     self.assertFalse(log.exists())
 
             # A tagged release whose guards cannot be pulled stops before the prover.
-            (certora / "2.0.0/confs").mkdir(parents=True)
-            (certora / "2.0.0/confs/Safe-receive.conf").write_text('{"files": []}\n')
+            subprocess.run(GIT + ["tag", "-d", "2.0.0"], cwd=root, check=True, capture_output=True)
             env["STUB_CLI_VERSION"] = "8.19.2"
             result = subprocess.run(script + ["2.0.0/Safe-receive.conf"], cwd=root.parent,
                                     env=env, capture_output=True, text=True)
@@ -131,9 +139,8 @@ class ToolchainTests(unittest.TestCase):
             }
             for path, text in tagged.items():
                 (contracts / path).write_text(text)
-            git = ["git", "-c", "user.name=test", "-c", "user.email=test@example.com", "-c", "commit.gpgsign=false"]
             for command in (["init", "-q"], ["add", "."], ["commit", "-q", "-m", "release"], ["tag", "2.0.0"]):
-                subprocess.run(git + command, cwd=root, check=True, capture_output=True)
+                subprocess.run(GIT + command, cwd=root, check=True, capture_output=True)
             for path in tagged:
                 (contracts / path).write_text("// changed after the tag\n")
             stale = root / "certora/2.0.0/contracts/stale.sol"

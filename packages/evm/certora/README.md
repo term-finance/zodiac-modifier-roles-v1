@@ -5,9 +5,8 @@ One folder per release, named after its git tag, holding that release's confs, s
 | Folder | Proves | Guards | Proof documents |
 | --- | --- | --- | --- |
 | [`2.0.0`](2.0.0) | Release `2.0.0`, the live mainnet configuration | Pulled from tag `2.0.0` into `2.0.0/contracts/` | [`liveMainnetGovernanceConfigurationProof.md`](2.0.0/liveMainnetGovernanceConfigurationProof.md) |
-| [`2.1.0`](2.1.0) | The release cut once PRs 20–32 are merged | `packages/evm/contracts/helpers/`, as it is | to come |
 
-[`pull_guards.py`](pull_guards.py) writes a tagged release's guards, and the files they import relatively, from its tag to `<release>/contracts/` (gitignored), so they compile next to the shared sources. Only one folder is untagged at a time.
+[`pull_guards.py`](pull_guards.py) writes a tagged release's guards, and the files they import relatively, from its tag to `<release>/contracts/` (gitignored), so they compile next to the shared sources. At most one folder is untagged at a time.
 
 ## Running
 
@@ -17,7 +16,7 @@ From `packages/evm`:
 ./run-certora.sh 2.0.0/PauseGuard-deployment.conf
 ```
 
-`run-certora.sh` pulls the guards first. CI runs each folder in its own workflow: `formal-verification-2.1.0.yaml` on every push, and `formal-verification-2.0.0.yaml`, which pulls the guards before running, on every push except one that changes only the guards or `2.1.0`.
+`run-certora.sh` pulls the guards first. CI runs each folder in its own workflow: `formal-verification-2.0.0.yaml` pulls the guards before running, and runs on every push except one that changes only the guards.
 
 ## Cutting a release
 

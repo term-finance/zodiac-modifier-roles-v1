@@ -1,6 +1,6 @@
-# The tagged release: certora/2.0.0 shares every contract source with
-# certora/2.1.0 except the three guards, which it pulls from tag 2.0.0. So a
-# change to the guards in packages/evm/contracts does not run it.
+# The tagged release: certora/2.0.0 compiles packages/evm/contracts as it is,
+# except the three guards, which it pulls from tag 2.0.0. So a change to the
+# guards in packages/evm/contracts does not run it.
 name: Formal Verification 2.0.0
 on:
   push:
