@@ -1,0 +1,107 @@
+# The open release: certora/2.1.0 compiles packages/evm/contracts as it is, so
+# every push runs it.
+name: Formal Verification 2.1.0
+on: [push]
+permissions:
+  contents: read
+concurrency:
+  # Per-commit group on main so no main commit's verification is superseded by
+  # a later push — every commit that lands gets its own prover run. Elsewhere,
+  # a new push cancels the previous run for that branch.
+  group: fv-2.1.0-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  formal-verification:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruleset:
+          - "Roles-setTxNonceGuardAndRoleConfig.conf"
+          - "Roles-setTxNonceLands.conf"
+          - "Roles-setTxNonceGuardSufficient.conf"
+          - "Roles-setTxNonceRoleConfigSufficient.conf"
+          - "Roles-configIntegrity.conf"
+          - "Delay-pauseGuardSufficient.conf"
+          - "Delay-moduleIntegrity.conf"
+          - "Delay-queueProvenance.conf"
+          - "PauseGuard-deployment.conf"
+          - "MultiSend-shortBatch.conf"
+          - "Safe-executionPaths.conf"
+          - "Safe-selfCalls.conf"
+          - "Safe-receive.conf"
+          - "Safe-fallbackStorage.conf"
+          - "Safe-noStateChange.conf"
+          - "Safe-fallbackHandler.conf"
+          - "Safe-selfHandler.conf"
+          - "Safe-configLockGuard.conf"
+          - "Safe-ownerlessSafeGuard.conf"
+          - "Safe-v141-executionPaths.conf"
+          - "Safe-v141-selfCalls.conf"
+          - "Safe-v141-receive.conf"
+          - "Safe-v141-fallbackStorage.conf"
+          - "Safe-v141-noStateChange.conf"
+          - "Safe-v141-fallbackHandler.conf"
+          - "Safe-v141-selfHandler.conf"
+          - "Safe-v141-vetoLandsOnDelay.conf"
+          - "Safe-v141-configLockGuard.conf"
+          - "Delay-delayOwnerGuard.conf"
+          - "Governor-veto.conf"
+          - "Governor-proposalThreshold.conf"
+          - "Governor-settings.conf"
+          - "Governor-voting.conf"
+          - "Governor-tallies.conf"
+          - "Delay-devopsEndToEnd.conf"
+          - "Delay-vetoSignedPath.conf"
+          - "Delay-proposerToOwnerlessSettings.conf"
+          - "Governor-vetoEndToEnd.conf"
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - id: nodeversion
+        run: echo "version=$(grep nodejs .tool-versions | sed -e 's/[^[:space:]]*[[:space:]]*//')" >> $GITHUB_OUTPUT
+      - id: pythonversion
+        run: echo "version=$(grep python .tool-versions | sed -e 's/[^[:space:]]*[[:space:]]*//')" >> $GITHUB_OUTPUT
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.nodeversion.outputs.version }}
+          cache: yarn
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.pythonversion.outputs.version }}
+      # The confs resolve their `packages` remappings against
+      # packages/evm/node_modules, so the install has to land there.
+      - run: yarn install --immutable
+        working-directory: ./packages/evm
+      - run: |
+          python3 certora/toolchain_test.py
+          pip3 install -r "$(python3 certora/toolchain.py '2.1.0/${{ matrix.ruleset }}' --field requirements)"
+        working-directory: ./packages/evm
+      # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
+      # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
+      # singletons. Governor-veto and Governor-vetoEndToEnd mix compilers
+      # through their `solc_map`, which names solc8.20 (the deployed Governor
+      # and TERM) and solc8.6; Delay-devopsEndToEnd's names solc7.6, solc8.6
+      # and solc8.20; Safe-v141-vetoLandsOnDelay's, Safe-configLockGuard's,
+      # Safe-ownerlessSafeGuard's, Safe-v141-configLockGuard's,
+      # Delay-delayOwnerGuard's, Delay-vetoSignedPath's and
+      # Delay-proposerToOwnerlessSettings's confs name solc7.6 and solc8.6; and
+      # Governor-settings names solc8.20 through `solc`. So
+      # those names are put on PATH too.
+      - run: |
+          solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20
+          mkdir -p "$HOME/solc-bin"
+          for v in 0.8.20 0.8.6 0.7.6; do
+            ln -sf "$HOME/.solc-select/artifacts/solc-$v/solc-$v" "$HOME/solc-bin/solc${v#0.}"
+          done
+          echo "$HOME/solc-bin" >> "$GITHUB_PATH"
+        working-directory: ./packages/evm
+      - run: |
+          certoraRun "./certora/2.1.0/confs/${{ matrix.ruleset }}" \
+            --msg "${{ github.ref_name }} - 2.1.0/${{ matrix.ruleset }} - ${{ github.sha }}" \
+            --wait_for_results all \
+            --rule_sanity basic
+        working-directory: ./packages/evm
+        env:
+          CERTORAKEY: ${{ secrets.CERTORAKEY }}
+          SOLC_VERSION: ${{ startsWith(matrix.ruleset, 'Safe-') && '0.7.6' || '0.8.6' }}
