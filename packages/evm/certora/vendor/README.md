@@ -29,21 +29,34 @@ The repo copy in `term-finance-ops-contracts` is not the
 deployed Governor: it returns `7 days` from `votingPeriod()`, while the
 deployed Governor returns `22 hours`.
 
-## TermToken from term-token PR #24
+## TermToken for the TERM upgrade
 
-`TermToken/src-pr24/TermToken.sol` is not deployed. It is `src/TermToken.sol`
-from [term-token PR #24](https://github.com/term-finance/term-token/pull/24) at
-its head commit `a4d418b351ce5a0e9348a1378ad65c04168499af`, for
-`confs/TermToken-supply.conf`. It has the same import-path edit as
-`TermToken/src/TermToken.sol`, so it compiles against the same vendored
-OpenZeppelin in `TermToken/lib`: the PR branch pins the same
-`openzeppelin-contracts` and `openzeppelin-contracts-upgradeable` submodules as
-term-token `main`.
+`TermToken/src-triage/TermToken.sol` is not deployed yet. It is term-token's
+`src/TermToken.sol` for the implementation the TERM proxy is to be upgraded
+to. The Governor confs and
+`confs/TermToken-supply.conf` compile it in place of `src/TermToken.sol`. It
+has the same import-path edit as `TermToken/src/TermToken.sol`, so it compiles
+against the same vendored OpenZeppelin in `TermToken/lib`: term-token pins
+`openzeppelin-contracts` at `8b2f29ceb0db64957a49deb63af7792772bd7a5d` and
+`openzeppelin-contracts-upgradeable` at
+`fbdb824a735891908d5588b28e0da5852d7ed7ba`, and every `.sol` file in
+`TermToken/lib` matches those commits byte for byte.
 
-It differs from the deployed TermToken only in `mint` and `burn`. Both are
-`onlyRole(DEFAULT_ADMIN_ROLE)` and require their flag, `mintingNotPaused` or
-`burningNotPaused`. The deployed code admits a caller when the flag is on or
-the caller holds DEFAULT_ADMIN_ROLE.
+It differs from the deployed TermToken in `TermToken/src/TermToken.sol` in four
+ways:
+
+- `mint` and `burn` are `onlyRole(DEFAULT_ADMIN_ROLE)` and require their flag,
+  `mintingNotPaused` or `burningNotPaused`. The deployed code admits a caller
+  when the flag is on or the caller holds DEFAULT_ADMIN_ROLE.
+- It no longer inherits LayerZero's OFTCore, so it has no `send`,
+  `lzReceive`, peers, delegate or Ownable owner, and imports nothing from
+  `@layerzerolabs`. Its constructor takes no arguments.
+- It declares five private `__deprecated_` variables in slots 0 to 4, where
+  OFTCore's parents kept their state, so `burningNotPaused` and
+  `mintingNotPaused` stay in slot 4 on the live proxy.
+- `_update` calls `ERC20VotesUpgradeable._update` directly, skipping
+  `ERC20PausableUpgradeable`'s `whenNotPaused`, so a DEFAULT_ADMIN_ROLE
+  holder can move, mint and burn TERM while it is paused.
 
 ## How the scene compiles them
 
