@@ -6,7 +6,7 @@
  * Safe's owner and threshold management still go through.
  *
  * The rules assume nothing about which Safe it is beyond its GnosisSafe
- * v1.3.0 code. The guard's lockedModifier is left unconstrained, so the rules
+ * v1.3.0 code. The guard's lockedDelay is left unconstrained, so the rules
  * hold for whatever modifier it was built with, address(0) included.
  *
  * The scene is the real GnosisSafe v1.3.0 (GnosisSafeHarness) with the real
@@ -28,7 +28,7 @@ methods {
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
-    function configLockGuard.lockedModifier() external returns (address) envfree;
+    function configLockGuard.lockedDelay() external returns (address) envfree;
 
     // The signature check passes.
     function checkSignatures(bytes32, bytes memory, bytes memory) internal => NONDET;
@@ -78,7 +78,7 @@ definition isLockedSelfSelector(uint32 sel) returns bool =
     sel == SET_GUARD() || sel == ENABLE_MODULE() ||
     sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
 
-// What the guard rejects on calls to lockedModifier. setGuard(address),
+// What the guard rejects on calls to lockedDelay. setGuard(address),
 // enableModule(address) and disableModule(address,address) share the Safe's
 // selectors; the other four are Ownable's and Module's.
 definition TRANSFER_OWNERSHIP() returns uint32 = 0xf2fde38b;
@@ -207,9 +207,9 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
 }
 
 /*
- * Whatever lockedModifier is, every plain call passes the guard except the
+ * Whatever lockedDelay is, every plain call passes the guard except the
  * Safe calling one of its four locked settings functions, and the seven
- * locked modifier calls sent to lockedModifier.
+ * locked modifier calls sent to lockedDelay.
  */
 rule checkTransactionAcceptsEverythingElse(
     address to, uint256 value, bytes data,
@@ -220,7 +220,7 @@ rule checkTransactionAcceptsEverythingElse(
     require e.msg.value == 0;
     uint32 sel = selectorOf(data);
     require !(to == e.msg.sender && isLockedSelfSelector(sel));
-    require !(to != e.msg.sender && to == configLockGuard.lockedModifier() && isLockedModifierSelector(sel));
+    require !(to != e.msg.sender && to == configLockGuard.lockedDelay() && isLockedModifierSelector(sel));
 
     configLockGuard.checkTransaction@withrevert(
         e, to, value, data, Enum.Operation.Call,
