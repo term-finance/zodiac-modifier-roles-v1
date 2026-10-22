@@ -1,14 +1,14 @@
 /*
  * PauseGuard on the Delay Modifier: it can be installed with
- * Guardable.setGuard, only the pauser can pause, only an ADMIN_ROLE holder
- * can unpause or replace the pauser, and while it is paused no queue entry
- * reaches the Delay's target.
+ * Guardable.setGuard, only the pauser can pause, only the admin can unpause
+ * or replace the pauser, and while it is paused no queue entry reaches the
+ * Delay's target.
  *
  * The scene is the real Delay (certora/helpers/Delay.sol) with the real
  * PauseGuard. `target` is linked to DummyAvatar, whose
  * execTransactionFromModule is summarized to record that the Delay forwarded
- * a transaction. Role membership is left unconstrained apart from the caller
- * under test, so the rules hold for any admin and pauser.
+ * a transaction. The admin and pauser are left unconstrained apart from the
+ * caller under test, so the rules hold for any admin and pauser.
  */
 
 using PauseGuard as pauseGuardContract;
@@ -29,10 +29,7 @@ methods {
 
     function pauseGuardContract.paused() external returns (bool) envfree;
     function pauseGuardContract.pauser() external returns (address) envfree;
-    function pauseGuardContract.hasRole(bytes32, address) external returns (bool) envfree;
-    function pauseGuardContract.ADMIN_ROLE() external returns (bytes32) envfree;
-    function pauseGuardContract.DEFAULT_ADMIN_ROLE() external returns (bytes32) envfree;
-    function pauseGuardContract.getRoleAdmin(bytes32) external returns (bytes32) envfree;
+    function pauseGuardContract.admin() external returns (address) envfree;
     function pauseGuardContract.supportsInterface(bytes4) external returns (bool) envfree;
 
     // Guard calls resolve to PauseGuard, the only guard in the scene.
@@ -112,17 +109,17 @@ rule pauseRevertsForAnyoneButThePauser() {
 }
 
 /*
- * Holding ADMIN_ROLE does not let a caller pause.
+ * Being the admin does not let a caller pause.
  */
 rule adminAloneCannotPause() {
     env e;
-    require pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender == pauseGuardContract.admin();
     require e.msg.sender != pauseGuardContract.pauser();
 
     pauseGuardContract.pause@withrevert(e);
 
     assert lastReverted,
-        "an ADMIN_ROLE holder paused without being the pauser";
+        "the admin paused without being the pauser";
 }
 
 /*
@@ -148,47 +145,48 @@ rule pauseSucceedsForThePauser() {
  * --------------------------------------------------------------------- */
 
 /*
- * Without ADMIN_ROLE the call reverts, whoever the caller is.
+ * Anyone who is not the admin is rejected.
  */
-rule unpauseRevertsWithoutAdminRole() {
+rule unpauseRevertsForAnyoneButTheAdmin() {
     env e;
-    require !pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender != pauseGuardContract.admin();
 
     pauseGuardContract.unpause@withrevert(e);
 
     assert lastReverted,
-        "PauseGuard let an account without ADMIN_ROLE unpause";
+        "PauseGuard let an account other than the admin unpause";
 }
 
 /*
- * Being the pauser, without ADMIN_ROLE, does not let a caller lift a pause.
+ * Being the pauser, without being the admin, does not let a caller lift a
+ * pause.
  */
 rule pauserAloneCannotUnpause() {
     env e;
     require e.msg.sender == pauseGuardContract.pauser();
-    require !pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender != pauseGuardContract.admin();
     require pauseGuardContract.paused();
 
     pauseGuardContract.unpause@withrevert(e);
 
     assert lastReverted,
-        "the pauser lifted a pause without ADMIN_ROLE";
+        "the pauser lifted a pause without being the admin";
 }
 
 /*
- * From a paused state, an ADMIN_ROLE holder's unpause() succeeds and `paused`
- * is then false.
+ * From a paused state, the admin's unpause() succeeds and `paused` is then
+ * false.
  */
-rule unpauseSucceedsForAdminRole() {
+rule unpauseSucceedsForTheAdmin() {
     env e;
     require e.msg.value == 0;
-    require pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender == pauseGuardContract.admin();
     require pauseGuardContract.paused();
 
     pauseGuardContract.unpause@withrevert(e);
 
     assert !lastReverted,
-        "an ADMIN_ROLE holder could not unpause a paused guard";
+        "the admin could not unpause a paused guard";
     assert !pauseGuardContract.paused(),
         "unpause returned without clearing the paused flag";
 }
@@ -218,36 +216,35 @@ rule pausedOnlyChangesThroughPauseOrUnpause(method f, calldataarg args)
  * --------------------------------------------------------------------- */
 
 /*
- * Without ADMIN_ROLE the call reverts, so nobody else can hand out or take
- * away the right to pause.
+ * Anyone who is not the admin is rejected, so nobody else can hand out or
+ * take away the right to pause.
  */
-rule setPauserRevertsWithoutAdminRole(address account) {
+rule setPauserRevertsForAnyoneButTheAdmin(address account) {
     env e;
-    require !pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender != pauseGuardContract.admin();
 
     pauseGuardContract.setPauser@withrevert(e, account);
 
     assert lastReverted,
-        "PauseGuard let an account without ADMIN_ROLE replace the pauser";
+        "PauseGuard let an account other than the admin replace the pauser";
 }
 
 /*
- * For any nonzero account, an ADMIN_ROLE holder's setPauser(account)
- * succeeds, pauser() then returns account, and the previous pauser no longer
- * holds the slot.
+ * For any nonzero account, the admin's setPauser(account) succeeds, pauser()
+ * then returns account, and the previous pauser no longer holds the slot.
  */
 rule setPauserSetsThePauser(address account) {
     env e;
     require e.msg.value == 0;
     require account != 0;
-    require pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), e.msg.sender);
+    require e.msg.sender == pauseGuardContract.admin();
 
     address previousPauser = pauseGuardContract.pauser();
 
     pauseGuardContract.setPauser@withrevert(e, account);
 
     assert !lastReverted,
-        "an ADMIN_ROLE holder could not replace the pauser";
+        "the admin could not replace the pauser";
     assert pauseGuardContract.pauser() == account,
         "setPauser returned without recording the new pauser";
     assert previousPauser != account => pauseGuardContract.pauser() != previousPauser,
@@ -255,38 +252,22 @@ rule setPauserSetsThePauser(address account) {
 }
 
 /*
- * No holder can drop a role, so the last admin cannot strand the guard with
- * nobody able to unpause.
+ * PauseGuard has no fallback, and its write functions are exactly pause,
+ * unpause and setPauser. checkTransaction and checkAfterExecution are view.
  */
-rule renounceRoleAlwaysReverts(bytes32 role, address account) {
+rule pauseGuardWriteFunctionsAreTheKnownThree(method f, calldataarg args)
+    filtered { f -> f.contract == pauseGuardContract && !f.isView && !f.isPure }
+{
     env e;
 
-    pauseGuardContract.renounceRole@withrevert(e, role, account);
+    f(e, args);
 
-    assert lastReverted,
-        "renounceRole is meant to be disabled";
-}
-
-/*
- * The inherited grantRole and revokeRole revert for every role and every
- * caller, admins included, because both roles are administered by
- * DEFAULT_ADMIN_ROLE, which nobody holds.
- */
-rule inheritedGrantAndRevokeAlwaysRevert(bytes32 role, address account) {
-    env e;
-    require pauseGuardContract.getRoleAdmin(role) ==
-        pauseGuardContract.DEFAULT_ADMIN_ROLE();
-    require !pauseGuardContract.hasRole(
-        pauseGuardContract.DEFAULT_ADMIN_ROLE(), e.msg.sender
-    );
-
-    pauseGuardContract.grantRole@withrevert(e, role, account);
-    assert lastReverted,
-        "grantRole handed out a role although nobody holds DEFAULT_ADMIN_ROLE";
-
-    pauseGuardContract.revokeRole@withrevert(e, role, account);
-    assert lastReverted,
-        "revokeRole took away a role although nobody holds DEFAULT_ADMIN_ROLE";
+    assert !f.isFallback,
+        "PauseGuard has a fallback";
+    assert f.selector == sig:PauseGuard.pause().selector ||
+           f.selector == sig:PauseGuard.unpause().selector ||
+           f.selector == sig:PauseGuard.setPauser(address).selector,
+        "PauseGuard has a write function other than pause, unpause and setPauser";
 }
 
 /*
@@ -307,72 +288,19 @@ rule pauserOnlyChangesThroughSetPauser(method f, calldataarg args)
 }
 
 /*
- * Over every write function of both contracts, ADMIN_ROLE membership never
- * changes for any account.
+ * Over every write function of both contracts, the admin never changes. It is
+ * immutable, set once in the constructor.
  */
-rule adminRoleNeverChanges(method f, calldataarg args, address account)
+rule adminNeverChanges(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
 {
     env e;
-    // ADMIN_ROLE is administered by DEFAULT_ADMIN_ROLE
-    // (roleAdminWiringIsFixed).
-    require pauseGuardContract.getRoleAdmin(pauseGuardContract.ADMIN_ROLE()) ==
-        pauseGuardContract.DEFAULT_ADMIN_ROLE();
-    // Nobody holds DEFAULT_ADMIN_ROLE (defaultAdminRoleNeverHeld).
-    require !pauseGuardContract.hasRole(
-        pauseGuardContract.DEFAULT_ADMIN_ROLE(), e.msg.sender
-    );
-    bool adminBefore = pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), account);
+    address adminBefore = pauseGuardContract.admin();
 
     f(e, args);
 
-    assert pauseGuardContract.hasRole(pauseGuardContract.ADMIN_ROLE(), account) == adminBefore,
-        "an entry point changed ADMIN_ROLE membership, which is fixed at deployment";
-}
-
-/*
- * An unheld DEFAULT_ADMIN_ROLE stays unheld. The base case, that nobody holds
- * it from the constructor on, is defaultAdminRoleNeverHeld.
- */
-rule defaultAdminRoleNeverGranted(method f, calldataarg args, address account)
-    filtered { f -> !f.isView && !f.isPure }
-{
-    env e;
-    // DEFAULT_ADMIN_ROLE administers itself (roleAdminWiringIsFixed).
-    require pauseGuardContract.getRoleAdmin(pauseGuardContract.DEFAULT_ADMIN_ROLE()) ==
-        pauseGuardContract.DEFAULT_ADMIN_ROLE();
-    require !pauseGuardContract.hasRole(
-        pauseGuardContract.DEFAULT_ADMIN_ROLE(), e.msg.sender
-    );
-    require !pauseGuardContract.hasRole(
-        pauseGuardContract.DEFAULT_ADMIN_ROLE(), account
-    );
-
-    f(e, args);
-
-    assert !pauseGuardContract.hasRole(pauseGuardContract.DEFAULT_ADMIN_ROLE(), account),
-        "an account gained DEFAULT_ADMIN_ROLE, which is never meant to be held";
-}
-
-/*
- * Nothing re-points the admin of ADMIN_ROLE or DEFAULT_ADMIN_ROLE.
- */
-rule roleAdminWiringNeverChanges(method f, calldataarg args)
-    filtered { f -> !f.isView && !f.isPure }
-{
-    env e;
-    bytes32 defaultAdminAdminBefore =
-        pauseGuardContract.getRoleAdmin(pauseGuardContract.DEFAULT_ADMIN_ROLE());
-    bytes32 adminAdminBefore =
-        pauseGuardContract.getRoleAdmin(pauseGuardContract.ADMIN_ROLE());
-
-    f(e, args);
-
-    assert pauseGuardContract.getRoleAdmin(pauseGuardContract.ADMIN_ROLE()) == adminAdminBefore,
-        "an entry point re-pointed the admin of ADMIN_ROLE";
-    assert pauseGuardContract.getRoleAdmin(pauseGuardContract.DEFAULT_ADMIN_ROLE()) ==
-        defaultAdminAdminBefore,
-        "an entry point re-pointed the admin of DEFAULT_ADMIN_ROLE";
+    assert pauseGuardContract.admin() == adminBefore,
+        "an entry point changed the admin, which is fixed at deployment";
 }
 
 /* ------------------------------------------------------------------------
@@ -427,8 +355,8 @@ rule checkTransactionRevertsWhilePaused(
  * --------------------------------------------------------------------- */
 
 /*
- * With PauseGuard installed and paused, after an ADMIN_ROLE holder unpauses,
- * a following executeNextTx can succeed and reach the Delay's target.
+ * With PauseGuard installed and paused, after the admin unpauses, a
+ * following executeNextTx can succeed and reach the Delay's target.
  */
 rule unpauseReopensExecuteNextTx(
     address to, uint256 value, bytes data, Enum.Operation operation
@@ -439,9 +367,7 @@ rule unpauseReopensExecuteNextTx(
     require target() == delayTargetContract;
     require !forwardedToTarget;
     require eUnpause.msg.value == 0;
-    require pauseGuardContract.hasRole(
-        pauseGuardContract.ADMIN_ROLE(), eUnpause.msg.sender
-    );
+    require eUnpause.msg.sender == pauseGuardContract.admin();
     require pauseGuardContract.paused();
 
     pauseGuardContract.unpause(eUnpause);
@@ -595,9 +521,7 @@ rule executeNextTxAfterSetTxNonceReopensOnUnpause(
     setTxNonce(eNonce, nonce);
 
     require eUnpause.msg.value == 0;
-    require pauseGuardContract.hasRole(
-        pauseGuardContract.ADMIN_ROLE(), eUnpause.msg.sender
-    );
+    require eUnpause.msg.sender == pauseGuardContract.admin();
     pauseGuardContract.unpause(eUnpause);
 
     executeNextTx(eExec, to, value, data, operation);
