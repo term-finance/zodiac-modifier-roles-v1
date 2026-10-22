@@ -124,12 +124,6 @@ contract ConfigLockGuard is BaseGuard {
             ) {
                 revert DelayAvatarLocked();
             }
-            if (
-                selector == IModifierAdmin.setTxCooldown.selector ||
-                selector == IModifierAdmin.setTxExpiration.selector
-            ) {
-                revert ModifierTimingLocked();
-            }
         }
     }
 
