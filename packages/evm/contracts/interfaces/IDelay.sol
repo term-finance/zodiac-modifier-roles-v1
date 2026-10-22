@@ -4,6 +4,10 @@ pragma solidity >=0.7.0 <0.9.0;
 interface IDelay {
     function setTxNonce(uint256 _nonce) external;
 
+    function setTxCooldown(uint256 cooldown) external;
+
+    function setTxExpiration(uint256 expiration) external;
+
     function transferOwnership(address newOwner) external;
 
     function renounceOwnership() external;

@@ -19,13 +19,15 @@ import "../interfaces/IDelay.sol";
 /// instead of having every transaction rejected.
 ///
 /// `lockedDelay` -- the Safe also cannot change that Delay modifier's
-/// owner, modules, guard, avatar or target. Its other owner functions
-/// (setTxNonce, setTxCooldown, setTxExpiration) stay open. This guard is built
+/// owner, modules, guard, avatar or target, and cannot call setTxCooldown or
+/// setTxExpiration, so the Delay's timing is fixed and the cooldown cannot be
+/// lowered to skip the window for vetoes. Its other owner function
+/// (setTxNonce, which is the veto) stays open. This guard is built
 /// for the Zodiac Delay modifier only; it does not lock other modifiers, such
 /// as Roles, whose admin functions differ.
 contract ConfigLockGuard is BaseGuard {
-    /// @dev Zodiac Delay modifier whose ownership, modules, guard, avatar and
-    /// target are locked.
+    /// @dev Zodiac Delay modifier whose ownership, modules, guard, avatar,
+    /// target, cooldown and expiration are locked.
     address public immutable lockedDelay;
 
     /// Only plain calls are allowed, not delegate calls
@@ -54,6 +56,9 @@ contract ConfigLockGuard is BaseGuard {
 
     /// The Delay's avatar and target cannot be changed
     error DelayAvatarLocked();
+
+    /// The Delay's cooldown and expiration cannot be changed
+    error DelayTimingLocked();
 
     constructor(address _lockedDelay) {
         if (_lockedDelay == address(0)) {
@@ -123,6 +128,12 @@ contract ConfigLockGuard is BaseGuard {
                 selector == IDelay.setTarget.selector
             ) {
                 revert DelayAvatarLocked();
+            }
+            if (
+                selector == IDelay.setTxCooldown.selector ||
+                selector == IDelay.setTxExpiration.selector
+            ) {
+                revert DelayTimingLocked();
             }
         }
     }
