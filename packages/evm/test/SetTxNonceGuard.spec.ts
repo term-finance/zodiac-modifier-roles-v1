@@ -105,7 +105,29 @@ describe("SetTxNonceGuard", async () => {
     const Guard = await hre.ethers.getContractFactory("SetTxNonceGuard");
     const guard = (await Guard.deploy(delay.address)) as SetTxNonceGuard;
 
-    return { guard, deployer, delay, stranger };
+    return { Guard, guard, deployer, delay, stranger };
+  });
+
+  describe("constructor", async () => {
+    it("rejects address(0) as the Delay with InvalidDelayModifier", async () => {
+      const { Guard } = await setup();
+
+      await expect(Guard.deploy(AddressZero)).to.be.revertedWith(
+        customError("InvalidDelayModifier")
+      );
+    });
+
+    it("accepts any other address, code or not, as the Delay", async () => {
+      const { Guard, delay } = await setup();
+      const testContract = await (
+        await hre.ethers.getContractFactory("TestContract")
+      ).deploy();
+
+      for (const address of [SENTINEL, delay.address, testContract.address]) {
+        const guard = (await Guard.deploy(address)) as SetTxNonceGuard;
+        expect(await guard.delay()).to.equal(address);
+      }
+    });
   });
 
   describe("called directly", async () => {

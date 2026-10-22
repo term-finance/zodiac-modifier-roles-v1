@@ -55,9 +55,12 @@ contract PauseGuard is BaseGuard {
         emit PauserSet(address(0), _pauser);
     }
 
-    /// @dev Blocks every execution through the Delay until the admin
-    /// unpauses. Entries already in the queue keep ageing while paused, so any
-    /// entry whose expiration passes during the pause can never execute.
+    /// @dev Blocks every execution through the Delay until an ADMIN_ROLE holder
+    /// unpauses. Entries keep ageing while paused, but the Delay checks expiry
+    /// against its current txCooldown and txExpiration, so its owner can revive
+    /// an entry that expired during the pause, for example by raising
+    /// txCooldown or setting txExpiration to 0. Calling Delay.skipExpired first
+    /// (anyone, even while paused) drops it for good, unless txExpiration is 0.
     function pause() external {
         if (msg.sender != pauser) {
             revert NotPauser(msg.sender);
