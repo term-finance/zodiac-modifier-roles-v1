@@ -195,6 +195,32 @@ describe("ConfigLockGuard", async () => {
     return { Guard, guard, safeA, safeB, safeC, delay, stranger };
   });
 
+  describe("constructor", async () => {
+    it("rejects address(0) as the locked Delay", async () => {
+      const { Guard } = await setup();
+
+      await expect(Guard.deploy(AddressZero)).to.be.revertedWith(
+        customError("InvalidLockedDelay")
+      );
+    });
+
+    it("accepts any other address, code or not, as lockedDelay", async () => {
+      const { Guard, delay } = await setup();
+      const testContract = await (
+        await hre.ethers.getContractFactory("TestContract")
+      ).deploy();
+
+      for (const lockedDelay of [
+        SENTINEL,
+        delay.address,
+        testContract.address,
+      ]) {
+        const guard = (await Guard.deploy(lockedDelay)) as ConfigLockGuard;
+        expect(await guard.lockedDelay()).to.equal(lockedDelay);
+      }
+    });
+  });
+
   describe("called directly, as the Safe calls it", async () => {
     describe("delegate calls", async () => {
       it("rejects every delegate call, before it looks at the calldata", async () => {
@@ -446,19 +472,6 @@ describe("ConfigLockGuard", async () => {
     });
 
     describe("unusual lockedDelay values", async () => {
-      it("address(0): the modifier selectors are rejected on calls to address(0)", async () => {
-        const { Guard, safeA, delay } = await setup();
-        const guard = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
-
-        for (const c of DELAY_LOCKED) {
-          await expect(
-            checkTransaction(guard, safeA, AddressZero, c.data)
-          ).to.be.revertedWith(customError(c.error));
-          await expect(checkTransaction(guard, safeA, delay.address, c.data)).to
-            .not.be.reverted;
-        }
-      });
-
       it("the Safe itself: the Safe's own branch wins for that Safe", async () => {
         const { Guard, safeA, safeB } = await setup();
         const guard = (await Guard.deploy(safeA.address)) as ConfigLockGuard;
@@ -506,12 +519,6 @@ describe("ConfigLockGuard", async () => {
         expect(await guard.supportsInterface("0xffffffff")).to.equal(false);
         expect(await guard.supportsInterface("0x00000000")).to.equal(false);
       });
-
-      it("lockedDelay is the constructor argument", async () => {
-        const { guard, delay } = await setup();
-
-        expect(await guard.lockedDelay()).to.equal(delay.address);
-      });
     });
   });
 
@@ -553,7 +560,11 @@ describe("ConfigLockGuard", async () => {
     it("agrees on 500 random calls", async function () {
       this.timeout(120000);
       const { Guard, guard, safeA, safeB, delay } = await setup();
-      const guardOnZero = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
+      // Locked to safeB: safeB calling itself takes the Safe branch, safeA
+      // calling safeB takes the Delay branch.
+      const guardOnSafeB = (await Guard.deploy(
+        safeB.address
+      )) as ConfigLockGuard;
 
       const random = prng(0xc0ff1e);
       const pick = <T>(xs: T[]) => xs[Math.floor(random() * xs.length)];
@@ -570,7 +581,7 @@ describe("ConfigLockGuard", async () => {
       );
 
       for (let i = 0; i < 500; i++) {
-        const g = pick([guard, guardOnZero]);
+        const g = pick([guard, guardOnSafeB]);
         const lockedDelay = await g.lockedDelay();
         const sender = pick([safeA, safeB]);
         const to = pick([
@@ -775,7 +786,9 @@ describe("ConfigLockGuard", async () => {
 
         const Guard = await hre.ethers.getContractFactory("ConfigLockGuard");
         const guard = (await Guard.deploy(delay.address)) as ConfigLockGuard;
-        const otherGuard = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
+        const otherGuard = (await Guard.deploy(
+          stranger.address
+        )) as ConfigLockGuard;
 
         // A module enabled before the guard goes on.
         await exec(
