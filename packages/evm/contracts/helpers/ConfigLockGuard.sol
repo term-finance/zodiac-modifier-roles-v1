@@ -102,6 +102,7 @@ contract ConfigLockGuard is BaseGuard {
                 revert FallbackHandlerLocked();
             }
         } else if (to == lockedDelay) {
+            bytes4 selector = bytes4(data);
             if (
                 selector == IDelay.transferOwnership.selector ||
                 selector == IDelay.renounceOwnership.selector
