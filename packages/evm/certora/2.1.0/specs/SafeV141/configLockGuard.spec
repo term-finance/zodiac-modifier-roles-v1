@@ -2,7 +2,7 @@
  * ConfigLockGuard on a Safe running v1.4.1 (the DelayOwnerSafe): once installed with
  * the Safe's own setGuard, the Safe cannot remove or replace the guard,
  * enable or disable a module, change its fallback handler, or delegate call.
- * Called directly, the guard rejects exactly those calls and the seven locked
+ * Called directly, the guard rejects exactly those calls and the nine locked
  * calls to its lockedDelay (the Delay on chain), and lets everything else
  * through. The module path never reaches the guard. What the guard does to
  * calls into the Delay, end to end, is specs/Delay/delayOwnerGuard.spec.
@@ -71,6 +71,8 @@ definition TRANSFER_OWNERSHIP() returns uint32 = 0xf2fde38b;
 definition RENOUNCE_OWNERSHIP() returns uint32 = 0x715018a6;
 definition SET_AVATAR() returns uint32 = 0x086cfca8;
 definition SET_TARGET() returns uint32 = 0x776d1a01;
+definition SET_TX_COOLDOWN() returns uint32 = 0xebb2b4a2;
+definition SET_TX_EXPIRATION() returns uint32 = 0x9b56d5be;
 
 definition isLockedSelfSelector(uint32 sel) returns bool =
     sel == SET_GUARD() || sel == ENABLE_MODULE() ||
@@ -79,7 +81,8 @@ definition isLockedSelfSelector(uint32 sel) returns bool =
 definition isLockedModifierSelector(uint32 sel) returns bool =
     sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP() ||
     sel == ENABLE_MODULE() || sel == DISABLE_MODULE() || sel == SET_GUARD() ||
-    sel == SET_AVATAR() || sel == SET_TARGET();
+    sel == SET_AVATAR() || sel == SET_TARGET() ||
+    sel == SET_TX_COOLDOWN() || sel == SET_TX_EXPIRATION();
 
 /// What the guard is meant to reject from `safe`, for a plain call. The Safe
 /// branch is tested first, as in checkTransaction. A zero modifier is not
@@ -612,13 +615,13 @@ rule moduleCallBypassesTheGuard(bytes data) {
 
 /*
  * An execTransaction addressed to the modifier whose calldata starts with any
- * of the seven locked selectors reverts, whatever the arguments, value and
+ * of the nine locked selectors reverts, whatever the arguments, value and
  * operation. The guard runs before the Safe makes its call, so the modifier
  * is never reached and does not need to be in this scene. With
  * guardedSafeCannotDelegateCall, every execTransaction to the modifier that
  * succeeds is a plain call carrying some other selector;
  * specs/Delay/delayOwnerGuard.spec shows no such call changes the Delay's
- * owner, modules, guard, avatar or target.
+ * owner, modules, guard, avatar, target, txCooldown or txExpiration.
  */
 rule guardedSafeCannotCallLockedModifierFunctions(
     uint256 value, bytes data, Enum.Operation operation,
@@ -637,4 +640,33 @@ rule guardedSafeCannotCallLockedModifierFunctions(
 
     assert lastReverted,
         "with ConfigLockGuard installed, the Safe called a locked function on the modifier";
+}
+
+/* ------------------------------------------------------------------------
+ * 7. The modifier's timings, called directly
+ * --------------------------------------------------------------------- */
+
+/*
+ * setTxCooldown and setTxExpiration on the modifier are rejected, whatever
+ * the value. Added after the rules above so their numbers stay the same; it
+ * belongs with the modifier rules in section 1.
+ */
+rule checkTransactionRejectsModifierTimingChange(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures, address msgSender
+) {
+    env e;
+    address m = configLockGuard.lockedDelay();
+    require m != e.msg.sender;
+    uint32 sel = selectorOf(data);
+    require sel == SET_TX_COOLDOWN() || sel == SET_TX_EXPIRATION();
+
+    configLockGuard.checkTransaction@withrevert(
+        e, m, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
+    );
+
+    assert lastReverted,
+        "ConfigLockGuard let the Safe change the modifier's txCooldown or txExpiration";
 }

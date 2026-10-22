@@ -80,16 +80,19 @@ definition isLockedSelfSelector(uint32 sel) returns bool =
 
 // What the guard rejects on calls to lockedDelay. setGuard(address),
 // enableModule(address) and disableModule(address,address) share the Safe's
-// selectors; the other four are Ownable's and Module's.
+// selectors; the other six are Ownable's, Module's and the Delay's.
 definition TRANSFER_OWNERSHIP() returns uint32 = 0xf2fde38b;
 definition RENOUNCE_OWNERSHIP() returns uint32 = 0x715018a6;
 definition SET_AVATAR() returns uint32 = 0x086cfca8;
 definition SET_TARGET() returns uint32 = 0x776d1a01;
+definition SET_TX_COOLDOWN() returns uint32 = 0xebb2b4a2;
+definition SET_TX_EXPIRATION() returns uint32 = 0x9b56d5be;
 
 definition isLockedModifierSelector(uint32 sel) returns bool =
     sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP() ||
     sel == ENABLE_MODULE() || sel == DISABLE_MODULE() || sel == SET_GUARD() ||
-    sel == SET_AVATAR() || sel == SET_TARGET();
+    sel == SET_AVATAR() || sel == SET_TARGET() ||
+    sel == SET_TX_COOLDOWN() || sel == SET_TX_EXPIRATION();
 
 /// The settings functions the guard leaves open.
 definition isUnblockedSetting(method f) returns bool =
@@ -208,7 +211,7 @@ rule checkTransactionRejectsSelfSetFallbackHandler(
 
 /*
  * Whatever lockedDelay is, every plain call passes the guard except the
- * Safe calling one of its four locked settings functions, and the seven
+ * Safe calling one of its four locked settings functions, and the nine
  * locked modifier calls sent to lockedDelay.
  */
 rule checkTransactionAcceptsEverythingElse(
