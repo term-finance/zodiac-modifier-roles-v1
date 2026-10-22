@@ -12,9 +12,11 @@ import "../interfaces/IDelay.sol";
 /// nothing a module sends. On the Safe itself it blocks setGuard, enableModule,
 /// disableModule and setFallbackHandler, and it blocks delegate calls, which
 /// could otherwise write the guard, module or handler storage directly. Once
-/// set, the guard cannot be removed or replaced. The Safe is taken from
-/// msg.sender rather than pinned, so the guard never rejects a Safe it was
-/// installed on by mistake with no way to take it off again.
+/// set, only an enabled module can remove or replace the guard, and the owners
+/// can no longer enable one, so on a Safe with no module when the guard is set
+/// it is permanent. The Safe is taken from msg.sender rather than pinned, so
+/// any Safe that installs it keeps its plain calls and owner management
+/// instead of having every transaction rejected.
 ///
 /// `lockedDelay` -- the Safe also cannot change that Delay modifier's
 /// owner, modules, guard, avatar or target. Its other owner functions
