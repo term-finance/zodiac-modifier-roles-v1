@@ -7,7 +7,7 @@ import "@nomiclabs/hardhat-ethers";
 import { ConfigLockGuard } from "../typechain-types";
 
 /*
- * ConfigLockGuard as deployed: one instance, lockedModifier = the Delay,
+ * ConfigLockGuard as deployed: one instance, lockedDelay = the Delay,
  * installed with setGuard on several Safes.
  *
  * The Certora specs (specs/Safe/configLockGuard.spec,
@@ -17,7 +17,7 @@ import { ConfigLockGuard } from "../typechain-types";
  * These tests run the real GnosisSafe v1.3.0, Safe v1.4.1 and Delay v1.0.1
  * (contracts/test/*Imports.sol) with real signatures and check the exact
  * error. Every call is encoded from those contracts' own ABIs, never from the
- * guard's ISafeAdmin / IModifierAdmin, so a wrong signature in either
+ * guard's ISafeAdmin / IDelay, so a wrong signature in either
  * interface fails here.
  */
 
@@ -47,7 +47,7 @@ const multiSendAbi = abiOf("MultiSend");
 const DO_NOTHING = testContractAbi.encodeFunctionData("doNothing");
 
 /* hardhat names the guard's custom error in the revert message. The quote in
- * front keeps GuardLocked from matching ModifierGuardLocked. */
+ * front keeps GuardLocked from matching DelayGuardLocked. */
 const customError = (name: string) => `custom error '${name}()'`;
 
 const selectorOf = (data: string) => ethers.utils.hexDataSlice(data, 0, 4);
@@ -83,47 +83,47 @@ const SAFE_LOCKED: LockedCall[] = [
   },
 ];
 
-// What the guard blocks when the Safe calls lockedModifier.
-const MODIFIER_LOCKED: LockedCall[] = [
+// What the guard blocks when the Safe calls lockedDelay.
+const DELAY_LOCKED: LockedCall[] = [
   {
     name: "transferOwnership",
     data: delayAbi.encodeFunctionData("transferOwnership", [SOMEONE]),
-    error: "ModifierOwnershipLocked",
+    error: "DelayOwnershipLocked",
   },
   {
     name: "renounceOwnership",
     data: delayAbi.encodeFunctionData("renounceOwnership"),
-    error: "ModifierOwnershipLocked",
+    error: "DelayOwnershipLocked",
   },
   {
     name: "enableModule",
     data: delayAbi.encodeFunctionData("enableModule", [SOMEONE]),
-    error: "ModifierModulesLocked",
+    error: "DelayModulesLocked",
   },
   {
     name: "disableModule",
     data: delayAbi.encodeFunctionData("disableModule", [SENTINEL, SOMEONE]),
-    error: "ModifierModulesLocked",
+    error: "DelayModulesLocked",
   },
   {
     name: "setGuard(other)",
     data: delayAbi.encodeFunctionData("setGuard", [SOMEONE]),
-    error: "ModifierGuardLocked",
+    error: "DelayGuardLocked",
   },
   {
     name: "setGuard(0)",
     data: delayAbi.encodeFunctionData("setGuard", [AddressZero]),
-    error: "ModifierGuardLocked",
+    error: "DelayGuardLocked",
   },
   {
     name: "setAvatar",
     data: delayAbi.encodeFunctionData("setAvatar", [SOMEONE]),
-    error: "ModifierAvatarLocked",
+    error: "DelayAvatarLocked",
   },
   {
     name: "setTarget",
     data: delayAbi.encodeFunctionData("setTarget", [SOMEONE]),
-    error: "ModifierAvatarLocked",
+    error: "DelayAvatarLocked",
   },
 ];
 
@@ -141,7 +141,7 @@ const SAFE_OPEN = [
 ];
 
 // Delay functions the guard leaves open.
-const MODIFIER_OPEN = [
+const DELAY_OPEN = [
   delayAbi.encodeFunctionData("setTxNonce", [1]),
   delayAbi.encodeFunctionData("setTxCooldown", [60]),
   delayAbi.encodeFunctionData("setTxExpiration", [120]),
@@ -156,7 +156,7 @@ const MODIFIER_OPEN = [
 ];
 
 // Delay selectors with no Safe function of the same selector.
-const MODIFIER_ONLY = MODIFIER_LOCKED.filter(
+const DELAY_ONLY = DELAY_LOCKED.filter(
   (c) => !SAFE_LOCKED.some((s) => selectorOf(s.data) === selectorOf(c.data))
 );
 
@@ -193,6 +193,32 @@ describe("ConfigLockGuard", async () => {
     const guard = (await Guard.deploy(delay.address)) as ConfigLockGuard;
 
     return { Guard, guard, safeA, safeB, safeC, delay, stranger };
+  });
+
+  describe("constructor", async () => {
+    it("rejects address(0) as the locked Delay", async () => {
+      const { Guard } = await setup();
+
+      await expect(Guard.deploy(AddressZero)).to.be.revertedWith(
+        customError("InvalidLockedDelay")
+      );
+    });
+
+    it("accepts any other address, code or not, as lockedDelay", async () => {
+      const { Guard, delay } = await setup();
+      const testContract = await (
+        await hre.ethers.getContractFactory("TestContract")
+      ).deploy();
+
+      for (const lockedDelay of [
+        SENTINEL,
+        delay.address,
+        testContract.address,
+      ]) {
+        const guard = (await Guard.deploy(lockedDelay)) as ConfigLockGuard;
+        expect(await guard.lockedDelay()).to.equal(lockedDelay);
+      }
+    });
   });
 
   describe("called directly, as the Safe calls it", async () => {
@@ -253,7 +279,7 @@ describe("ConfigLockGuard", async () => {
               guard,
               safeA,
               delay.address,
-              ethers.utils.hexDataSlice(MODIFIER_LOCKED[0].data, 0, length)
+              ethers.utils.hexDataSlice(DELAY_LOCKED[0].data, 0, length)
             )
           ).to.not.be.reverted;
         }
@@ -322,8 +348,8 @@ describe("ConfigLockGuard", async () => {
       });
     });
 
-    describe("calls to the locked modifier", async () => {
-      for (const c of MODIFIER_LOCKED) {
+    describe("calls to the locked Delay", async () => {
+      for (const c of DELAY_LOCKED) {
         it(`rejects ${c.name} with ${c.error}`, async () => {
           const { guard, safeA, delay } = await setup();
 
@@ -336,7 +362,7 @@ describe("ConfigLockGuard", async () => {
       it("rejects the bare selector, and extra bytes after the arguments", async () => {
         const { guard, safeA, delay } = await setup();
 
-        for (const c of MODIFIER_LOCKED) {
+        for (const c of DELAY_LOCKED) {
           for (const data of [
             selectorOf(c.data),
             ethers.utils.hexConcat([c.data, "0xdeadbeef"]),
@@ -351,7 +377,7 @@ describe("ConfigLockGuard", async () => {
       it("lets the Delay's other functions through", async () => {
         const { guard, safeA, delay } = await setup();
 
-        for (const data of MODIFIER_OPEN) {
+        for (const data of DELAY_OPEN) {
           await expect(checkTransaction(guard, safeA, delay.address, data)).to
             .not.be.reverted;
         }
@@ -361,9 +387,9 @@ describe("ConfigLockGuard", async () => {
         const { guard, safeA, delay } = await setup();
 
         const shared: [string, string, string][] = [
-          ["setGuard", "GuardLocked", "ModifierGuardLocked"],
-          ["enableModule", "ModulesLocked", "ModifierModulesLocked"],
-          ["disableModule", "ModulesLocked", "ModifierModulesLocked"],
+          ["setGuard", "GuardLocked", "DelayGuardLocked"],
+          ["enableModule", "ModulesLocked", "DelayModulesLocked"],
+          ["disableModule", "ModulesLocked", "DelayModulesLocked"],
         ];
         for (const [fn, onSafe, onDelay] of shared) {
           const data = delayAbi.encodeFunctionData(
@@ -384,7 +410,7 @@ describe("ConfigLockGuard", async () => {
       it("ignores a selector that only the other contract locks", async () => {
         const { guard, safeA, delay } = await setup();
 
-        for (const c of MODIFIER_ONLY) {
+        for (const c of DELAY_ONLY) {
           await expect(checkTransaction(guard, safeA, safeA.address, c.data)).to
             .not.be.reverted;
         }
@@ -404,7 +430,7 @@ describe("ConfigLockGuard", async () => {
         const { guard, safeA, safeB, stranger } = await setup();
 
         for (const to of [stranger.address, safeB.address, AddressZero]) {
-          for (const c of [...SAFE_LOCKED, ...MODIFIER_LOCKED]) {
+          for (const c of [...SAFE_LOCKED, ...DELAY_LOCKED]) {
             await expect(checkTransaction(guard, safeA, to, c.data)).to.not.be
               .reverted;
           }
@@ -436,7 +462,7 @@ describe("ConfigLockGuard", async () => {
         const { guard, safeA, safeB, safeC, delay } = await setup();
 
         for (const safe of [safeA, safeB, safeC]) {
-          for (const c of MODIFIER_LOCKED) {
+          for (const c of DELAY_LOCKED) {
             await expect(
               checkTransaction(guard, safe, delay.address, c.data)
             ).to.be.revertedWith(customError(c.error));
@@ -445,20 +471,7 @@ describe("ConfigLockGuard", async () => {
       });
     });
 
-    describe("unusual lockedModifier values", async () => {
-      it("address(0): the modifier selectors are rejected on calls to address(0)", async () => {
-        const { Guard, safeA, delay } = await setup();
-        const guard = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
-
-        for (const c of MODIFIER_LOCKED) {
-          await expect(
-            checkTransaction(guard, safeA, AddressZero, c.data)
-          ).to.be.revertedWith(customError(c.error));
-          await expect(checkTransaction(guard, safeA, delay.address, c.data)).to
-            .not.be.reverted;
-        }
-      });
-
+    describe("unusual lockedDelay values", async () => {
       it("the Safe itself: the Safe's own branch wins for that Safe", async () => {
         const { Guard, safeA, safeB } = await setup();
         const guard = (await Guard.deploy(safeA.address)) as ConfigLockGuard;
@@ -469,13 +482,13 @@ describe("ConfigLockGuard", async () => {
             checkTransaction(guard, safeA, safeA.address, c.data)
           ).to.be.revertedWith(customError(c.error));
         }
-        for (const c of MODIFIER_ONLY) {
+        for (const c of DELAY_ONLY) {
           await expect(checkTransaction(guard, safeA, safeA.address, c.data)).to
             .not.be.reverted;
         }
 
-        // Any other Safe calling safeA: the modifier list applies.
-        for (const c of MODIFIER_LOCKED) {
+        // Any other Safe calling safeA: the Delay list applies.
+        for (const c of DELAY_LOCKED) {
           await expect(
             checkTransaction(guard, safeB, safeA.address, c.data)
           ).to.be.revertedWith(customError(c.error));
@@ -506,12 +519,6 @@ describe("ConfigLockGuard", async () => {
         expect(await guard.supportsInterface("0xffffffff")).to.equal(false);
         expect(await guard.supportsInterface("0x00000000")).to.equal(false);
       });
-
-      it("lockedModifier is the constructor argument", async () => {
-        const { guard, delay } = await setup();
-
-        expect(await guard.lockedModifier()).to.equal(delay.address);
-      });
     });
   });
 
@@ -523,14 +530,14 @@ describe("ConfigLockGuard", async () => {
     const SAFE_ERRORS = Object.fromEntries(
       SAFE_LOCKED.map((c) => [selectorOf(c.data), c.error])
     );
-    const MODIFIER_ERRORS = Object.fromEntries(
-      MODIFIER_LOCKED.map((c) => [selectorOf(c.data), c.error])
+    const DELAY_ERRORS = Object.fromEntries(
+      DELAY_LOCKED.map((c) => [selectorOf(c.data), c.error])
     );
 
     const expected = (
       sender: string,
       to: string,
-      lockedModifier: string,
+      lockedDelay: string,
       data: string,
       operation: number
     ) => {
@@ -538,7 +545,7 @@ describe("ConfigLockGuard", async () => {
       if (ethers.utils.hexDataLength(data) < 4) return "ok";
       const selector = selectorOf(data);
       if (to === sender) return SAFE_ERRORS[selector] ?? "ok";
-      if (to === lockedModifier) return MODIFIER_ERRORS[selector] ?? "ok";
+      if (to === lockedDelay) return DELAY_ERRORS[selector] ?? "ok";
       return "ok";
     };
 
@@ -553,7 +560,11 @@ describe("ConfigLockGuard", async () => {
     it("agrees on 500 random calls", async function () {
       this.timeout(120000);
       const { Guard, guard, safeA, safeB, delay } = await setup();
-      const guardOnZero = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
+      // Locked to safeB: safeB calling itself takes the Safe branch, safeA
+      // calling safeB takes the Delay branch.
+      const guardOnSafeB = (await Guard.deploy(
+        safeB.address
+      )) as ConfigLockGuard;
 
       const random = prng(0xc0ff1e);
       const pick = <T>(xs: T[]) => xs[Math.floor(random() * xs.length)];
@@ -562,16 +573,16 @@ describe("ConfigLockGuard", async () => {
           Array.from({ length: bytes }, () => Math.floor(random() * 256))
         );
 
-      const selectors = [...SAFE_LOCKED, ...MODIFIER_LOCKED].map((c) =>
+      const selectors = [...SAFE_LOCKED, ...DELAY_LOCKED].map((c) =>
         selectorOf(c.data)
       );
-      const openSelectors = [...SAFE_OPEN, ...MODIFIER_OPEN, DO_NOTHING].map(
+      const openSelectors = [...SAFE_OPEN, ...DELAY_OPEN, DO_NOTHING].map(
         selectorOf
       );
 
       for (let i = 0; i < 500; i++) {
-        const g = pick([guard, guardOnZero]);
-        const lockedModifier = await g.lockedModifier();
+        const g = pick([guard, guardOnSafeB]);
+        const lockedDelay = await g.lockedDelay();
         const sender = pick([safeA, safeB]);
         const to = pick([
           sender.address,
@@ -613,10 +624,8 @@ describe("ConfigLockGuard", async () => {
 
         expect(
           actual,
-          `case ${i}: ${sender.address} -> ${to} (lockedModifier ${lockedModifier}) op ${operation} data ${data}`
-        ).to.equal(
-          expected(sender.address, to, lockedModifier, data, operation)
-        );
+          `case ${i}: ${sender.address} -> ${to} (lockedDelay ${lockedDelay}) op ${operation} data ${data}`
+        ).to.equal(expected(sender.address, to, lockedDelay, data, operation));
       }
     });
   });
@@ -777,7 +786,9 @@ describe("ConfigLockGuard", async () => {
 
         const Guard = await hre.ethers.getContractFactory("ConfigLockGuard");
         const guard = (await Guard.deploy(delay.address)) as ConfigLockGuard;
-        const otherGuard = (await Guard.deploy(AddressZero)) as ConfigLockGuard;
+        const otherGuard = (await Guard.deploy(
+          stranger.address
+        )) as ConfigLockGuard;
 
         // A module enabled before the guard goes on.
         await exec(
@@ -1073,7 +1084,7 @@ describe("ConfigLockGuard", async () => {
         }[] = [
           {
             name: "transferOwnership",
-            error: "ModifierOwnershipLocked",
+            error: "DelayOwnershipLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("transferOwnership", [
                 s.stranger.address,
@@ -1081,18 +1092,18 @@ describe("ConfigLockGuard", async () => {
           },
           {
             name: "renounceOwnership",
-            error: "ModifierOwnershipLocked",
+            error: "DelayOwnershipLocked",
             data: () => delayAbi.encodeFunctionData("renounceOwnership"),
           },
           {
             name: "enableModule",
-            error: "ModifierModulesLocked",
+            error: "DelayModulesLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("enableModule", [s.stranger.address]),
           },
           {
             name: "disableModule",
-            error: "ModifierModulesLocked",
+            error: "DelayModulesLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("disableModule", [
                 SENTINEL,
@@ -1101,24 +1112,24 @@ describe("ConfigLockGuard", async () => {
           },
           {
             name: "setGuard(0), removing PauseGuard",
-            error: "ModifierGuardLocked",
+            error: "DelayGuardLocked",
             data: () => delayAbi.encodeFunctionData("setGuard", [AddressZero]),
           },
           {
             name: "setGuard(another guard)",
-            error: "ModifierGuardLocked",
+            error: "DelayGuardLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("setGuard", [s.otherGuard.address]),
           },
           {
             name: "setAvatar",
-            error: "ModifierAvatarLocked",
+            error: "DelayAvatarLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("setAvatar", [s.newOwner.address]),
           },
           {
             name: "setTarget",
-            error: "ModifierAvatarLocked",
+            error: "DelayAvatarLocked",
             data: (s) =>
               delayAbi.encodeFunctionData("setTarget", [s.newOwner.address]),
           },
