@@ -2,11 +2,12 @@
  * The Delay's half of the ConfigLockGuard lock on the DelayOwnerSafe, plus
  * witnesses that the guarded Safe can still run the Delay.
  *
- * ConfigLockGuard rejects seven calls to its lockedDelay
+ * ConfigLockGuard rejects nine calls to its lockedDelay
  * (transferOwnership, renounceOwnership, enableModule, disableModule,
- * setGuard, setAvatar and setTarget; CL141-23) and every delegate call (CL141-16).
- * This file shows that no other Delay call, from any caller, changes the
- * Delay's owner, modules, guard, avatar or target.
+ * setGuard, setAvatar, setTarget, setTxCooldown and setTxExpiration;
+ * CL141-23) and every delegate call (CL141-16). This file shows that no
+ * other Delay call, from any caller, changes the Delay's owner, modules,
+ * guard, avatar, target, txCooldown or txExpiration.
  *
  * The scene is the real Delay (certora/helpers/Delay.sol), the real
  * ConfigLockGuard with its lockedDelay linked to the Delay, and, for the
@@ -56,13 +57,11 @@ methods {
     // The Safe's call to `to` in the witnesses, run as a call to the Delay
     // function the witness names.
     unresolved external in SafeV141Harness._ => DISPATCH [
-        Delay.setTxNonce(uint256),
-        Delay.setTxCooldown(uint256),
-        Delay.setTxExpiration(uint256)
+        Delay.setTxNonce(uint256)
     ] default NONDET;
 }
 
-/// The seven Delay functions ConfigLockGuard rejects for its Safe, and setUp.
+/// The nine Delay functions ConfigLockGuard rejects for its Safe, and setUp.
 definition isLockedOrSetUp(method f) returns bool =
     f.selector == sig:Delay.transferOwnership(address).selector ||
     f.selector == sig:Delay.renounceOwnership().selector ||
@@ -71,6 +70,8 @@ definition isLockedOrSetUp(method f) returns bool =
     f.selector == sig:Delay.setGuard(address).selector ||
     f.selector == sig:Delay.setAvatar(address).selector ||
     f.selector == sig:Delay.setTarget(address).selector ||
+    f.selector == sig:Delay.setTxCooldown(uint256).selector ||
+    f.selector == sig:Delay.setTxExpiration(uint256).selector ||
     f.selector == sig:Delay.setUp(bytes).selector;
 
 /// The guard is installed on the Safe and points at the Delay, the Delay is
@@ -86,7 +87,7 @@ definition guardedOwner() returns bool =
  * --------------------------------------------------------------------- */
 
 /*
- * Over every Delay write function except the seven the guard rejects and
+ * Over every Delay write function except the nine the guard rejects and
  * setUp, and for any caller, the owner, guard, avatar and target are
  * unchanged. The Safe's plain calls that pass the guard are among these
  * calls. setUp always reverts after deployment (DM-1).
@@ -187,54 +188,29 @@ rule guardedSafeCanStillVeto(
         "with ConfigLockGuard installed, the Safe could not veto with setTxNonce";
 }
 
-/*
- * The cooldown can still be set: an execTransaction of setTxCooldown(c) to
- * the Delay succeeds and txCooldown becomes c.
- */
-rule guardedSafeCanStillSetTxCooldown(
-    uint256 c, bytes data, uint256 safeTxGas, uint256 baseGas,
-    address gasToken, address refundReceiver, bytes signatures
-) {
-    env e;
-    require thresholdValue() > 0;
-    require guardedOwner();
-
-    require data.length == 36;
-    require selectorOf(data) == sig:Delay.setTxCooldown(uint256).selector;
-    require reader.wordAfterSelector(data) == c;
-    require delayContract.txCooldown() != c;
-
-    execTransaction@withrevert(e,
-        delayContract, 0, data, Enum.Operation.Call,
-        safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
-
-    assert true; // Check pessimistic assertions alongside the existential witness.
-    satisfy !lastReverted && delayContract.txCooldown() == c,
-        "with ConfigLockGuard installed, the Safe could not set the Delay's cooldown";
-}
+/* ------------------------------------------------------------------------
+ * 3. The Delay's half of the timing lock
+ * --------------------------------------------------------------------- */
 
 /*
- * The expiration can still be set: an execTransaction of setTxExpiration(x)
- * to the Delay succeeds and txExpiration becomes x.
+ * Over every Delay write function except the nine the guard rejects and
+ * setUp, and for any caller, txCooldown and txExpiration are unchanged. The
+ * Safe's plain calls that pass the guard are among these calls. It belongs
+ * with the rules in section 1; it is placed here so their numbers stay the
+ * same.
  */
-rule guardedSafeCanStillSetTxExpiration(
-    uint256 x, bytes data, uint256 safeTxGas, uint256 baseGas,
-    address gasToken, address refundReceiver, bytes signatures
-) {
+rule unlockedDelayCallsNeverChangeTxCooldownOrTxExpiration(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure &&
+                    f.contract == delayContract && !isLockedOrSetUp(f) }
+{
     env e;
-    require thresholdValue() > 0;
-    require guardedOwner();
+    uint256 cooldownBefore = delayContract.txCooldown();
+    uint256 expirationBefore = delayContract.txExpiration();
 
-    require data.length == 36;
-    require selectorOf(data) == sig:Delay.setTxExpiration(uint256).selector;
-    require reader.wordAfterSelector(data) == x;
-    require delayContract.txExpiration() != x;
+    f(e, args);
 
-    execTransaction@withrevert(e,
-        delayContract, 0, data, Enum.Operation.Call,
-        safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
-
-    assert true; // Check pessimistic assertions alongside the existential witness.
-    satisfy !lastReverted && delayContract.txExpiration() == x,
-        "with ConfigLockGuard installed, the Safe could not set the Delay's expiration";
+    assert delayContract.txCooldown() == cooldownBefore,
+        "a Delay function the guard lets through changed the Delay's txCooldown";
+    assert delayContract.txExpiration() == expirationBefore,
+        "a Delay function the guard lets through changed the Delay's txExpiration";
 }
