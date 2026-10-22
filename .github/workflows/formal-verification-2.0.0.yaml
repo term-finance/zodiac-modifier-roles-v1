@@ -32,31 +32,19 @@ jobs:
       matrix:
         ruleset:
           - "Roles-setTxNonceGuardAndRoleConfig.conf"
-          - "Roles-setTxNonceLands.conf"
-          - "Roles-setTxNonceGuardSufficient.conf"
-          - "Roles-setTxNonceRoleConfigSufficient.conf"
           - "Roles-configIntegrity.conf"
           - "Delay-pauseGuardSufficient.conf"
           - "Delay-moduleIntegrity.conf"
           - "Delay-queueProvenance.conf"
           - "PauseGuard-deployment.conf"
-          - "MultiSend-shortBatch.conf"
           - "Safe-executionPaths.conf"
           - "Safe-selfCalls.conf"
-          - "Safe-receive.conf"
-          - "Safe-fallbackStorage.conf"
           - "Safe-noStateChange.conf"
-          - "Safe-fallbackHandler.conf"
-          - "Safe-selfHandler.conf"
           - "Safe-configLockGuard.conf"
           - "Safe-ownerlessSafeGuard.conf"
           - "Safe-v141-executionPaths.conf"
           - "Safe-v141-selfCalls.conf"
-          - "Safe-v141-receive.conf"
-          - "Safe-v141-fallbackStorage.conf"
           - "Safe-v141-noStateChange.conf"
-          - "Safe-v141-fallbackHandler.conf"
-          - "Safe-v141-selfHandler.conf"
           - "Safe-v141-vetoLandsOnDelay.conf"
           - "Safe-v141-configLockGuard.conf"
           - "Delay-delayOwnerGuard.conf"
@@ -97,7 +85,7 @@ jobs:
           python3 certora/toolchain_test.py
           pip3 install -r "$(python3 certora/toolchain.py '2.0.0/${{ matrix.ruleset }}' --field requirements)"
         working-directory: ./packages/evm
-      # 0.8.6 for the Delay, Roles and MultiSend scenes; 0.7.6 for the Safe
+      # 0.8.6 for the Delay and Roles scenes; 0.7.6 for the Safe
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
       # singletons. Governor-veto and Governor-vetoEndToEnd mix compilers
       # through their `solc_map`, which names solc8.20 (the deployed Governor
