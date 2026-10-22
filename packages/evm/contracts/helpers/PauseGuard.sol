@@ -55,7 +55,7 @@ contract PauseGuard is BaseGuard {
         emit PauserSet(address(0), _pauser);
     }
 
-    /// @dev Blocks every execution through the Delay until an ADMIN_ROLE holder
+    /// @dev Blocks every execution through the Delay until the admin
     /// unpauses. Entries keep ageing while paused, but the Delay checks expiry
     /// against its current txCooldown and txExpiration, so its owner can revive
     /// an entry that expired during the pause, for example by raising
