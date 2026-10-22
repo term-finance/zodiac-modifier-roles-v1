@@ -845,3 +845,41 @@ rule ownerCanSetTxNonceAtAnyTime(uint256 nonce) {
     assert txNonce() == nonce,
         "setTxNonce returned without recording the new nonce";
 }
+
+/* ------------------------------------------------------------------------
+ * 12. An expired entry can be skipped while paused
+ * --------------------------------------------------------------------- */
+
+/*
+ * With PauseGuard installed and paused and the head entry expired, anyone's
+ * skipExpired succeeds, moves txNonce past the head entry and hands nothing
+ * to the Delay's target. skipExpired never calls the guard, so a pause does
+ * not stop it.
+ */
+rule skipExpiredSucceedsWhilePaused() {
+    env e;
+    require guard() == pauseGuardContract;
+    require target() == delayTargetContract;
+    require pauseGuardContract.paused();
+    require !forwardedToTarget;
+    require e.msg.value == 0;
+
+    uint256 head = txNonce();
+    require head < queueNonce();
+    require txExpiration() != 0;
+    require to_mathint(e.block.timestamp) >
+        txCreatedAt(head) + txCooldown() + txExpiration();
+    // skipExpired then adds up the next entry's expiry before checking that
+    // it is queued. Entries are queued at past block timestamps, so that sum
+    // does not overflow.
+    require txCreatedAt(assert_uint256(head + 1)) + txCooldown() + txExpiration() <= max_uint256;
+
+    skipExpired@withrevert(e);
+
+    assert !lastReverted,
+        "skipExpired reverted on an expired head entry while PauseGuard was paused";
+    assert txNonce() > head,
+        "skipExpired left the expired head entry at txNonce";
+    assert !forwardedToTarget,
+        "skipExpired handed a transaction to the Delay's target";
+}
