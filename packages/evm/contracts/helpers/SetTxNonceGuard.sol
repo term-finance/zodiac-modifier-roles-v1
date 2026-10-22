@@ -2,10 +2,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@gnosis.pm/zodiac/contracts/guard/BaseGuard.sol";
-
-interface IDelay {
-    function setTxNonce(uint256 _nonce) external;
-}
+import "../interfaces/IDelay.sol";
 
 /// @title SetTxNonceGuard - Restricts a module to calling setTxNonce on one Delay modifier.
 /// @dev Attach with `setGuard` on a Zodiac module. Module.exec and
@@ -25,10 +22,16 @@ contract SetTxNonceGuard is BaseGuard {
     /// Only zero value transactions are allowed
     error UnexpectedValue();
 
+    /// The delay modifier address cannot be zero
+    error InvalidDelayModifier();
+
     /// Payload is not an abi encoded setTxNonce(uint256)
     error UnexpectedCalldata();
 
     constructor(address _delay) {
+        if (_delay == address(0)) {
+            revert InvalidDelayModifier();
+        }
         delay = _delay;
     }
 
