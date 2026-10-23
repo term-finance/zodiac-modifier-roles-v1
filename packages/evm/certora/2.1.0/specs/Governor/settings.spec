@@ -3,8 +3,9 @@
  * exactly fourteen known functions, and none of them changes the voting
  * token, proposal threshold, voting threshold or quorum.
  *
- * The Governor is the deployed TermFinanceGovernor
- * (certora/vendor/TermFinanceGovernor) under
+ * The Governor is the constant-quorum TermFinanceGovernor of
+ * term-finance-ops-contracts PR 1096
+ * (certora/vendor/TermFinanceGovernorConstantQuorum) under
  * TermFinanceGovernorSettingsHarness, which adds only view getters, with its
  * token linked to TermToken.
  */
@@ -19,8 +20,7 @@ methods {
     function votingDelay() external returns (uint256) envfree;
     function votingPeriod() external returns (uint256) envfree;
     function proposalThreshold() external returns (uint256) envfree;
-    function quorumNumerator() external returns (uint256) envfree;
-    function quorumDenominator() external returns (uint256) envfree;
+    function QUORUM() external returns (uint256) envfree;
     function proposalNeedsQueuing(uint256) external returns (bool) envfree;
     function token() external returns (address) envfree;
     function hashProposal(address[], uint256[], bytes[], bytes32) external returns (uint256) envfree;
@@ -112,7 +112,7 @@ rule queueAlwaysReverts(address[] targets, uint256[] values, bytes[] calldatas, 
  * arguments, including relay called by the Governor as an action of a passed
  * proposal. queue is left out: it never succeeds (queueAlwaysReverts).
  */
-rule governorSettingsNeverChange(method f, calldataarg args, uint256 proposalId)
+rule governorSettingsNeverChange(method f, calldataarg args, uint256 proposalId, uint256 timepoint)
     filtered { f -> !f.isView && !f.isPure && !isQueue(f) }
 {
     env e;
@@ -125,8 +125,7 @@ rule governorSettingsNeverChange(method f, calldataarg args, uint256 proposalId)
     uint256 votingDelayBefore = votingDelay();
     uint256 votingPeriodBefore = votingPeriod();
     uint256 proposalThresholdBefore = proposalThreshold();
-    uint256 quorumNumeratorBefore = quorumNumerator();
-    uint256 quorumDenominatorBefore = quorumDenominator();
+    uint256 quorumBefore = quorum(e, timepoint);
     bool needsQueuingBefore = proposalNeedsQueuing(proposalId);
 
     f(e, args);
@@ -139,8 +138,7 @@ rule governorSettingsNeverChange(method f, calldataarg args, uint256 proposalId)
     assert votingDelay() == votingDelayBefore, "a Governor function changed votingDelay";
     assert votingPeriod() == votingPeriodBefore, "a Governor function changed votingPeriod";
     assert proposalThreshold() == proposalThresholdBefore, "a Governor function changed proposalThreshold";
-    assert quorumNumerator() == quorumNumeratorBefore, "a Governor function changed quorumNumerator";
-    assert quorumDenominator() == quorumDenominatorBefore, "a Governor function changed quorumDenominator";
+    assert quorum(e, timepoint) == quorumBefore, "a Governor function changed the quorum";
     assert proposalNeedsQueuing(proposalId) == needsQueuingBefore, "a Governor function changed proposalNeedsQueuing";
 }
 
@@ -150,30 +148,25 @@ rule governorSettingsNeverChange(method f, calldataarg args, uint256 proposalId)
 
 /*
  * In every state of the Governor's storage, the settings in code return the
- * deployed values, and quorum at any past timepoint is 1% of TERM's total
- * supply at that timepoint. None of them reads Governor storage, so nothing
- * the Governor ever stores can change them.
+ * deployed values, and the quorum at every timepoint is the constant QUORUM,
+ * 1,000,000 TERM. None of them reads Governor storage, so nothing the
+ * Governor ever stores can change them.
  */
 rule governorSettingsAreTheDeployedValues(uint256 proposalId, uint256 timepoint) {
     env e;
-    // getPastTotalSupply only answers for timepoints before TERM's clock, the
-    // block timestamp.
-    require timepoint < e.block.timestamp;
 
     assert votingDelay() == 0, "votingDelay is not 0";
     assert votingPeriod() == 22 * 3600, "votingPeriod is not 22 hours";
     assert proposalThreshold() == 1000 * 10^18, "proposalThreshold is not 1,000 TERM";
-    assert quorumNumerator() == 1, "quorumNumerator is not 1";
-    assert quorumDenominator() == 100, "quorumDenominator is not 100";
+    assert QUORUM() == 1000000 * 10^18, "QUORUM is not 1,000,000 TERM";
     assert executor() == currentContract, "the executor is not the Governor itself";
     assert !proposalNeedsQueuing(proposalId), "a proposal needs queuing";
-    assert to_mathint(quorum(e, timepoint)) == termToken.getPastTotalSupply(e, timepoint) / 100,
-        "quorum is not 1% of TERM's past total supply";
+    assert quorum(e, timepoint) == 1000000 * 10^18, "quorum is not 1,000,000 TERM";
 }
 
 /*
  * In every state, a proposal's vote succeeds exactly when its For votes are
- * strictly more than its Against votes (GovernorCountingSimple.sol:67). The
+ * strictly more than its Against votes (GovernorCountingSimple.sol:61). The
  * only stored data it reads is the tallies.
  */
 rule votingThresholdIsTheDeployedRule(uint256 proposalId) {
@@ -328,7 +321,7 @@ rule executeOnlyRunsSucceededProposals(
 
 /*
  * A proposal is Succeeded only once its For and Abstain votes together reach
- * the quorum at its snapshot (GovernorCountingSimple.sol:61). With
+ * the quorum at its snapshot (GovernorCountingSimple.sol:55). With
  * executeOnlyRunsSucceededProposals, execute only runs a proposal that reached
  * the quorum.
  */

@@ -3,7 +3,7 @@
  * proposal's tally grows by exactly the voter's votes at its snapshot, so an
  * account with no votes at the snapshot moves nothing.
  *
- * The Governor is the deployed TermFinanceGovernor under
+ * The Governor is PR 1096's constant-quorum TermFinanceGovernor under
  * TermFinanceGovernorSettingsHarness, which adds only view getters, with its
  * token linked to TermToken. The Governor's vote count is summarized as an
  * arbitrary value per account and timepoint; governorVotesAreTermPastVotes

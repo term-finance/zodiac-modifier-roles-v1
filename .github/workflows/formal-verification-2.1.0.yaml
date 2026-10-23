@@ -82,20 +82,21 @@ jobs:
       # 0.8.6 for the Delay and Roles scenes; 0.7.6 for the Safe
       # scenes, matching the deployed GnosisSafe v1.3.0 and Safe v1.4.1
       # singletons. Governor-veto and Governor-vetoEndToEnd mix compilers
-      # through their `solc_map`, which names solc8.20 (the deployed Governor
-      # and TERM's upgrade implementation) and solc8.6;
-      # Governor-proposalThreshold's names solc8.20; Delay-devopsEndToEnd's
+      # through their `solc_map`, which names solc8.24 (the constant-quorum
+      # Governor from term-finance-ops-contracts PR 1096), solc8.20 (TERM's
+      # upgrade implementation) and solc8.6; Governor-proposalThreshold's,
+      # Governor-settings', Governor-voting's and Governor-tallies' name
+      # solc8.24 and solc8.20; Delay-devopsEndToEnd's
       # names solc7.6, solc8.6 and solc8.20; Safe-v141-vetoLandsOnDelay's,
       # Safe-configLockGuard's, Safe-ownerlessSafeGuard's,
       # Safe-v141-configLockGuard's, Delay-delayOwnerGuard's,
       # Delay-vetoSignedPath's and Delay-proposerToOwnerlessSettings's confs
-      # name solc7.6 and solc8.6; and Governor-settings, Governor-voting,
-      # Governor-tallies and TermToken-supply name solc8.20 through `solc`. So
-      # those names are put on PATH too.
+      # name solc7.6 and solc8.6; and TermToken-supply names solc8.20 through
+      # `solc`. So those names are put on PATH too.
       - run: |
-          solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20
+          solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20 && solc-select install 0.8.24
           mkdir -p "$HOME/solc-bin"
-          for v in 0.8.20 0.8.6 0.7.6; do
+          for v in 0.8.24 0.8.20 0.8.6 0.7.6; do
             ln -sf "$HOME/.solc-select/artifacts/solc-$v/solc-$v" "$HOME/solc-bin/solc${v#0.}"
           done
           echo "$HOME/solc-bin" >> "$GITHUB_PATH"
