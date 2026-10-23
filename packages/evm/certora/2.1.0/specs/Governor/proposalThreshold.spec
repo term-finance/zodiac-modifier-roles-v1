@@ -3,7 +3,7 @@
  * below the proposal threshold cannot create a proposal, for any targets,
  * values, calldatas and description.
  *
- * The Governor is the deployed TermFinanceGovernor under
+ * The Governor is PR 1096's constant-quorum TermFinanceGovernor under
  * TermFinanceGovernorHarness, with its token linked to TermToken. The
  * Governor's vote count is summarized as an arbitrary value per account and
  * timepoint; governorVotesAreTermPastVotes (GV-4) shows it is TERM's

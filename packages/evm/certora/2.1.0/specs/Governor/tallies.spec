@@ -3,7 +3,7 @@
  * five voting functions and queue leaves every proposal's tally where it was.
  * queue never succeeds (queueAlwaysReverts, GS-4).
  *
- * The scene is settings.spec's: the deployed TermFinanceGovernor under
+ * The scene is settings.spec's: PR 1096's constant-quorum TermFinanceGovernor under
  * TermFinanceGovernorSettingsHarness, with its token linked to TermToken.
  */
 

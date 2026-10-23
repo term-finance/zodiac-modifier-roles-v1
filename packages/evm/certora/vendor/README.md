@@ -58,6 +58,32 @@ ways:
   `ERC20PausableUpgradeable`'s `whenNotPaused`, so a DEFAULT_ADMIN_ROLE
   holder can move, mint and burn TERM while it is paused.
 
+## TermFinanceGovernor with a constant quorum
+
+`TermFinanceGovernorConstantQuorum/contracts/TermFinanceGovernor.sol` is not
+deployed. It is term-finance-ops-contracts' `contracts/TermFinanceProtocolGovernor.sol`
+at `5d90281be203389bdc465963164f635048e5f3e6`, the head of PR 1096 (branch
+`constant-quorum-protocol-governor`), renamed after the contract it declares.
+The 2.1.0 Governor confs compile it in place of the deployed Governor. The
+Governor harnesses import `term-finance-governor/TermFinanceGovernor.sol`,
+which the 2.0.0 confs map to `TermFinanceGovernor/contracts` and the 2.1.0
+confs to `TermFinanceGovernorConstantQuorum/contracts`.
+
+It differs from the deployed Governor in one way: `quorum` returns the
+constant `QUORUM`, 1,000,000 TERM (1e24), whatever the timepoint and TERM's
+total supply, and `quorumNumerator`, `quorumDenominator` and `quorumVotes`
+are gone.
+
+It has the same import-path edit as the deployed Governor: its four
+`@openzeppelin/contracts/...` imports point at `../@openzeppelin/contracts/...`.
+`TermFinanceGovernorConstantQuorum/@openzeppelin/contracts` holds the 34 files
+they import, byte for byte from `@openzeppelin/contracts` 5.6.1, the version
+term-finance-ops-contracts pins (yarn.lock integrity
+`sha512-Ly6SlsVJ3mj+b18W3R8gNufB7dTICT105fJhodGAGgyC2oqnBAhqSiNDJ8V8DLY05cCz81GLI0CU5vNYA1EC/w==`).
+term-finance-ops-contracts builds it with solc 0.8.24 for EVM cancun, so the
+2.1.0 Governor confs do too; eight of those OpenZeppelin files need
+`^0.8.24`.
+
 ## How the scene compiles them
 
 `confs/Governor-veto.conf` compiles both for EVM paris, and TermToken with
