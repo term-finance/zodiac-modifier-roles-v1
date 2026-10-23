@@ -19,7 +19,7 @@ Pause controls
   AdminSafe      --unpause / setPauser-->  PauseGuard
 ```
 
-**Trust assumption:** Despite its name, the OwnerlessSafe has nine Term multisig holders as owners and a threshold of 9 (P1.4).
+**Trust assumption:** Despite its name, the OwnerlessSafe has nine Term multisig holders as owners and a threshold of 9, high enough that its direct path has more friction than going through the Delay Modifier.
 
 The conclusions drawn from these proofs establish the following propositions:
 
