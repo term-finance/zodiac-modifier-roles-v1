@@ -1,4 +1,4 @@
-# Live Mainnet Governance Configuration Proof
+# Governance With TERM Token Veto Configuration Proof
 
 ## 1. High Level Conclusion
 
@@ -325,6 +325,7 @@ All contracts are on Ethereum mainnet. Each address links to its Etherscan page.
 | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | PauseGuard      | to be deployed                                                                                                          |
 | SetTxNonceGuard | to be deployed                                                                                                          |
+| ConfigLockGuard | to be deployed                                                                                                          |
 
 #### Governance
 
