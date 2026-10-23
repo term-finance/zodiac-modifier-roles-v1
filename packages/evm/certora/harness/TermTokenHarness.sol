@@ -3,13 +3,13 @@
 // (0xeC222d8AfB8b4E78C418ebc1ab2cA181f19FbadC) was built with.
 pragma solidity 0.8.20;
 
-import {TermToken} from "../vendor/TermToken/src-triage/TermToken.sol";
+import {TermToken} from "term-token/TermToken.sol";
 import {Checkpoints} from "@openzeppelin/contracts/utils/structs/Checkpoints.sol";
 
 /// @dev Adds view getters, and nothing else, so its write functions are
-/// exactly TermToken's. TermToken is inherited unmodified from the
-/// implementation the TERM proxy is to be upgraded to
-/// (certora/vendor/TermToken/src-triage).
+/// exactly TermToken's. TermToken is inherited unmodified from the source each
+/// release's conf maps `term-token` to: certora/vendor/TermToken/src-triage,
+/// the implementation the TERM proxy is to be upgraded to.
 contract TermTokenHarness is TermToken {
     /// VotesUpgradeable's ERC-7201 storage location, private there
     /// (VotesUpgradeable.sol:49).

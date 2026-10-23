@@ -1,14 +1,14 @@
 /*
- * TERM's total supply: TermToken's write functions are exactly thirty known
+ * TERM's total supply: TermToken's write functions are exactly nineteen known
  * functions, and its total supply changes only through mint and burn, which
  * only the DEFAULT_ADMIN_ROLE holder can call and which revert while minting
- * or burning is paused, upgradeToAndCall, which only the UPGRADER_ROLE holder
- * can call, and send and lzReceive, which revert while no LayerZero peer is
- * set, and only the owner can set one. Only the PAUSER_ROLE holder can pause
- * or unpause minting and burning.
+ * or burning is paused, and upgradeToAndCall, which only the UPGRADER_ROLE
+ * holder can call. Only the PAUSER_ROLE holder can pause or unpause minting
+ * and burning.
  *
- * TermToken is term-token PR #24 (certora/vendor/TermToken/src-pr24) under
- * TermTokenHarness, which adds only view getters.
+ * TermToken is the implementation the TERM proxy is to be upgraded to
+ * (certora/vendor/TermToken/src-triage), under TermTokenHarness, which adds
+ * only view getters.
  */
 
 methods {
@@ -19,18 +19,12 @@ methods {
     function PAUSER_ROLE() external returns (bytes32) envfree;
     function mintingNotPaused() external returns (bool) envfree;
     function burningNotPaused() external returns (bool) envfree;
-    function owner() external returns (address) envfree;
-    function peers(uint32) external returns (bytes32) envfree;
-    function endpoint() external returns (address) envfree;
     function initializedVersion() external returns (uint64) envfree;
-    function totalCheckpointsAreOrdered() external returns (bool) envfree;
+    function totalCheckpointsLength() external returns (uint256) envfree;
+    function totalCheckpointAt(uint256) external returns (uint48, uint208) envfree;
+    function latestTotalCheckpointKey() external returns (uint48) envfree;
 
-    // The endpoint's lzToken, which send pays any lzToken fee in.
-    function _.lzToken() external => lzTokenSummary() expect address;
-
-    // The calls to the endpoint, the lzToken, the message inspector and the
-    // pre-crime, and the new implementation in upgradeToAndCall. None of them
-    // writes TERM's own storage.
+    // The calls to the new implementation in upgradeToAndCall.
     unresolved external in TermTokenHarness._ => DISPATCH [] default HAVOC_ECF;
 }
 
@@ -71,38 +65,6 @@ definition isAccessControl(method f) returns bool =
     f.selector == sig:revokeRole(bytes32, address).selector ||
     f.selector == sig:renounceRole(bytes32, address).selector;
 
-definition isOwnable(method f) returns bool =
-    f.selector == sig:transferOwnership(address).selector ||
-    f.selector == sig:renounceOwnership().selector;
-
-/// setEnforcedOptions((uint32,uint16,bytes)[]) takes a struct array, so it is
-/// matched by its selector.
-definition isLayerZeroConfig(method f) returns bool =
-    f.selector == sig:setPeer(uint32, bytes32).selector ||
-    f.selector == sig:setDelegate(address).selector ||
-    f.selector == sig:setMsgInspector(address).selector ||
-    f.selector == sig:setPreCrime(address).selector ||
-    f.selector == 0xb98bd070;
-
-/// send((uint32,bytes32,uint256,uint256,bytes,bytes,bytes),(uint256,uint256),address)
-definition isSend(method f) returns bool =
-    f.selector == 0xc7c7f5b3;
-
-/// lzReceive((uint32,bytes32,uint64),bytes32,bytes,address,bytes)
-definition isLzReceive(method f) returns bool =
-    f.selector == 0x13137d65;
-
-/// lzReceiveSimulate((uint32,bytes32,uint64),bytes32,bytes,address,bytes)
-definition isLzReceiveSimulate(method f) returns bool =
-    f.selector == 0xd045a0dc;
-
-/// lzReceiveAndRevert(((uint32,bytes32,uint64),uint32,address,bytes32,uint256,address,bytes,bytes)[])
-definition isLzReceiveAndRevert(method f) returns bool =
-    f.selector == 0xbd815db0;
-
-definition isLayerZeroMessaging(method f) returns bool =
-    isSend(f) || isLzReceive(f) || isLzReceiveSimulate(f) || isLzReceiveAndRevert(f);
-
 definition isUpgrade(method f) returns bool =
     f.selector == sig:upgradeToAndCall(address, bytes).selector;
 
@@ -110,7 +72,7 @@ definition isInitialize(method f) returns bool =
     f.selector == sig:initialize(address, address, address, uint256, address).selector;
 
 /*
- * TermToken has no write functions besides these thirty. It declares no
+ * TermToken has no write functions besides these nineteen. It declares no
  * fallback and no receive.
  *   ERC-20               transfer, transferFrom, approve, permit
  *   votes                delegate, delegateBySig
@@ -118,14 +80,9 @@ definition isInitialize(method f) returns bool =
  *   pausing              pause, unpause, pauseMinting, unpauseMinting,
  *                        pauseBurning, unpauseBurning
  *   access control       grantRole, revokeRole, renounceRole
- *   ownership            transferOwnership, renounceOwnership
- *   LayerZero config     setPeer, setDelegate, setEnforcedOptions,
- *                        setMsgInspector, setPreCrime
- *   LayerZero messaging  send, lzReceive, lzReceiveSimulate,
- *                        lzReceiveAndRevert
  *   upgrade and setup    upgradeToAndCall, initialize
  */
-rule termTokenWriteFunctionsAreTheKnownThirty(method f, calldataarg args)
+rule termTokenWriteFunctionsAreTheKnownNineteen(method f, calldataarg args)
     filtered { f -> !f.isView && !f.isPure }
 {
     env e;
@@ -133,72 +90,109 @@ rule termTokenWriteFunctionsAreTheKnownThirty(method f, calldataarg args)
     f@withrevert(e, args);
 
     assert isErc20(f) || isVotes(f) || isMint(f) || isBurn(f) || isPausing(f) ||
-        isAccessControl(f) || isOwnable(f) || isLayerZeroConfig(f) ||
-        isLayerZeroMessaging(f) || isUpgrade(f) || isInitialize(f),
-        "TermToken has a write function that is not one of the known thirty";
+        isAccessControl(f) || isUpgrade(f) || isInitialize(f),
+        "TermToken has a write function that is not one of the known nineteen";
 }
 
 /* ------------------------------------------------------------------------
- * 2. The total supply moves only through mint, burn, send and lzReceive
+ * 2. The total supply moves only through mint and burn
  * --------------------------------------------------------------------- */
 
 /*
- * Over every write function, TERM's total supply changes only through mint,
- * burn, send or lzReceive. Left out, each with its own rule:
+ * Over every write function, TERM's total supply changes only through mint or
+ * burn. Left out, each with its own rule:
  *   upgradeToAndCall    runs the new implementation's code
  *                       (onlyTheUpgraderCanUpgrade);
  *   initialize          reverts once initialized
- *                       (initializeAlwaysRevertsOnceInitialized);
- *   lzReceiveSimulate   mints, but only for TERM itself
- *                       (lzReceiveSimulateOnlyCallableByItself);
- *   lzReceiveAndRevert  always reverts (lzReceiveAndRevertAlwaysReverts).
+ *                       (initializeAlwaysRevertsOnceInitialized).
  */
-rule totalSupplyOnlyChangesThroughMintBurnSendOrLzReceive(method f, calldataarg args)
-    filtered {
-        f -> !f.isView && !f.isPure && !isUpgrade(f) && !isInitialize(f) &&
-            !isLzReceiveSimulate(f) && !isLzReceiveAndRevert(f)
-    }
+rule totalSupplyOnlyChangesThroughMintOrBurn(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) && !isInitialize(f) }
 {
     env e;
     uint256 supplyBefore = totalSupply();
 
     f(e, args);
 
-    assert totalSupply() != supplyBefore => isMint(f) || isBurn(f) || isSend(f) || isLzReceive(f),
-        "TERM's total supply changed through a function other than mint, burn, send and lzReceive";
+    assert totalSupply() != supplyBefore => isMint(f) || isBurn(f),
+        "TERM's total supply changed through a function other than mint and burn";
 }
 
 /*
- * Over every write function except upgradeToAndCall, TERM's total supply at
- * a past timepoint never changes. A mint or burn writes a checkpoint at the
- * current timepoint, never an earlier one. So the quorum for a proposal,
- * read at its snapshot, is fixed once the proposal is made.
- * lzReceiveAndRevert is left out: it always reverts
- * (lzReceiveAndRevertAlwaysReverts).
- *
- * The checkpoints start in strictly increasing key order. Checkpoints._insert
- * keeps them so: it reverts on a key earlier than the latest, and overwrites
- * the latest checkpoint on an equal key. Without this, starting storage with
- * two checkpoints at one key lets the binary search return a different one
- * once the array grows.
+ * Over every write function except upgradeToAndCall, a total-supply
+ * checkpoint keyed before the current timepoint keeps its key and value, and
+ * the checkpoints are never shortened. A mint or burn writes one checkpoint,
+ * at the current timepoint: Checkpoints._insert overwrites the latest
+ * checkpoint when its key is the current timepoint, appends one otherwise,
+ * and reverts when the latest key is later. getPastTotalSupply at a past
+ * timepoint reads only checkpoints keyed at or before it, so it never
+ * changes either, and neither does the quorum for a proposal, read at its
+ * snapshot. The checkpoints are read by Solidity indexing, not through the
+ * lookup.
  */
-rule pastTotalSupplyNeverChanges(method f, calldataarg args, uint256 timepoint)
-    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) && !isLzReceiveAndRevert(f) }
+rule supplyCheckpointsOnlyChangeAtTheCurrentTimepoint(method f, calldataarg args, uint256 i)
+    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) }
 {
     env e;
-    env eView;
-    require eView.block.timestamp == e.block.timestamp;
-    require eView.msg.value == 0;
     require to_mathint(e.block.timestamp) < 2^48;
-    require timepoint < e.block.timestamp;
-    require totalCheckpointsAreOrdered();
 
-    uint256 pastSupplyBefore = getPastTotalSupply(eView, timepoint);
+    uint256 lengthBefore = totalCheckpointsLength();
+    require i < lengthBefore;
+    uint48 keyBefore;
+    uint208 valueBefore;
+    keyBefore, valueBefore = totalCheckpointAt(i);
+    require keyBefore < e.block.timestamp;
 
     f(e, args);
 
-    assert getPastTotalSupply(eView, timepoint) == pastSupplyBefore,
-        "a function changed TERM's total supply at a past timepoint";
+    uint48 keyAfter;
+    uint208 valueAfter;
+    keyAfter, valueAfter = totalCheckpointAt(i);
+
+    assert totalCheckpointsLength() >= lengthBefore,
+        "a function shortened TERM's total-supply checkpoints";
+    assert keyAfter == keyBefore && valueAfter == valueBefore,
+        "a function changed a total-supply checkpoint keyed before the current timepoint";
+}
+
+/*
+ * Over every write function except upgradeToAndCall, at most one
+ * total-supply checkpoint is appended, and when one is, it is keyed at the
+ * current timepoint. With supplyCheckpointsOnlyChangeAtTheCurrentTimepoint,
+ * every checkpoint keyed before the current timepoint is the same after the
+ * call, and every checkpoint added is keyed at the current timepoint.
+ */
+rule supplyCheckpointsGrowOnlyAtTheCurrentTimepoint(method f, calldataarg args)
+    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) }
+{
+    env e;
+    require to_mathint(e.block.timestamp) < 2^48;
+    uint256 lengthBefore = totalCheckpointsLength();
+
+    f(e, args);
+
+    uint256 lengthAfter = totalCheckpointsLength();
+    assert to_mathint(lengthAfter) <= lengthBefore + 1,
+        "a function appended more than one total-supply checkpoint";
+    assert lengthAfter > lengthBefore => latestTotalCheckpointKey() == e.block.timestamp,
+        "a function appended a total-supply checkpoint keyed at another timepoint";
+}
+
+/*
+ * With minting unpaused, a DEFAULT_ADMIN_ROLE holder's mint can append a
+ * total-supply checkpoint, so the rule above is not vacuous.
+ */
+rule supplyCheckpointsCanGrowAtTheCurrentTimepoint(uint256 amount) {
+    env e;
+    require to_mathint(e.block.timestamp) < 2^48;
+    require hasRole(DEFAULT_ADMIN_ROLE(), e.msg.sender);
+    require mintingNotPaused();
+    uint256 lengthBefore = totalCheckpointsLength();
+
+    mint@withrevert(e, amount);
+
+    satisfy !lastReverted && totalCheckpointsLength() > lengthBefore,
+        "a mint cannot append a total-supply checkpoint";
 }
 
 /*
@@ -217,91 +211,7 @@ rule initializeAlwaysRevertsOnceInitialized(
 }
 
 /* ------------------------------------------------------------------------
- * 3. lzReceiveSimulate's mint never persists
- * --------------------------------------------------------------------- */
-
-/*
- * A successful lzReceiveSimulate came from TERM itself. It mints without a
- * peer check (OFTCore.sol:279).
- */
-rule lzReceiveSimulateOnlyCallableByItself(method f, calldataarg args)
-    filtered { f -> isLzReceiveSimulate(f) }
-{
-    env e;
-
-    f@withrevert(e, args);
-
-    assert !lastReverted => e.msg.sender == currentContract,
-        "lzReceiveSimulate succeeded for a caller other than TERM";
-}
-
-/*
- * TERM can call lzReceiveSimulate on itself, so the rule above is not
- * vacuous.
- */
-rule lzReceiveSimulateRunsForItself(method f, calldataarg args)
-    filtered { f -> isLzReceiveSimulate(f) }
-{
-    env e;
-    require e.msg.sender == currentContract;
-
-    f@withrevert(e, args);
-
-    satisfy !lastReverted, "TERM cannot call lzReceiveSimulate on itself";
-}
-
-/// Whether TERM has made a call to itself.
-persistent ghost bool callsItself;
-
-hook CALL(uint g, address addr, uint value, uint argsOffset, uint argsLength,
-          uint retOffset, uint retLength) uint rc {
-    if (addr == currentContract) {
-        callsItself = true;
-    }
-}
-
-/// The endpoint's lzToken.
-ghost address lzTokenAddress;
-
-function lzTokenSummary() returns address {
-    return lzTokenAddress;
-}
-
-/*
- * No write function except lzReceiveAndRevert and upgradeToAndCall makes a
- * call to TERM. upgradeToAndCall runs the new implementation's code, which
- * only the UPGRADER_ROLE holder can install (onlyTheUpgraderCanUpgrade).
- * The endpoint and its lzToken are other contracts than TERM.
- */
-rule termTokenOnlyCallsItselfFromLzReceiveAndRevert(method f, calldataarg args)
-    filtered { f -> !f.isView && !f.isPure && !isLzReceiveAndRevert(f) && !isUpgrade(f) }
-{
-    env e;
-    require endpoint() != currentContract;
-    require lzTokenAddress != currentContract;
-    require !callsItself;
-
-    f@withrevert(e, args);
-
-    assert !callsItself, "a function other than lzReceiveAndRevert called TERM";
-}
-
-/*
- * Every call to lzReceiveAndRevert reverts, so its calls to lzReceiveSimulate
- * never persist.
- */
-rule lzReceiveAndRevertAlwaysReverts(method f, calldataarg args)
-    filtered { f -> isLzReceiveAndRevert(f) }
-{
-    env e;
-
-    f@withrevert(e, args);
-
-    assert lastReverted, "lzReceiveAndRevert succeeded";
-}
-
-/* ------------------------------------------------------------------------
- * 4. mint, burn and upgradeToAndCall
+ * 3. mint, burn and upgradeToAndCall
  * --------------------------------------------------------------------- */
 
 /*
@@ -406,17 +316,16 @@ rule upgraderCanUpgrade(address newImplementation, bytes data) {
 }
 
 /* ------------------------------------------------------------------------
- * 5. Pausing and unpausing minting and burning
+ * 4. Pausing and unpausing minting and burning
  * --------------------------------------------------------------------- */
 
 /*
  * Over every write function except upgradeToAndCall, mintingNotPaused and
  * burningNotPaused change only through pauseMinting, unpauseMinting,
- * pauseBurning and unpauseBurning. lzReceiveAndRevert is left out: it always
- * reverts (lzReceiveAndRevertAlwaysReverts).
+ * pauseBurning and unpauseBurning.
  */
 rule mintingAndBurningPausesOnlyChangeThroughThePausingFunctions(method f, calldataarg args)
-    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) && !isLzReceiveAndRevert(f) }
+    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) }
 {
     env e;
     bool mintingNotPausedBefore = mintingNotPaused();
@@ -462,127 +371,4 @@ rule pauserCanPauseAndUnpauseMintingAndBurning(method f, calldataarg args)
     satisfy !lastReverted &&
         (mintingNotPaused() != mintingNotPausedBefore || burningNotPaused() != burningNotPausedBefore),
         "the PAUSER_ROLE holder cannot pause or unpause minting or burning";
-}
-
-/* ------------------------------------------------------------------------
- * 6. send and lzReceive need a LayerZero peer
- * --------------------------------------------------------------------- */
-
-/// Each chain's LayerZero peer, kept in step with OAppCore's peers mapping.
-ghost mapping(uint32 => bytes32) peerOf;
-
-hook Sload bytes32 peer peers[KEY uint32 eid] {
-    require peerOf[eid] == peer;
-}
-
-hook Sstore peers[KEY uint32 eid] bytes32 peer {
-    peerOf[eid] = peer;
-}
-
-/*
- * With no peer set for any chain, send always reverts. Its burn comes first
- * (OFTCore.sol:167), but the peer lookup in _lzSend then reverts
- * (OAppSender.sol:87, OAppCore.sol:56), which undoes it.
- */
-rule sendRevertsWithoutAPeer(method f, calldataarg args)
-    filtered { f -> isSend(f) }
-{
-    env e;
-    require forall uint32 eid. peerOf[eid] == to_bytes32(0);
-
-    f@withrevert(e, args);
-
-    assert lastReverted, "send succeeded with no peer set";
-}
-
-/*
- * With no peer set for any chain, lzReceive always reverts: it checks the
- * message's sender against the peer for its source chain
- * (OAppReceiver.sol:96).
- */
-rule lzReceiveRevertsWithoutAPeer(method f, calldataarg args)
-    filtered { f -> isLzReceive(f) }
-{
-    env e;
-    require forall uint32 eid. peerOf[eid] == to_bytes32(0);
-
-    f@withrevert(e, args);
-
-    assert lastReverted, "lzReceive succeeded with no peer set";
-}
-
-/*
- * With a peer set, send can succeed and lower the total supply, so
- * sendRevertsWithoutAPeer is not vacuous.
- */
-rule sendBurnsWithAPeer(method f, calldataarg args)
-    filtered { f -> isSend(f) }
-{
-    env e;
-    uint256 supplyBefore = totalSupply();
-
-    f@withrevert(e, args);
-
-    satisfy !lastReverted && totalSupply() < supplyBefore, "send cannot burn TERM";
-}
-
-/*
- * With a peer set, lzReceive can succeed and raise the total supply, so
- * lzReceiveRevertsWithoutAPeer is not vacuous.
- */
-rule lzReceiveMintsWithAPeer(method f, calldataarg args)
-    filtered { f -> isLzReceive(f) }
-{
-    env e;
-    uint256 supplyBefore = totalSupply();
-
-    f@withrevert(e, args);
-
-    satisfy !lastReverted && totalSupply() > supplyBefore, "lzReceive cannot mint TERM";
-}
-
-definition isSetPeer(method f) returns bool =
-    f.selector == sig:setPeer(uint32, bytes32).selector;
-
-/*
- * Over every write function except upgradeToAndCall, a chain's peer changes
- * only through setPeer. lzReceiveAndRevert is left out: it always reverts
- * (lzReceiveAndRevertAlwaysReverts).
- */
-rule peersOnlyChangeThroughSetPeer(method f, calldataarg args, uint32 eid)
-    filtered { f -> !f.isView && !f.isPure && !isUpgrade(f) && !isLzReceiveAndRevert(f) }
-{
-    env e;
-    bytes32 peerBefore = peers(eid);
-
-    f(e, args);
-
-    assert peers(eid) != peerBefore => isSetPeer(f),
-        "a function other than setPeer changed a LayerZero peer";
-}
-
-/*
- * A successful setPeer came from the owner.
- */
-rule onlyTheOwnerCanSetAPeer(uint32 eid, bytes32 peer) {
-    env e;
-    address ownerBefore = owner();
-
-    setPeer@withrevert(e, eid, peer);
-
-    assert !lastReverted => e.msg.sender == ownerBefore,
-        "setPeer succeeded for a caller other than the owner";
-}
-
-/*
- * The owner's setPeer can succeed and set the peer, so the rule above is not
- * vacuous.
- */
-rule ownerCanSetAPeer(uint32 eid, bytes32 peer) {
-    env e;
-    require e.msg.sender == owner();
-
-    setPeer@withrevert(e, eid, peer);
-
-    satisfy !lastReverted && peers(eid) == peer, "the owner cannot set a LayerZero peer";
 }
