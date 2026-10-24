@@ -357,6 +357,7 @@ All contracts are on Ethereum mainnet. Each address links to its Etherscan page.
 | --------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | PauseGuard      | [`0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618`](https://etherscan.io/address/0x3A70244c0fEc95B5Dd238dfa60DAbDB60a99f618) |
 | SetTxNonceGuard | [`0x7aE03372ECDcEe335CdEfB7d354d507F0506616C`](https://etherscan.io/address/0x7aE03372ECDcEe335CdEfB7d354d507F0506616C) |
+| ConfigLockGuard | [`0xeda83f6d7A8A56D4AA5433Bf7cC1fef496036d53`](https://etherscan.io/address/0xeda83f6d7A8A56D4AA5433Bf7cC1fef496036d53) |
 
 #### Governance
 
