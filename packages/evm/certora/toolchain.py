@@ -50,6 +50,44 @@ CERTORA_8_CONFIGS = dict.fromkeys(RELEASES, frozenset({
     "Safe-v141-signedSettings.conf",
     "Safe-v141-vetoLandsOnDelay.conf",
 }))
+# 2.1.0 also runs its Safe-v141 rules, and the rules whose scene holds the
+# ProposerSafe or OwnerlessSafe, against SafeL2 v1.4.1 and GnosisSafeL2
+# v1.3.0, and the DelayOwnerSafe's and PauseSafe's rules against SafeL2
+# v1.5.0.
+CERTORA_8_CONFIGS["2.1.0"] |= {
+    "Delay-SafeL2-v130-devopsEndToEnd.conf",
+    "Delay-SafeL2-v130-proposerToOwnerlessSettings.conf",
+    "Delay-SafeL2-v141-devopsEndToEnd.conf",
+    "Delay-SafeL2-v141-proposerToOwnerlessSettings.conf",
+    "Delay-SafeL2-v150-delayOwnerGuard.conf",
+    "Delay-SafeL2-v150-vetoSignedPath.conf",
+    "Safe-L2-v130-configLockGuard.conf",
+    "Safe-L2-v130-executionPaths.conf",
+    "Safe-L2-v130-fallbackHandler.conf",
+    "Safe-L2-v130-fallbackStorage.conf",
+    "Safe-L2-v130-noStateChange.conf",
+    "Safe-L2-v130-ownerlessSafeGuard.conf",
+    "Safe-L2-v130-receive.conf",
+    "Safe-L2-v130-selfCalls.conf",
+    "Safe-L2-v130-selfHandler.conf",
+    "Safe-L2-v130-signedSettings.conf",
+    "Safe-L2-v130-vetoLandsOnDelay.conf",
+    "Safe-L2-v141-configLockGuard.conf",
+    "Safe-L2-v141-executionPaths.conf",
+    "Safe-L2-v141-fallbackHandler.conf",
+    "Safe-L2-v141-fallbackStorage.conf",
+    "Safe-L2-v141-noStateChange.conf",
+    "Safe-L2-v141-ownerlessSafeGuard.conf",
+    "Safe-L2-v141-receive.conf",
+    "Safe-L2-v141-selfCalls.conf",
+    "Safe-L2-v141-selfHandler.conf",
+    "Safe-L2-v141-signedSettings.conf",
+    "Safe-L2-v141-vetoLandsOnDelay.conf",
+    "Safe-L2-v150-configLockGuard.conf",
+    "Safe-L2-v150-executionPaths.conf",
+    "Safe-L2-v150-noStateChange.conf",
+    "Safe-L2-v150-selfCalls.conf",
+}
 
 
 def toolchain(config):
