@@ -2,54 +2,40 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 import "@gnosis.pm/zodiac/contracts/guard/BaseGuard.sol";
+import "../interfaces/ISafeAdmin.sol";
+import "../interfaces/IDelay.sol";
 
-interface ISafeAdmin {
-    function setGuard(address guard) external;
-
-    function enableModule(address module) external;
-
-    function disableModule(address prevModule, address module) external;
-
-    function setFallbackHandler(address handler) external;
-}
-
-interface IModifierAdmin {
-    function transferOwnership(address newOwner) external;
-
-    function renounceOwnership() external;
-
-    function enableModule(address module) external;
-
-    function disableModule(address prevModule, address module) external;
-
-    function setGuard(address guard) external;
-
-    function setAvatar(address avatar) external;
-
-    function setTarget(address target) external;
-}
-
-/// @title ConfigLockGuard - Locks a Safe's configuration, and that of a Zodiac modifier it owns.
-/// @dev Attach with `setGuard` on the Safe. Safe v1.3.0 and v1.4.1 call
-/// checkTransaction from execTransaction only, never from
+/// @title ConfigLockGuard - Locks a Safe's configuration, and that of the Zodiac Delay modifier it owns.
+/// @dev Attach with `setGuard` on the Safe. Safe v1.3.0, v1.4.1 and v1.5.0
+/// call checkTransaction from execTransaction only, never from
 /// execTransactionFromModule, so this guard sees what the owners sign and
 /// nothing a module sends. On the Safe itself it blocks setGuard, enableModule,
-/// disableModule and setFallbackHandler, and it blocks delegate calls, which
-/// could otherwise write the guard, module or handler storage directly. Once
-/// set, the guard cannot be removed or replaced. The Safe is taken from
-/// msg.sender rather than pinned, so the guard never rejects a Safe it was
-/// installed on by mistake with no way to take it off again.
+/// disableModule, setFallbackHandler and v1.5.0's setModuleGuard, and it
+/// blocks delegate calls, which could otherwise write the guard, module guard,
+/// module or handler storage directly. Once
+/// set, only an enabled module can remove or replace the guard, and the owners
+/// can no longer enable one, so on a Safe with no module when the guard is set
+/// it is permanent. The Safe is taken from msg.sender rather than pinned, so
+/// any Safe that installs it keeps its plain calls and owner management
+/// instead of having every transaction rejected.
 ///
-/// `lockedModifier` -- the Safe also cannot change that modifier's
-/// owner, modules, guard, avatar or target. Its other owner functions (for the
-/// Delay: setTxNonce, setTxCooldown, setTxExpiration) stay open. Pass
+/// `lockedDelay` -- the Safe also cannot change that Delay modifier's
+/// owner, modules, guard, avatar or target, and cannot call setTxCooldown or
+/// setTxExpiration, so the Delay's timing is fixed and the cooldown cannot be
+/// lowered to skip the window for vetoes. Its other owner function
+/// (setTxNonce, which is the veto) stays open. This guard is built
+/// for the Zodiac Delay modifier only; it does not lock other modifiers, such
+/// as Roles, whose admin functions differ.
 contract ConfigLockGuard is BaseGuard {
-    /// @dev Zodiac modifier whose ownership, modules, guard, avatar and target
-    /// are locked.
-    address public immutable lockedModifier;
+    /// @dev Zodiac Delay modifier whose ownership, modules, guard, avatar,
+    /// target, cooldown and expiration are locked.
+    address public immutable lockedDelay;
 
     /// Only plain calls are allowed, not delegate calls
     error UnexpectedOperation();
+
+    /// The locked Delay modifier address cannot be zero
+    error InvalidLockedDelay();
 
     /// The Safe's guard cannot be removed or replaced
     error GuardLocked();
@@ -60,23 +46,32 @@ contract ConfigLockGuard is BaseGuard {
     /// The Safe's fallback handler cannot be changed
     error FallbackHandlerLocked();
 
-    /// The modifier's ownership cannot be transferred or renounced
-    error ModifierOwnershipLocked();
+    /// The Safe's module guard (Safe v1.5.0) cannot be set or changed
+    error ModuleGuardLocked();
 
-    /// The modifier cannot enable or disable modules
-    error ModifierModulesLocked();
+    /// The Delay's ownership cannot be transferred or renounced
+    error DelayOwnershipLocked();
 
-    /// The modifier's guard cannot be removed or replaced
-    error ModifierGuardLocked();
+    /// The Delay cannot enable or disable modules
+    error DelayModulesLocked();
 
-    /// The modifier's avatar and target cannot be changed
-    error ModifierAvatarLocked();
+    /// The Delay's guard cannot be removed or replaced
+    error DelayGuardLocked();
 
-    constructor(address _lockedModifier) {
-        lockedModifier = _lockedModifier;
+    /// The Delay's avatar and target cannot be changed
+    error DelayAvatarLocked();
+
+    /// The Delay's cooldown and expiration cannot be changed
+    error DelayTimingLocked();
+
+    constructor(address _lockedDelay) {
+        if (_lockedDelay == address(0)) {
+            revert InvalidLockedDelay();
+        }
+        lockedDelay = _lockedDelay;
     }
 
-    /// @dev Reverts on delegate calls and on the Safe and modifier admin calls
+    /// @dev Reverts on delegate calls and on the Safe and Delay admin calls
     /// that would unlock either one. Everything else, including the Safe's
     /// owner and threshold management, passes.
     /// @param to Destination address of Safe transaction
@@ -101,9 +96,8 @@ contract ConfigLockGuard is BaseGuard {
         if (data.length < 4) {
             return;
         }
-        bytes4 selector = bytes4(data);
-
         if (to == msg.sender) {
+            bytes4 selector = bytes4(data);
             if (selector == ISafeAdmin.setGuard.selector) {
                 revert GuardLocked();
             }
@@ -116,27 +110,37 @@ contract ConfigLockGuard is BaseGuard {
             if (selector == ISafeAdmin.setFallbackHandler.selector) {
                 revert FallbackHandlerLocked();
             }
-        } else if (to == lockedModifier) {
+            if (selector == ISafeAdmin.setModuleGuard.selector) {
+                revert ModuleGuardLocked();
+            }
+        } else if (to == lockedDelay) {
+            bytes4 selector = bytes4(data);
             if (
-                selector == IModifierAdmin.transferOwnership.selector ||
-                selector == IModifierAdmin.renounceOwnership.selector
+                selector == IDelay.transferOwnership.selector ||
+                selector == IDelay.renounceOwnership.selector
             ) {
-                revert ModifierOwnershipLocked();
+                revert DelayOwnershipLocked();
             }
             if (
-                selector == IModifierAdmin.enableModule.selector ||
-                selector == IModifierAdmin.disableModule.selector
+                selector == IDelay.enableModule.selector ||
+                selector == IDelay.disableModule.selector
             ) {
-                revert ModifierModulesLocked();
+                revert DelayModulesLocked();
             }
-            if (selector == IModifierAdmin.setGuard.selector) {
-                revert ModifierGuardLocked();
+            if (selector == IDelay.setGuard.selector) {
+                revert DelayGuardLocked();
             }
             if (
-                selector == IModifierAdmin.setAvatar.selector ||
-                selector == IModifierAdmin.setTarget.selector
+                selector == IDelay.setAvatar.selector ||
+                selector == IDelay.setTarget.selector
             ) {
-                revert ModifierAvatarLocked();
+                revert DelayAvatarLocked();
+            }
+            if (
+                selector == IDelay.setTxCooldown.selector ||
+                selector == IDelay.setTxExpiration.selector
+            ) {
+                revert DelayTimingLocked();
             }
         }
     }
