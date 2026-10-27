@@ -6,12 +6,13 @@ import "../interfaces/ISafeAdmin.sol";
 import "../interfaces/IDelay.sol";
 
 /// @title ConfigLockGuard - Locks a Safe's configuration, and that of the Zodiac Delay modifier it owns.
-/// @dev Attach with `setGuard` on the Safe. Safe v1.3.0 and v1.4.1 call
-/// checkTransaction from execTransaction only, never from
+/// @dev Attach with `setGuard` on the Safe. Safe v1.3.0, v1.4.1 and v1.5.0
+/// call checkTransaction from execTransaction only, never from
 /// execTransactionFromModule, so this guard sees what the owners sign and
 /// nothing a module sends. On the Safe itself it blocks setGuard, enableModule,
-/// disableModule and setFallbackHandler, and it blocks delegate calls, which
-/// could otherwise write the guard, module or handler storage directly. Once
+/// disableModule, setFallbackHandler and v1.5.0's setModuleGuard, and it
+/// blocks delegate calls, which could otherwise write the guard, module guard,
+/// module or handler storage directly. Once
 /// set, only an enabled module can remove or replace the guard, and the owners
 /// can no longer enable one, so on a Safe with no module when the guard is set
 /// it is permanent. The Safe is taken from msg.sender rather than pinned, so
@@ -44,6 +45,9 @@ contract ConfigLockGuard is BaseGuard {
 
     /// The Safe's fallback handler cannot be changed
     error FallbackHandlerLocked();
+
+    /// The Safe's module guard (Safe v1.5.0) cannot be set or changed
+    error ModuleGuardLocked();
 
     /// The Delay's ownership cannot be transferred or renounced
     error DelayOwnershipLocked();
@@ -105,6 +109,9 @@ contract ConfigLockGuard is BaseGuard {
             }
             if (selector == ISafeAdmin.setFallbackHandler.selector) {
                 revert FallbackHandlerLocked();
+            }
+            if (selector == ISafeAdmin.setModuleGuard.selector) {
+                revert ModuleGuardLocked();
             }
         } else if (to == lockedDelay) {
             bytes4 selector = bytes4(data);

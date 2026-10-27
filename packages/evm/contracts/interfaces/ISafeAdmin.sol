@@ -9,4 +9,6 @@ interface ISafeAdmin {
     function disableModule(address prevModule, address module) external;
 
     function setFallbackHandler(address handler) external;
+
+    function setModuleGuard(address moduleGuard) external;
 }
