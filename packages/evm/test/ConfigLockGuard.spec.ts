@@ -1,3 +1,7 @@
+// SafeL2 v1.5.0 is not compiled here; its ABI and bytecode are the published
+// package's own build.
+import SafeL2V150 from "@safe-global/safe-smart-account/build/artifacts/contracts/SafeL2.sol/SafeL2.json";
+import SafeProxyV150 from "@safe-global/safe-smart-account/build/artifacts/contracts/proxies/SafeProxy.sol/SafeProxy.json";
 import { expect } from "chai";
 import { BigNumberish, Contract, Wallet } from "ethers";
 import hre, { deployments, waffle, ethers } from "hardhat";
@@ -15,9 +19,9 @@ import { ConfigLockGuard } from "../typechain-types";
  * these properties symbolically, but their rules assert only that the guard
  * reverts, not with which error, and they stub the Safe's signature check.
  * These tests run the real GnosisSafe v1.3.0, Safe v1.4.1 and Delay v1.0.1
- * (contracts/test/*Imports.sol) with real signatures and check the exact
- * error. Every call is encoded from those contracts' own ABIs, never from the
- * guard's ISafeAdmin / IDelay, so a wrong signature in either
+ * (contracts/test/*Imports.sol), and SafeL2 v1.5.0, with real signatures and
+ * check the exact error. Every call is encoded from those contracts' own ABIs,
+ * never from the guard's ISafeAdmin / IDelay, so a wrong signature in either
  * interface fails here.
  */
 
@@ -27,6 +31,9 @@ const SENTINEL = "0x0000000000000000000000000000000000000001";
 const GUARD_SLOT = ethers.utils.id("guard_manager.guard.address");
 const FALLBACK_HANDLER_SLOT = ethers.utils.id(
   "fallback_manager.handler.address"
+);
+const MODULE_GUARD_SLOT = ethers.utils.id(
+  "module_manager.module_guard.address"
 );
 
 const CALL = 0;
@@ -40,6 +47,7 @@ const abiOf = (name: string) =>
   new ethers.utils.Interface(hre.artifacts.readArtifactSync(name).abi);
 
 const safeV130Abi = abiOf("GnosisSafe");
+const safeV150Abi = new ethers.utils.Interface(SafeL2V150.abi);
 const delayAbi = abiOf("Delay");
 const testContractAbi = abiOf("TestContract");
 const multiSendAbi = abiOf("MultiSend");
@@ -80,6 +88,11 @@ const SAFE_LOCKED: LockedCall[] = [
     name: "setFallbackHandler",
     data: safeV130Abi.encodeFunctionData("setFallbackHandler", [SOMEONE]),
     error: "FallbackHandlerLocked",
+  },
+  {
+    name: "setModuleGuard (Safe v1.5.0)",
+    data: safeV150Abi.encodeFunctionData("setModuleGuard", [SOMEONE]),
+    error: "ModuleGuardLocked",
   },
 ];
 
@@ -484,7 +497,7 @@ describe("ConfigLockGuard", async () => {
         const { Guard, safeA, safeB } = await setup();
         const guard = (await Guard.deploy(safeA.address)) as ConfigLockGuard;
 
-        // safeA calling itself: only the Safe's four are locked.
+        // safeA calling itself: only the Safe's five are locked.
         for (const c of SAFE_LOCKED) {
           await expect(
             checkTransaction(guard, safeA, safeA.address, c.data)
@@ -1217,4 +1230,89 @@ describe("ConfigLockGuard", async () => {
       });
     });
   }
+
+  /*
+   * SafeL2 v1.5.0 adds a module guard, set with setModuleGuard, which the guard
+   * locks like the Safe's other settings. v1.5.0's setGuard probes the new
+   * guard with supportsInterface, so installing it is checked too.
+   */
+  describe("end to end on SafeL2 v1.5.0", async () => {
+    const setupV150 = deployments.createFixture(async () => {
+      const [owner, stranger] = waffle.provider.getWallets();
+
+      const Singleton = new ethers.ContractFactory(
+        SafeL2V150.abi,
+        SafeL2V150.bytecode,
+        owner
+      );
+      const singleton = await Singleton.deploy();
+      const proxy = await new ethers.ContractFactory(
+        SafeProxyV150.abi,
+        SafeProxyV150.bytecode,
+        owner
+      ).deploy(singleton.address);
+      const safe = Singleton.attach(proxy.address);
+      await safe.setup(
+        [owner.address],
+        1,
+        AddressZero,
+        "0x",
+        AddressZero,
+        AddressZero,
+        0,
+        AddressZero
+      );
+
+      const Guard = await hre.ethers.getContractFactory("ConfigLockGuard");
+      const guard = (await Guard.deploy(stranger.address)) as ConfigLockGuard;
+
+      return { safe, owner, stranger, guard };
+    });
+
+    const setGuard = (s: Awaited<ReturnType<typeof setupV150>>) =>
+      exec(
+        s.safe,
+        s.owner,
+        s.safe.address,
+        safeV150Abi.encodeFunctionData("setGuard", [s.guard.address])
+      );
+
+    it("the owners' setGuard installs it", async () => {
+      const s = await setupV150();
+
+      await setGuard(s);
+
+      expect(await addressAt(s.safe.address, GUARD_SLOT)).to.equal(
+        s.guard.address
+      );
+    });
+
+    it("rejects setModuleGuard with ModuleGuardLocked and leaves the module guard unset", async () => {
+      const s = await setupV150();
+      const setModuleGuard = (moduleGuard: string) =>
+        exec(
+          s.safe,
+          s.owner,
+          s.safe.address,
+          safeV150Abi.encodeFunctionData("setModuleGuard", [moduleGuard])
+        );
+
+      // Without the guard the owners' setModuleGuard goes through, so the
+      // revert below is the guard's and not the Safe's.
+      await expect(setModuleGuard(AddressZero)).to.not.be.reverted;
+
+      await setGuard(s);
+      const nonce = (await s.safe.nonce()).toString();
+
+      for (const moduleGuard of [AddressZero, s.stranger.address]) {
+        await expect(setModuleGuard(moduleGuard)).to.be.revertedWith(
+          customError("ModuleGuardLocked")
+        );
+      }
+      expect(await addressAt(s.safe.address, MODULE_GUARD_SLOT)).to.equal(
+        AddressZero
+      );
+      expect((await s.safe.nonce()).toString()).to.equal(nonce);
+    });
+  });
 });
