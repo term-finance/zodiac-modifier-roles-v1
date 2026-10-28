@@ -52,14 +52,20 @@ CERTORA_8_CONFIGS = dict.fromkeys(RELEASES, frozenset({
 }))
 # 2.1.0 also runs its Safe-v141 rules, and the rules whose scene holds the
 # ProposerSafe or OwnerlessSafe, against SafeL2 v1.4.1 and GnosisSafeL2
-# v1.3.0, and the DelayOwnerSafe's and PauseSafe's rules against SafeL2
-# v1.5.0.
+# v1.3.0, and the ProposerSafe's, OwnerlessSafe's, DelayOwnerSafe's and
+# PauseSafe's rules against SafeL2 v1.5.0 and Safe v1.5.0.
 CERTORA_8_CONFIGS["2.1.0"] |= {
+    "Delay-Safe-v150-delayOwnerGuard.conf",
+    "Delay-Safe-v150-devopsEndToEnd.conf",
+    "Delay-Safe-v150-proposerToOwnerlessSettings.conf",
+    "Delay-Safe-v150-vetoSignedPath.conf",
     "Delay-SafeL2-v130-devopsEndToEnd.conf",
     "Delay-SafeL2-v130-proposerToOwnerlessSettings.conf",
     "Delay-SafeL2-v141-devopsEndToEnd.conf",
     "Delay-SafeL2-v141-proposerToOwnerlessSettings.conf",
     "Delay-SafeL2-v150-delayOwnerGuard.conf",
+    "Delay-SafeL2-v150-devopsEndToEnd.conf",
+    "Delay-SafeL2-v150-proposerToOwnerlessSettings.conf",
     "Delay-SafeL2-v150-vetoSignedPath.conf",
     "Safe-L2-v130-configLockGuard.conf",
     "Safe-L2-v130-executionPaths.conf",
@@ -86,7 +92,14 @@ CERTORA_8_CONFIGS["2.1.0"] |= {
     "Safe-L2-v150-configLockGuard.conf",
     "Safe-L2-v150-executionPaths.conf",
     "Safe-L2-v150-noStateChange.conf",
+    "Safe-L2-v150-ownerlessSafeGuard.conf",
     "Safe-L2-v150-selfCalls.conf",
+    "Safe-v150-configLockGuard.conf",
+    "Safe-v150-executionPaths.conf",
+    "Safe-v150-noStateChange.conf",
+    "Safe-v150-ownerlessSafeGuard.conf",
+    "Safe-v150-selfCalls.conf",
+    "Safe-v150-vetoLandsOnDelay.conf",
 }
 
 

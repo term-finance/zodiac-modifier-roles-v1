@@ -1,7 +1,8 @@
 /*
  * ConfigLockGuard on a Safe running SafeL2 v1.5.0 (the DelayOwnerSafe): once installed with
  * the Safe's own setGuard, the Safe cannot remove or replace the guard,
- * enable or disable a module, change its fallback handler, or delegate call.
+ * enable or disable a module, change its fallback handler, set its module
+ * guard, or delegate call.
  * Called directly, the guard rejects exactly those calls and the nine locked
  * calls to its lockedDelay (the Delay on chain), and lets everything else
  * through. The module path never reaches the guard. What the guard does to
@@ -16,7 +17,7 @@
  * is routed to its nine settings functions, so the rules that rely on it pin
  * `to` to the Safe; a call whose selector is none of the nine leaves the
  * Safe's storage alone. The ninth, setModuleGuard, is new in v1.5.0, and
- * ConfigLockGuard does not lock it.
+ * ConfigLockGuard locks it too (section 8).
  *
  * zodiac's import of the v1.4.1 Enum is remapped to v1.5.0's Enum in the
  * conf, so the scene has a single Enum.Operation type.
@@ -30,6 +31,7 @@ methods {
     function ownerEntry(address) external returns (address) envfree;
     function thresholdValue() external returns (uint256) envfree;
     function fallbackHandlerSlotWord() external returns (uint256) envfree;
+    function moduleGuardAddress() external returns (address) envfree;
     function selectorOf(bytes) external returns (uint32) envfree;
 
     function configLockGuard.lockedDelay() external returns (address) envfree;
@@ -68,6 +70,9 @@ definition SET_GUARD() returns uint32 = sig:setGuard(address).selector;
 definition ENABLE_MODULE() returns uint32 = sig:enableModule(address).selector;
 definition DISABLE_MODULE() returns uint32 = sig:disableModule(address, address).selector;
 definition SET_FALLBACK_HANDLER() returns uint32 = sig:setFallbackHandler(address).selector;
+// Safe v1.5.0's setModuleGuard(address), which the guard also rejects on the
+// Safe itself.
+definition SET_MODULE_GUARD() returns uint32 = sig:setModuleGuard(address).selector;
 
 // Locked on the modifier. setGuard(address), enableModule(address) and
 // disableModule(address,address) share the Safe's selectors; the other four
@@ -81,7 +86,8 @@ definition SET_TX_EXPIRATION() returns uint32 = 0x9b56d5be;
 
 definition isLockedSelfSelector(uint32 sel) returns bool =
     sel == SET_GUARD() || sel == ENABLE_MODULE() ||
-    sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
+    sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER() ||
+    sel == SET_MODULE_GUARD();
 
 definition isLockedModifierSelector(uint32 sel) returns bool =
     sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP() ||
@@ -674,4 +680,66 @@ rule checkTransactionRejectsModifierTimingChange(
 
     assert lastReverted,
         "ConfigLockGuard let the Safe change the modifier's txCooldown or txExpiration";
+}
+
+/* ------------------------------------------------------------------------
+ * 8. Safe v1.5.0's module guard
+ * --------------------------------------------------------------------- */
+
+/*
+ * The guard rejects the Safe's own setModuleGuard, called directly and
+ * through execTransaction, and no execTransaction to the Safe itself changes
+ * the module guard. Added after the rules above so their numbers stay the
+ * same; the first belongs with the guard rules in section 1. The module path
+ * never reaches this guard (moduleCallBypassesTheGuard).
+ */
+rule checkTransactionRejectsSelfSetModuleGuard(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures, address msgSender
+) {
+    env e;
+    require selectorOf(data) == SET_MODULE_GUARD();
+
+    configLockGuard.checkTransaction@withrevert(
+        e, e.msg.sender, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures, msgSender
+    );
+
+    assert lastReverted,
+        "ConfigLockGuard let the Safe call its own setModuleGuard";
+}
+
+rule guardedSafeCannotCallSetModuleGuard(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures
+) {
+    env e;
+    require guardAddress() == configLockGuard;
+    require selectorOf(data) == SET_MODULE_GUARD();
+
+    execTransaction@withrevert(e,
+        currentContract, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
+
+    assert lastReverted,
+        "with ConfigLockGuard installed, the Safe called its own setModuleGuard";
+}
+
+rule guardedSelfCallNeverChangesModuleGuard(
+    uint256 value, bytes data, Enum.Operation operation,
+    uint256 safeTxGas, uint256 baseGas, uint256 gasPrice,
+    address gasToken, address refundReceiver, bytes signatures
+) {
+    env e;
+    require guardAddress() == configLockGuard;
+    address moduleGuardBefore = moduleGuardAddress();
+
+    execTransaction@withrevert(e,
+        currentContract, value, data, operation,
+        safeTxGas, baseGas, gasPrice, gasToken, refundReceiver, signatures);
+
+    assert moduleGuardAddress() == moduleGuardBefore,
+        "an execTransaction to the Safe itself changed the module guard";
 }

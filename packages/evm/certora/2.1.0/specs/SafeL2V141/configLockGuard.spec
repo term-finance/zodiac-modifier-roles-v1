@@ -63,6 +63,10 @@ definition SET_GUARD() returns uint32 = sig:setGuard(address).selector;
 definition ENABLE_MODULE() returns uint32 = sig:enableModule(address).selector;
 definition DISABLE_MODULE() returns uint32 = sig:disableModule(address, address).selector;
 definition SET_FALLBACK_HANDLER() returns uint32 = sig:setFallbackHandler(address).selector;
+// setModuleGuard(address), added in Safe v1.5.0, which the guard also rejects
+// on the Safe itself. This Safe has no such function, so the selector is
+// written out.
+definition SET_MODULE_GUARD() returns uint32 = 0xe068df37;
 
 // Locked on the modifier. setGuard(address), enableModule(address) and
 // disableModule(address,address) share the Safe's selectors; the other four
@@ -76,7 +80,8 @@ definition SET_TX_EXPIRATION() returns uint32 = 0x9b56d5be;
 
 definition isLockedSelfSelector(uint32 sel) returns bool =
     sel == SET_GUARD() || sel == ENABLE_MODULE() ||
-    sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER();
+    sel == DISABLE_MODULE() || sel == SET_FALLBACK_HANDLER() ||
+    sel == SET_MODULE_GUARD();
 
 definition isLockedModifierSelector(uint32 sel) returns bool =
     sel == TRANSFER_OWNERSHIP() || sel == RENOUNCE_OWNERSHIP() ||

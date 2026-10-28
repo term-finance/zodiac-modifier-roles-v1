@@ -61,8 +61,16 @@ jobs:
           - "Safe-L2-v150-selfCalls.conf"
           - "Safe-L2-v150-noStateChange.conf"
           - "Safe-L2-v150-configLockGuard.conf"
+          - "Safe-L2-v150-ownerlessSafeGuard.conf"
+          - "Safe-v150-executionPaths.conf"
+          - "Safe-v150-selfCalls.conf"
+          - "Safe-v150-noStateChange.conf"
+          - "Safe-v150-configLockGuard.conf"
+          - "Safe-v150-ownerlessSafeGuard.conf"
+          - "Safe-v150-vetoLandsOnDelay.conf"
           - "Delay-delayOwnerGuard.conf"
           - "Delay-SafeL2-v150-delayOwnerGuard.conf"
+          - "Delay-Safe-v150-delayOwnerGuard.conf"
           - "Governor-veto.conf"
           - "Governor-proposalThreshold.conf"
           - "Governor-settings.conf"
@@ -71,10 +79,15 @@ jobs:
           - "Delay-devopsEndToEnd.conf"
           - "Delay-SafeL2-v141-devopsEndToEnd.conf"
           - "Delay-SafeL2-v130-devopsEndToEnd.conf"
+          - "Delay-SafeL2-v150-devopsEndToEnd.conf"
+          - "Delay-Safe-v150-devopsEndToEnd.conf"
           - "Delay-vetoSignedPath.conf"
           - "Delay-SafeL2-v150-vetoSignedPath.conf"
+          - "Delay-Safe-v150-vetoSignedPath.conf"
           - "Delay-proposerToOwnerlessSettings.conf"
           - "Delay-SafeL2-v141-proposerToOwnerlessSettings.conf"
+          - "Delay-SafeL2-v150-proposerToOwnerlessSettings.conf"
+          - "Delay-Safe-v150-proposerToOwnerlessSettings.conf"
           - "Delay-SafeL2-v130-proposerToOwnerlessSettings.conf"
           - "Governor-vetoEndToEnd.conf"
           - "TermToken-supply.conf"
@@ -103,22 +116,25 @@ jobs:
         working-directory: ./packages/evm
       # 0.8.6 for the Delay and Roles scenes; 0.7.6 for the Safe scenes,
       # matching the deployed GnosisSafe v1.3.0, GnosisSafeL2 v1.3.0, Safe
-      # v1.4.1, SafeL2 v1.4.1 and SafeL2 v1.5.0 singletons. Governor-veto and
-      # Governor-vetoEndToEnd mix compilers through their `solc_map`, which
-      # names solc8.24 (the constant-quorum Governor from
+      # v1.4.1, SafeL2 v1.4.1, Safe v1.5.0 and SafeL2 v1.5.0 singletons.
+      # Governor-veto and Governor-vetoEndToEnd mix compilers through their
+      # `solc_map`, which names solc8.24 (the constant-quorum Governor from
       # term-finance-ops-contracts PR 1096), solc8.20 (TERM's upgrade
       # implementation) and solc8.6; Governor-proposalThreshold's,
       # Governor-settings', Governor-voting's and Governor-tallies' name
       # solc8.24 and solc8.20; Delay-devopsEndToEnd's, and its
-      # Delay-SafeL2-v141- and Delay-SafeL2-v130- copies', name solc7.6,
-      # solc8.6 and solc8.20; the Safe-, Safe-v141-, Safe-L2-v141-,
-      # Safe-L2-v130- and Safe-L2-v150- configLockGuard confs, the Safe-, Safe-L2-v141- and
-      # Safe-L2-v130- ownerlessSafeGuard confs, the Safe-v141-, Safe-L2-v141-
-      # and Safe-L2-v130- vetoLandsOnDelay confs, Delay-delayOwnerGuard's and
-      # Delay-vetoSignedPath's and their Delay-SafeL2-v150- copies, and
-      # Delay-proposerToOwnerlessSettings's and its Delay-SafeL2-v141- and
-      # Delay-SafeL2-v130- copies' name solc7.6 and
-      # solc8.6; and TermToken-supply names solc8.20 through `solc`. So those
+      # Delay-SafeL2-v141-, Delay-SafeL2-v130-, Delay-SafeL2-v150- and
+      # Delay-Safe-v150- copies', name solc7.6, solc8.6 and solc8.20; the
+      # Safe-, Safe-v141-, Safe-L2-v141-, Safe-L2-v130-, Safe-L2-v150- and
+      # Safe-v150- configLockGuard confs, the Safe-, Safe-L2-v141-,
+      # Safe-L2-v130-, Safe-L2-v150- and Safe-v150- ownerlessSafeGuard confs,
+      # the Safe-v141-, Safe-L2-v141-, Safe-L2-v130- and Safe-v150-
+      # vetoLandsOnDelay confs, Delay-delayOwnerGuard's and
+      # Delay-vetoSignedPath's and their Delay-SafeL2-v150- and
+      # Delay-Safe-v150- copies, and
+      # Delay-proposerToOwnerlessSettings's and its Delay-SafeL2-v141-,
+      # Delay-SafeL2-v130-, Delay-SafeL2-v150- and Delay-Safe-v150- copies'
+      # name solc7.6 and solc8.6; and TermToken-supply names solc8.20 through `solc`. So those
       # names are put on PATH too.
       - run: |
           solc-select install 0.8.6 && solc-select install 0.7.6 && solc-select install 0.8.20 && solc-select install 0.8.24
