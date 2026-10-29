@@ -48,13 +48,11 @@ jobs:
           - "Safe-L2-v141-executionPaths.conf"
           - "Safe-L2-v141-selfCalls.conf"
           - "Safe-L2-v141-noStateChange.conf"
-          - "Safe-L2-v141-vetoLandsOnDelay.conf"
           - "Safe-L2-v141-configLockGuard.conf"
           - "Safe-L2-v141-ownerlessSafeGuard.conf"
           - "Safe-L2-v130-executionPaths.conf"
           - "Safe-L2-v130-selfCalls.conf"
           - "Safe-L2-v130-noStateChange.conf"
-          - "Safe-L2-v130-vetoLandsOnDelay.conf"
           - "Safe-L2-v130-configLockGuard.conf"
           - "Safe-L2-v130-ownerlessSafeGuard.conf"
           - "Safe-L2-v150-executionPaths.conf"
@@ -128,8 +126,8 @@ jobs:
       # Safe-, Safe-v141-, Safe-L2-v141-, Safe-L2-v130-, Safe-L2-v150- and
       # Safe-v150- configLockGuard confs, the Safe-, Safe-L2-v141-,
       # Safe-L2-v130-, Safe-L2-v150- and Safe-v150- ownerlessSafeGuard confs,
-      # the Safe-v141-, Safe-L2-v141-, Safe-L2-v130- and Safe-v150-
-      # vetoLandsOnDelay confs, Delay-delayOwnerGuard's and
+      # the Safe-v141- and Safe-v150- vetoLandsOnDelay confs,
+      # Delay-delayOwnerGuard's and
       # Delay-vetoSignedPath's and their Delay-SafeL2-v150- and
       # Delay-Safe-v150- copies, and
       # Delay-proposerToOwnerlessSettings's and its Delay-SafeL2-v141-,
