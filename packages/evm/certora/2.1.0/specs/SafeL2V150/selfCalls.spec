@@ -1,0 +1,238 @@
+/*
+ * SafeL2 v1.5.0: modules and owners can change the Safe's settings by having
+ * the Safe call its own settings functions, and nothing else can.
+ *
+ * The Safe's calls are routed to its own settings functions, as on chain when
+ * `to` is the Safe itself.
+ */
+
+methods {
+    function moduleEntry(address) external returns (address) envfree;
+    function ownerEntry(address) external returns (address) envfree;
+    function thresholdValue() external returns (uint256) envfree;
+    function guardAddress() external returns (address) envfree;
+    function moduleGuardAddress() external returns (address) envfree;
+    function fallbackHandlerSlotWord() external returns (uint256) envfree;
+    function selectorOf(bytes) external returns (uint32) envfree;
+
+    // The signature check passes.
+    function checkSignatures(address, bytes32, bytes memory) internal => NONDET;
+
+    unresolved external in SafeL2V150Harness.execTransactionFromModule(address, uint256, bytes, Enum.Operation) => DISPATCH [
+        SafeL2V150Harness.enableModule(address),
+        SafeL2V150Harness.disableModule(address, address),
+        SafeL2V150Harness.addOwnerWithThreshold(address, uint256),
+        SafeL2V150Harness.removeOwner(address, address, uint256),
+        SafeL2V150Harness.swapOwner(address, address, address),
+        SafeL2V150Harness.changeThreshold(uint256),
+        SafeL2V150Harness.setGuard(address),
+        SafeL2V150Harness.setFallbackHandler(address),
+        SafeL2V150Harness.setModuleGuard(address)
+    ] default HAVOC_ECF;
+
+    unresolved external in SafeL2V150Harness.execTransactionFromModuleReturnData(address, uint256, bytes, Enum.Operation) => DISPATCH [
+        SafeL2V150Harness.enableModule(address),
+        SafeL2V150Harness.disableModule(address, address),
+        SafeL2V150Harness.addOwnerWithThreshold(address, uint256),
+        SafeL2V150Harness.removeOwner(address, address, uint256),
+        SafeL2V150Harness.swapOwner(address, address, address),
+        SafeL2V150Harness.changeThreshold(uint256),
+        SafeL2V150Harness.setGuard(address),
+        SafeL2V150Harness.setFallbackHandler(address),
+        SafeL2V150Harness.setModuleGuard(address)
+    ] default HAVOC_ECF;
+
+    unresolved external in SafeL2V150Harness.execTransaction(
+        address, uint256, bytes, Enum.Operation, uint256, uint256, uint256, address, address, bytes
+    ) => DISPATCH [
+        SafeL2V150Harness.enableModule(address),
+        SafeL2V150Harness.disableModule(address, address),
+        SafeL2V150Harness.addOwnerWithThreshold(address, uint256),
+        SafeL2V150Harness.removeOwner(address, address, uint256),
+        SafeL2V150Harness.swapOwner(address, address, address),
+        SafeL2V150Harness.changeThreshold(uint256),
+        SafeL2V150Harness.setGuard(address),
+        SafeL2V150Harness.setFallbackHandler(address),
+        SafeL2V150Harness.setModuleGuard(address)
+    ] default HAVOC_ECF;
+
+    // Every other call the Safe makes, fallback's call to its handler
+    // included, is routed the same way, as if its target were the Safe.
+    unresolved external in SafeL2V150Harness._ => DISPATCH [
+        SafeL2V150Harness.enableModule(address),
+        SafeL2V150Harness.disableModule(address, address),
+        SafeL2V150Harness.addOwnerWithThreshold(address, uint256),
+        SafeL2V150Harness.removeOwner(address, address, uint256),
+        SafeL2V150Harness.swapOwner(address, address, address),
+        SafeL2V150Harness.changeThreshold(uint256),
+        SafeL2V150Harness.setGuard(address),
+        SafeL2V150Harness.setFallbackHandler(address),
+        SafeL2V150Harness.setModuleGuard(address)
+    ] default HAVOC_ECF;
+}
+
+/// Head of the Safe's owner and module lists.
+definition SENTINEL() returns address = 0x1;
+
+definition isExecTransaction(method f) returns bool =
+    f.selector == sig:execTransaction(
+        address, uint256, bytes, Enum.Operation,
+        uint256, uint256, uint256, address, address, bytes
+    ).selector;
+
+definition isModuleExec(method f) returns bool =
+    f.selector == sig:execTransactionFromModule(address, uint256, bytes, Enum.Operation).selector ||
+    f.selector == sig:execTransactionFromModuleReturnData(address, uint256, bytes, Enum.Operation).selector;
+
+definition isSelfOnlySetting(method f) returns bool =
+    f.selector == sig:enableModule(address).selector ||
+    f.selector == sig:disableModule(address, address).selector ||
+    f.selector == sig:addOwnerWithThreshold(address, uint256).selector ||
+    f.selector == sig:removeOwner(address, address, uint256).selector ||
+    f.selector == sig:swapOwner(address, address, address).selector ||
+    f.selector == sig:changeThreshold(uint256).selector ||
+    f.selector == sig:setGuard(address).selector ||
+    f.selector == sig:setFallbackHandler(address).selector ||
+    f.selector == sig:setModuleGuard(address).selector;
+
+/*
+ * For each of the nine settings functions, a module's
+ * execTransactionFromModule addressed to the Safe, with a call to that
+ * function, succeeds and a setting changes. `f` picks the selector the call
+ * carries.
+ */
+rule moduleCanChangeSettings(method f, bytes data, address a)
+    filtered { f -> isSelfOnlySetting(f) }
+{
+    env e;
+    require thresholdValue() > 0;
+    require e.msg.sender != SENTINEL();
+    require moduleEntry(e.msg.sender) != 0;
+    require selectorOf(data) == f.selector;
+
+    uint256 thresholdBefore = thresholdValue();
+    address ownerBefore = ownerEntry(a);
+    address moduleBefore = moduleEntry(a);
+    address guardBefore = guardAddress();
+    address moduleGuardBefore = moduleGuardAddress();
+    uint256 handlerBefore = fallbackHandlerSlotWord();
+
+    execTransactionFromModule@withrevert(e, currentContract, 0, data, Enum.Operation.Call);
+
+    assert true; // Check pessimistic assertions alongside the existential witness.
+    satisfy !lastReverted && (
+        thresholdValue() != thresholdBefore ||
+        ownerEntry(a) != ownerBefore ||
+        moduleEntry(a) != moduleBefore ||
+        guardAddress() != guardBefore ||
+        moduleGuardAddress() != moduleGuardBefore ||
+        fallbackHandlerSlotWord() != handlerBefore),
+        "a module transaction cannot use this settings function to change the Safe's settings";
+}
+
+/* The same through the module's other entry point, execTransactionFromModuleReturnData. */
+rule moduleCanChangeSettingsWithReturnData(method f, bytes data, address a)
+    filtered { f -> isSelfOnlySetting(f) }
+{
+    env e;
+    require thresholdValue() > 0;
+    require e.msg.sender != SENTINEL();
+    require moduleEntry(e.msg.sender) != 0;
+    require selectorOf(data) == f.selector;
+
+    uint256 thresholdBefore = thresholdValue();
+    address ownerBefore = ownerEntry(a);
+    address moduleBefore = moduleEntry(a);
+    address guardBefore = guardAddress();
+    address moduleGuardBefore = moduleGuardAddress();
+    uint256 handlerBefore = fallbackHandlerSlotWord();
+
+    execTransactionFromModuleReturnData@withrevert(e, currentContract, 0, data, Enum.Operation.Call);
+
+    assert true; // Check pessimistic assertions alongside the existential witness.
+    satisfy !lastReverted && (
+        thresholdValue() != thresholdBefore ||
+        ownerEntry(a) != ownerBefore ||
+        moduleEntry(a) != moduleBefore ||
+        guardAddress() != guardBefore ||
+        moduleGuardAddress() != moduleGuardBefore ||
+        fallbackHandlerSlotWord() != handlerBefore),
+        "a module transaction through execTransactionFromModuleReturnData cannot use this settings function to change the Safe's settings";
+}
+
+/*
+ * The same through execTransaction, once the threshold is passed.
+ */
+rule ownersCanChangeSettings(
+    method f, bytes data, address a, uint256 safeTxGas, uint256 baseGas,
+    address gasToken, address refundReceiver, bytes signatures
+)
+    filtered { f -> isSelfOnlySetting(f) }
+{
+    env e;
+    require thresholdValue() > 0;
+    require guardAddress() == 0;
+    require selectorOf(data) == f.selector;
+
+    uint256 thresholdBefore = thresholdValue();
+    address ownerBefore = ownerEntry(a);
+    address moduleBefore = moduleEntry(a);
+    address moduleGuardBefore = moduleGuardAddress();
+    uint256 handlerBefore = fallbackHandlerSlotWord();
+
+    execTransaction@withrevert(e,
+        currentContract, 0, data, Enum.Operation.Call, safeTxGas, baseGas, 0, gasToken, refundReceiver, signatures);
+
+    assert true; // Check pessimistic assertions alongside the existential witness.
+    satisfy !lastReverted && (
+        thresholdValue() != thresholdBefore ||
+        ownerEntry(a) != ownerBefore ||
+        moduleEntry(a) != moduleBefore ||
+        guardAddress() != 0 ||
+        moduleGuardAddress() != moduleGuardBefore ||
+        fallbackHandlerSlotWord() != handlerBefore),
+        "an owner transaction cannot use this settings function to change the Safe's settings";
+}
+
+/*
+ * Over every write function, fallback included, the Safe's settings only
+ * change through an enabled module's execTransactionFromModule or
+ * execTransactionFromModuleReturnData, or through execTransaction. The caller
+ * is never the Safe: a call the Safe makes to itself starts inside one of
+ * these functions and is covered there.
+ *
+ * fallback is checked with no fallback handler set, the configuration P2.4
+ * assumes. With a handler set, the Prover's fallback entry can carry a real
+ * function's selector, which on chain never reaches fallback, and the
+ * DISPATCH above sends the handler call back into the Safe with the Safe as
+ * msg.sender.
+ */
+rule settingsOnlyChangeThroughAModuleOrOwners(method f, calldataarg args, address a)
+    filtered { f -> !f.isView && !f.isPure }
+{
+    env e;
+    require thresholdValue() > 0;
+    require e.msg.sender != currentContract;
+    require f.isFallback => fallbackHandlerSlotWord() == 0;
+    bool senderWasModule = e.msg.sender != SENTINEL() && moduleEntry(e.msg.sender) != 0;
+
+    uint256 thresholdBefore = thresholdValue();
+    address ownerBefore = ownerEntry(a);
+    address moduleBefore = moduleEntry(a);
+    address guardBefore = guardAddress();
+    address moduleGuardBefore = moduleGuardAddress();
+    uint256 handlerBefore = fallbackHandlerSlotWord();
+
+    f@withrevert(e, args);
+
+    bool changed = !lastReverted && (
+        thresholdValue() != thresholdBefore ||
+        ownerEntry(a) != ownerBefore ||
+        moduleEntry(a) != moduleBefore ||
+        guardAddress() != guardBefore ||
+        moduleGuardAddress() != moduleGuardBefore ||
+        fallbackHandlerSlotWord() != handlerBefore);
+
+    assert changed => ((isModuleExec(f) && senderWasModule) || isExecTransaction(f)),
+        "a setting changed through something other than an enabled module's transaction or execTransaction";
+}
