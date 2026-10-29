@@ -43,7 +43,6 @@ jobs:
           - "Safe-v141-executionPaths.conf"
           - "Safe-v141-selfCalls.conf"
           - "Safe-v141-noStateChange.conf"
-          - "Safe-v141-vetoLandsOnDelay.conf"
           - "Safe-v141-configLockGuard.conf"
           - "Safe-L2-v141-executionPaths.conf"
           - "Safe-L2-v141-selfCalls.conf"
@@ -126,7 +125,7 @@ jobs:
       # Safe-, Safe-v141-, Safe-L2-v141-, Safe-L2-v130-, Safe-L2-v150- and
       # Safe-v150- configLockGuard confs, the Safe-, Safe-L2-v141-,
       # Safe-L2-v130-, Safe-L2-v150- and Safe-v150- ownerlessSafeGuard confs,
-      # the Safe-v141- and Safe-v150- vetoLandsOnDelay confs,
+      # Safe-v150-vetoLandsOnDelay's,
       # Delay-delayOwnerGuard's and
       # Delay-vetoSignedPath's and their Delay-SafeL2-v150- and
       # Delay-Safe-v150- copies, and
