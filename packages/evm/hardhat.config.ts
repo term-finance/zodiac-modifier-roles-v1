@@ -45,8 +45,6 @@ if (
   );
 }
 
-
-
 const config: HardhatUserConfig = {
   paths: {
     artifacts: "build/artifacts",
@@ -92,7 +90,7 @@ const config: HardhatUserConfig = {
     timeout: 2000000,
   },
   etherscan: {
-    apiKey: "68YU3C27DCWKJRPXFB8FWPJ16G3RJRP6PR",
+    apiKey: ETHERSCAN_API_KEY,
   },
 };
 
