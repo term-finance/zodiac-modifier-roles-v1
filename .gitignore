@@ -29,3 +29,5 @@ packages/subgraph/subgraph.yaml
 # Certora
 **/.venv
 **/.certora*
+# guards pulled from a release tag by certora/pull_guards.py
+/packages/evm/certora/*/contracts/

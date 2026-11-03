@@ -1,14 +1,18 @@
 // SPDX-License-Identifier: LGPL-3.0-only
-// Pinned to solc 0.8.20, the compiler the deployed Governor
-// (0x2B715634134220ffeEE9458b4e34E41A41418607) was built with.
-pragma solidity 0.8.20;
+// Each release's conf compiles this with its Governor's compiler: solc 0.8.20
+// for the deployed Governor (0x2B715634134220ffeEE9458b4e34E41A41418607) in
+// 2.0.0, and solc 0.8.24 for term-finance-ops-contracts PR 1096 in 2.1.0.
+pragma solidity ^0.8.20;
 
-import {TermFinanceGovernor, IVotes} from "../vendor/TermFinanceGovernor/contracts/TermFinanceGovernor.sol";
+import {TermFinanceGovernor, IVotes} from "term-finance-governor/TermFinanceGovernor.sol";
 
 /// @dev Adds helpers that build the veto proposal and hand it to the real
 /// propose, execute and hashProposal, and nothing else. TermFinanceGovernor
-/// is inherited unmodified from its verified source
-/// (certora/vendor/TermFinanceGovernor).
+/// is inherited unmodified from the source each release's conf maps
+/// `term-finance-governor` to: certora/vendor/TermFinanceGovernor, the
+/// deployed Governor, for 2.0.0, and
+/// certora/vendor/TermFinanceGovernorConstantQuorum, PR 1096's
+/// constant-quorum Governor, for 2.1.0.
 ///
 /// The veto proposal is a single action calling the Roles Modifier with
 /// `execTransactionWithRole(delay, 0, setTxNonce(n), Call, 1, true)`.
