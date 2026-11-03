@@ -3,7 +3,24 @@
 # guards in packages/evm/contracts does not run it.
 name: Formal Verification 2.0.0
 on:
+  # Every commit of a pull request, and every push to main. A pull request
+  # runs on GitHub's merge of its head into the base branch.
   push:
+    branches:
+      - main
+    paths:
+      - "packages/evm/certora/**"
+      - "packages/evm/contracts/**"
+      - "!packages/evm/contracts/helpers/ConfigLockGuard.sol"
+      - "!packages/evm/contracts/helpers/PauseGuard.sol"
+      - "!packages/evm/contracts/helpers/SetTxNonceGuard.sol"
+      - "!packages/evm/certora/2.1.0/**"
+      - "packages/evm/requirements*.txt"
+      - "packages/evm/package.json"
+      - "packages/evm/yarn.lock"
+      - ".tool-versions"
+      - ".github/workflows/formal-verification-2.0.0.yaml"
+  pull_request:
     paths:
       - "packages/evm/certora/**"
       - "packages/evm/contracts/**"
@@ -20,8 +37,8 @@ permissions:
   contents: read
 concurrency:
   # Per-commit group on main so no main commit's verification is superseded by
-  # a later push — every commit that lands gets its own prover run. Elsewhere,
-  # a new push cancels the previous run for that branch.
+  # a later push — every commit that lands gets its own prover run. On a pull
+  # request, a new push cancels the previous run for that pull request.
   group: fv-2.0.0-${{ github.ref == 'refs/heads/main' && github.sha || github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
